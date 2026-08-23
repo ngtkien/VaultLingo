@@ -29,9 +29,14 @@
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   });
 
-  let hasAiToken = $derived(
-    config ? (config.ai_provider === 'ollama' || (config.gemini_api_key && config.gemini_api_key.trim().length > 5)) : true
-  );
+  let hasAiToken = $derived(() => {
+    if (!config) return true;
+    if (config.ai_provider === 'agy') return true;
+    if (config.ai_provider === 'ollama') return true;
+    if (config.ai_provider === 'openrouter') return !!(config.openrouter_api_key && config.openrouter_api_key.trim().length > 5);
+    if (config.ai_provider === 'groq') return !!(config.groq_api_key && config.groq_api_key.trim().length > 5);
+    return true;
+  });
 
   function startTimer() {
     if (timerRunning) return;
@@ -164,7 +169,7 @@
     <div class="relative">
       <!-- Prompt & Scenario Container -->
       <div class={`bg-slate-900/90 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl shadow-xl space-y-5 transition-all ${
-        !hasAiToken ? 'filter blur-[1.5px] opacity-40 pointer-events-none select-none' : ''
+        !hasAiToken() ? 'filter blur-[1.5px] opacity-40 pointer-events-none select-none' : ''
       }`}>
         <div class="flex items-start justify-between gap-4">
           <div class="flex items-center gap-3">
@@ -316,16 +321,16 @@
       </div>
 
       <!-- Blurred Glass Lock Overlay when Token is Missing -->
-      {#if !hasAiToken}
+      {#if !hasAiToken()}
         <div class="absolute inset-0 rounded-2xl bg-slate-950/70 backdrop-blur-md border border-slate-700/80 flex flex-col items-center justify-center p-8 text-center space-y-4 shadow-2xl z-20">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-indigo-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/10">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-violet-500/20 to-cyan-500/20 border border-violet-500/40 flex items-center justify-center text-violet-400 shadow-lg shadow-violet-500/10">
             <Lock class="w-7 h-7" />
           </div>
 
           <div class="max-w-md space-y-1.5">
             <h4 class="text-lg font-bold text-slate-100">AI Configuration Required</h4>
             <p class="text-xs text-slate-400 leading-relaxed">
-              The <strong>AI Writing Coach</strong> uses advanced LLMs to evaluate grammar, tone, and vocabulary. Please configure your <strong>Google Gemini API Key</strong> (free) or enable <strong>Local Ollama</strong> in Settings.
+              Please choose <strong>Antigravity (agy)</strong> for zero-config evaluation, or configure <strong>OpenRouter / Groq / Ollama</strong> in Settings.
             </p>
           </div>
 
@@ -333,22 +338,13 @@
             {#if onNavigateTab}
               <button
                 onclick={() => onNavigateTab('settings')}
-                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-2 transition shadow-lg shadow-blue-500/25 cursor-pointer active:scale-95"
+                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white text-xs font-bold flex items-center gap-2 transition shadow-lg shadow-violet-500/25 cursor-pointer active:scale-95"
               >
                 <KeyRound class="w-4 h-4" />
                 <span>Go to Settings</span>
                 <ArrowRight class="w-3.5 h-3.5" />
               </button>
             {/if}
-
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition border border-slate-700"
-            >
-              <span>Get Free API Key</span>
-              <ExternalLink class="w-3.5 h-3.5" />
-            </a>
           </div>
         </div>
       {/if}

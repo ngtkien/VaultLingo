@@ -95,12 +95,17 @@ type ObsidianSaveResult struct {
 }
 
 type Config struct {
-	ObsidianVaultPath string `json:"obsidian_vault_path"`
-	GeminiApiKey      string `json:"gemini_api_key"`
-	AiProvider        string `json:"ai_provider"` // "gemini", "ollama", "openai"
-	OllamaUrl         string `json:"ollama_url"`
-	OllamaModel       string `json:"ollama_model"`
-	AutoPlayAudio     bool   `json:"auto_play_audio"`
+	ObsidianVaultPath string  `json:"obsidian_vault_path"`
+	AiProvider        string  `json:"ai_provider"` // "agy", "openrouter", "groq", "ollama"
+	AgyModel          string  `json:"agy_model"`
+	AgyPath           string  `json:"agy_path"`
+	OpenrouterApiKey  string  `json:"openrouter_api_key"`
+	OpenrouterModel   string  `json:"openrouter_model"`
+	GroqApiKey        string  `json:"groq_api_key"`
+	GroqModel         string  `json:"groq_model"`
+	OllamaUrl         string  `json:"ollama_url"`
+	OllamaModel       string  `json:"ollama_model"`
+	AutoPlayAudio     bool    `json:"auto_play_audio"`
 	DefaultAudioSpeed float64 `json:"default_audio_speed"`
 }
 

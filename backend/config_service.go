@@ -16,8 +16,13 @@ func GetConfigPath() string {
 func LoadConfig() Config {
 	defaultCfg := Config{
 		ObsidianVaultPath: GetDefaultVaultPath(),
-		GeminiApiKey:      "",
-		AiProvider:        "gemini",
+		AiProvider:        "agy",
+		AgyModel:          "gemini-3.7-flash",
+		AgyPath:           "",
+		OpenrouterApiKey:  "",
+		OpenrouterModel:   "meta-llama/llama-3.3-70b-instruct:free",
+		GroqApiKey:        "",
+		GroqModel:         "llama-3.3-70b-versatile",
 		OllamaUrl:         "http://localhost:11434",
 		OllamaModel:       "llama3:latest",
 		AutoPlayAudio:     true,
@@ -37,6 +42,21 @@ func LoadConfig() Config {
 
 	if cfg.ObsidianVaultPath == "" {
 		cfg.ObsidianVaultPath = defaultCfg.ObsidianVaultPath
+	}
+	if cfg.AiProvider == "" {
+		cfg.AiProvider = "agy"
+	}
+	if cfg.AgyModel == "" {
+		cfg.AgyModel = "gemini-3.7-flash"
+	}
+	if cfg.OpenrouterModel == "" {
+		cfg.OpenrouterModel = "meta-llama/llama-3.3-70b-instruct:free"
+	}
+	if cfg.GroqModel == "" {
+		cfg.GroqModel = "llama-3.3-70b-versatile"
+	}
+	if cfg.OllamaUrl == "" {
+		cfg.OllamaUrl = "http://localhost:11434"
 	}
 
 	return cfg

@@ -2,8 +2,13 @@ export namespace backend {
 	
 	export class Config {
 	    obsidian_vault_path: string;
-	    gemini_api_key: string;
 	    ai_provider: string;
+	    agy_model: string;
+	    agy_path: string;
+	    openrouter_api_key: string;
+	    openrouter_model: string;
+	    groq_api_key: string;
+	    groq_model: string;
 	    ollama_url: string;
 	    ollama_model: string;
 	    auto_play_audio: boolean;
@@ -16,8 +21,13 @@ export namespace backend {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.obsidian_vault_path = source["obsidian_vault_path"];
-	        this.gemini_api_key = source["gemini_api_key"];
 	        this.ai_provider = source["ai_provider"];
+	        this.agy_model = source["agy_model"];
+	        this.agy_path = source["agy_path"];
+	        this.openrouter_api_key = source["openrouter_api_key"];
+	        this.openrouter_model = source["openrouter_model"];
+	        this.groq_api_key = source["groq_api_key"];
+	        this.groq_model = source["groq_model"];
 	        this.ollama_url = source["ollama_url"];
 	        this.ollama_model = source["ollama_model"];
 	        this.auto_play_audio = source["auto_play_audio"];

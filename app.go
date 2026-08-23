@@ -82,7 +82,7 @@ func (a *App) GetWritingPrompt(level string) (backend.WritingPrompt, error) {
 
 func (a *App) EvaluateWriting(prompt, text, situationVi string) (string, error) {
 	cfg := backend.LoadConfig()
-	return backend.EvaluateWritingAI(prompt, text, situationVi, cfg.GeminiApiKey, cfg.AiProvider, cfg.OllamaUrl, cfg.OllamaModel)
+	return backend.EvaluateWritingAI(prompt, text, situationVi, cfg)
 }
 
 // Obsidian Vault Methods
