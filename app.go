@@ -32,6 +32,19 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, welcome to VaultLingo! 🚀", name)
 }
 
+// Audio Methods (Native OS Player - No GStreamer dependency)
+func (a *App) PlayTTS(text string, speed float64) error {
+	return backend.PlayTTS(text, speed)
+}
+
+func (a *App) PlayAudioUrl(audioUrl string, speed float64) error {
+	return backend.PlayAudioUrl(audioUrl, speed)
+}
+
+func (a *App) StopAudio() {
+	backend.StopAudio()
+}
+
 // Vocab Methods
 func (a *App) GetDailyVocab(topic string, count int) ([]backend.Word, error) {
 	return backend.GetDailyVocab(topic, count)

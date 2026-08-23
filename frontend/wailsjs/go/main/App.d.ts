@@ -26,6 +26,10 @@ export function Greet(arg1:string):Promise<string>;
 
 export function OpenInObsidian(arg1:string):Promise<void>;
 
+export function PlayAudioUrl(arg1:string,arg2:number):Promise<void>;
+
+export function PlayTTS(arg1:string,arg2:number):Promise<void>;
+
 export function RecordSrsReview(arg1:number,arg2:number):Promise<void>;
 
 export function SaveAllWordsToObsidian(arg1:Array<backend.Word>):Promise<Array<backend.ObsidianSaveResult>>;
@@ -35,5 +39,7 @@ export function SaveConfig(arg1:backend.Config):Promise<void>;
 export function SaveWordToObsidian(arg1:backend.Word):Promise<backend.ObsidianSaveResult>;
 
 export function SaveWritingToObsidian(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string):Promise<backend.ObsidianSaveResult>;
+
+export function StopAudio():Promise<void>;
 
 export function UpdateObsidianSrsReview(arg1:string,arg2:string,arg3:number):Promise<void>;

@@ -10,7 +10,7 @@
   let currentTab = $state('vocab');
 </script>
 
-<div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-blue-500 selection:text-white">
+<div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-white">
   <!-- Top Navigation Bar -->
   <Navbar bind:activeTab={currentTab} />
 
@@ -23,7 +23,7 @@
     {:else if currentTab === 'listening'}
       <ListeningTab />
     {:else if currentTab === 'writing'}
-      <WritingTab />
+      <WritingTab onNavigateTab={(tab) => currentTab = tab} />
     {:else if currentTab === 'obsidian'}
       <ObsidianTab />
     {:else if currentTab === 'settings'}

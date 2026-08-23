@@ -50,6 +50,14 @@ export function OpenInObsidian(arg1) {
   return window['go']['main']['App']['OpenInObsidian'](arg1);
 }
 
+export function PlayAudioUrl(arg1, arg2) {
+  return window['go']['main']['App']['PlayAudioUrl'](arg1, arg2);
+}
+
+export function PlayTTS(arg1, arg2) {
+  return window['go']['main']['App']['PlayTTS'](arg1, arg2);
+}
+
 export function RecordSrsReview(arg1, arg2) {
   return window['go']['main']['App']['RecordSrsReview'](arg1, arg2);
 }
@@ -68,6 +76,10 @@ export function SaveWordToObsidian(arg1) {
 
 export function SaveWritingToObsidian(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['main']['App']['SaveWritingToObsidian'](arg1, arg2, arg3, arg4, arg5);
+}
+
+export function StopAudio() {
+  return window['go']['main']['App']['StopAudio']();
 }
 
 export function UpdateObsidianSrsReview(arg1, arg2, arg3) {
