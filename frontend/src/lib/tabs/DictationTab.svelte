@@ -73,7 +73,7 @@
         <button
           onclick={loadSentence}
           class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
-          title="Đổi câu tiếp theo"
+          title="Load next sentence"
         >
           <RefreshCw class="w-3.5 h-3.5" />
           <span>Next Sentence</span>
@@ -100,7 +100,7 @@
         </div>
 
         <p class="text-xs text-slate-400">
-          Hãy lắng nghe kỹ đoạn audio và gõ lại chính xác từng từ bạn nghe được 👇
+          Listen carefully to the audio and type exactly what you hear below 👇
         </p>
       </div>
 
@@ -147,7 +147,7 @@
         <!-- Hint Box -->
         {#if showHint && dictation.hint}
           <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300">
-            <strong>Gợi ý:</strong> {dictation.hint}
+            <strong>Hint:</strong> {dictation.hint}
           </div>
         {/if}
       </div>
@@ -160,7 +160,7 @@
             <div class="flex items-center gap-2">
               <Award class={`w-6 h-6 ${diffResult.passed ? 'text-emerald-400' : 'text-amber-400'}`} />
               <div>
-                <span class="text-sm font-bold text-slate-200">Độ chính xác: </span>
+                <span class="text-sm font-bold text-slate-200">Accuracy Score: </span>
                 <span class={`text-xl font-extrabold ${diffResult.passed ? 'text-emerald-400' : 'text-amber-400'}`}>
                   {diffResult.accuracy}%
                 </span>
@@ -176,7 +176,7 @@
 
           <!-- Token-by-Token Visual Diff -->
           <div class="p-4 rounded-xl bg-slate-900 border border-slate-800/80 space-y-2">
-            <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">So sánh chi tiết từng từ:</span>
+            <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Word-by-word Diff Comparison:</span>
             <div class="flex flex-wrap gap-2 text-base font-mono leading-relaxed pt-1">
               {#each diffResult.tokens as tok}
                 {#if tok.type === 'correct'}
@@ -184,11 +184,11 @@
                     {tok.word}
                   </span>
                 {:else if tok.type === 'wrong'}
-                  <span class="px-2 py-0.5 rounded-lg bg-red-500/20 text-red-300 line-through border border-red-500/40" title="Từ này không đúng">
+                  <span class="px-2 py-0.5 rounded-lg bg-red-500/20 text-red-300 line-through border border-red-500/40" title="Incorrect word">
                     {tok.word}
                   </span>
                 {:else if tok.type === 'missing'}
-                  <span class="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 underline" title={`Thiếu từ: "${tok.match}"`}>
+                  <span class="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 underline" title={`Missing word: "${tok.match}"`}>
                     [{tok.match}]
                   </span>
                 {/if}
@@ -199,11 +199,11 @@
           <!-- Original Correct Sentence & Translation -->
           <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/60 space-y-1.5 text-sm">
             <div class="text-slate-300">
-              <strong class="text-slate-100">Câu gốc:</strong> {dictation.sentence}
+              <strong class="text-slate-100">Original Sentence:</strong> {dictation.sentence}
             </div>
             {#if dictation.sentence_vi}
               <div class="text-xs text-slate-400 italic">
-                <strong>Bản dịch:</strong> {dictation.sentence_vi}
+                <strong>Translation:</strong> {dictation.sentence_vi}
               </div>
             {/if}
           </div>

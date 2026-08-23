@@ -75,7 +75,7 @@
     try {
       aiEvaluation = await EvaluateWriting(promptItem.prompt, userText, promptItem.situation_vi);
     } catch (e) {
-      aiEvaluation = `Lỗi khi gọi AI: ${e}`;
+      aiEvaluation = `AI evaluation error: ${e}`;
     } finally {
       evaluating = false;
     }
@@ -126,7 +126,7 @@
           currentLevel === 'scenario' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-400 hover:text-slate-200'
         }`}
       >
-        Micro-Scenario (2-3 câu)
+        Micro-Scenario (2-3 sentences)
       </button>
       <button
         onclick={() => loadPrompt('short')}
@@ -149,7 +149,7 @@
     <button
       onclick={() => loadPrompt()}
       class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
-      title="Đổi đề bài khác"
+      title="Load new scenario prompt"
     >
       <RefreshCw class={`w-4 h-4 ${loadingPrompt ? 'animate-spin' : ''}`} />
     </button>
@@ -179,29 +179,29 @@
           <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-1.5 rounded-xl border border-slate-800 font-mono text-sm">
             <span class="text-blue-400 font-bold">{formattedTime()}</span>
             {#if !timerRunning}
-              <button onclick={startTimer} class="text-slate-400 hover:text-emerald-400 transition cursor-pointer" title="Bắt đầu">
+              <button onclick={startTimer} class="text-slate-400 hover:text-emerald-400 transition cursor-pointer" title="Start Timer">
                 <Play class="w-3.5 h-3.5" />
               </button>
             {:else}
-              <button onclick={pauseTimer} class="text-slate-400 hover:text-amber-400 transition cursor-pointer" title="Tạm dừng">
+              <button onclick={pauseTimer} class="text-slate-400 hover:text-amber-400 transition cursor-pointer" title="Pause Timer">
                 <Pause class="w-3.5 h-3.5" />
               </button>
             {/if}
-            <button onclick={resetTimer} class="text-slate-400 hover:text-red-400 transition cursor-pointer" title="Đặt lại">
+            <button onclick={resetTimer} class="text-slate-400 hover:text-red-400 transition cursor-pointer" title="Reset Timer">
               <RotateCcw class="w-3 h-3" />
             </button>
           </div>
         </div>
 
-        <!-- Situation Box (Vietnamese) -->
+        <!-- Situation Box (Context) -->
         <div class="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-sm space-y-1">
-          <span class="text-xs font-bold uppercase tracking-wider text-blue-400">Tình huống thực tế:</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-blue-400">Scenario Context:</span>
           <p class="text-slate-200">{promptItem.situation_vi}</p>
         </div>
 
         <!-- English Prompt -->
         <div class="text-sm font-semibold text-slate-200">
-          <strong class="text-blue-400">Đề bài:</strong> {promptItem.prompt}
+          <strong class="text-blue-400">Writing Prompt:</strong> {promptItem.prompt}
         </div>
 
         <!-- Sentence Starters & Suggested Vocab -->
@@ -210,7 +210,7 @@
             <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
               <div class="flex items-center gap-1.5 text-xs font-bold text-slate-400">
                 <Lightbulb class="w-3.5 h-3.5 text-amber-400" />
-                <span>Gợi ý mở câu (click để chèn):</span>
+                <span>Sentence Starters (click to insert):</span>
               </div>
               <div class="space-y-1.5">
                 {#each promptItem.sentence_starters as starter}
@@ -229,7 +229,7 @@
 
           {#if promptItem.suggested_vocab && promptItem.suggested_vocab.length > 0}
             <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
-              <span class="text-xs font-bold text-slate-400">Từ vựng nên dùng:</span>
+              <span class="text-xs font-bold text-slate-400">Suggested Vocabulary:</span>
               <div class="flex flex-wrap gap-1.5">
                 {#each promptItem.suggested_vocab as vocab}
                   <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
@@ -255,7 +255,7 @@
             <!-- Word Counter & Range Bar -->
             <div class="flex items-center gap-3">
               <span class="text-xs font-mono text-slate-400">
-                Số từ: <strong class="text-slate-100">{wordCount}</strong>
+                Word Count: <strong class="text-slate-100">{wordCount}</strong>
                 {#if promptItem.target_min}
                   / {promptItem.target_min}-{promptItem.target_max} words
                 {/if}
@@ -286,7 +286,7 @@
                     ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
                 }`}
-                title="Lưu bài viết vào Obsidian Vault"
+                title="Save essay and feedback to Obsidian Vault"
               >
                 {#if savedToObsidian}
                   <Check class="w-4 h-4 text-emerald-400" />
@@ -305,7 +305,7 @@
           <div class="p-5 rounded-2xl bg-slate-950/90 border border-blue-500/30 space-y-3 text-sm animate-fade-in">
             <div class="flex items-center gap-2 text-blue-400 font-bold">
               <Sparkles class="w-4 h-4" />
-              <span>Nhận Xét & Đánh Giá Chi Tiết Của AI Coach</span>
+              <span>AI Coach Evaluation & Detailed Feedback</span>
             </div>
 
             <div class="text-slate-300 leading-relaxed whitespace-pre-wrap font-sans text-xs bg-slate-900/60 p-4 rounded-xl border border-slate-800">
@@ -323,9 +323,9 @@
           </div>
 
           <div class="max-w-md space-y-1.5">
-            <h4 class="text-lg font-bold text-slate-100">Cần Cấu Hình AI Token Để Mở Khóa</h4>
+            <h4 class="text-lg font-bold text-slate-100">AI Configuration Required</h4>
             <p class="text-xs text-slate-400 leading-relaxed">
-              Tính năng <strong>AI Writing Coach</strong> sử dụng mô hình ngôn ngữ lớn để chấm điểm và phân tích câu cú. Bạn hãy nhập <strong>Google Gemini API Key</strong> (miễn phí) hoặc kích hoạt <strong>Local Ollama</strong> trong phần Cài đặt.
+              The <strong>AI Writing Coach</strong> uses advanced LLMs to evaluate grammar, tone, and vocabulary. Please configure your <strong>Google Gemini API Key</strong> (free) or enable <strong>Local Ollama</strong> in Settings.
             </p>
           </div>
 
@@ -336,7 +336,7 @@
                 class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-2 transition shadow-lg shadow-blue-500/25 cursor-pointer active:scale-95"
               >
                 <KeyRound class="w-4 h-4" />
-                <span>Đi tới Cài Đặt (Settings)</span>
+                <span>Go to Settings</span>
                 <ArrowRight class="w-3.5 h-3.5" />
               </button>
             {/if}
@@ -346,7 +346,7 @@
               target="_blank"
               class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition border border-slate-700"
             >
-              <span>Lấy Key Miễn Phí</span>
+              <span>Get Free API Key</span>
               <ExternalLink class="w-3.5 h-3.5" />
             </a>
           </div>

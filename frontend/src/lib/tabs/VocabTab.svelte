@@ -99,7 +99,6 @@
   async function handleSrsRate(wordId: number, rating: number) {
     try {
       await RecordSrsReview(wordId, rating);
-      // Auto move to next card in flashcard mode
       if (activeViewMode === 'flashcard' && currentCardIndex < words.length - 1) {
         nextCard();
       }
@@ -141,7 +140,6 @@
     } else if (e.key === 'ArrowRight') {
       nextCard();
     } else if (e.key === ' ' || e.key === 'Enter') {
-      // Don't intercept if inside an input
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
       e.preventDefault();
       cardFlipped = !cardFlipped;
@@ -202,7 +200,7 @@
       <button
         onclick={handleSaveAll}
         class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 transition shadow-lg shadow-emerald-600/20 cursor-pointer"
-        title="Lưu tất cả 5 từ vào Obsidian Vault"
+        title="Save all 5 words to Obsidian Vault"
       >
         <Bookmark class="w-3.5 h-3.5" />
         <span>Save All to Obsidian</span>
@@ -212,7 +210,7 @@
       <button
         onclick={loadData}
         class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer border border-slate-700"
-        title="Đổi bộ từ vựng mới"
+        title="Load new word set"
       >
         <RefreshCw class={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
       </button>
@@ -254,14 +252,14 @@
               <button
                 onclick={() => playWord(w.word, false)}
                 class="p-2 rounded-xl bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition cursor-pointer"
-                title="Phát âm (1.0x)"
+                title="Pronounce (1.0x)"
               >
                 <Volume2 class="w-4 h-4" />
               </button>
               <button
                 onclick={() => playWord(w.word, true)}
                 class="px-2 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs font-mono transition cursor-pointer"
-                title="Phát âm chậm (0.75x)"
+                title="Slow Pronunciation (0.75x)"
               >
                 0.75x
               </button>
@@ -269,7 +267,7 @@
                 href={w.dict_link}
                 target="_blank"
                 class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition"
-                title="Mở từ điển Cambridge"
+                title="Open Cambridge Dictionary"
               >
                 <ExternalLink class="w-4 h-4" />
               </a>
@@ -280,7 +278,7 @@
                     ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
                     : 'bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white'
                 }`}
-                title="Lưu vào Obsidian Vault"
+                title="Save to Obsidian Vault"
               >
                 {#if savedWordsMap[w.word.toLowerCase()]}
                   <Check class="w-4 h-4 text-emerald-400" />
@@ -294,7 +292,7 @@
           <!-- Definition & Examples -->
           <div class="bg-slate-950/50 p-3.5 rounded-xl border border-slate-800/60 space-y-2">
             <div>
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Định nghĩa:</span>
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Definition:</span>
               <p class="text-sm text-slate-200 mt-0.5">{w.definition_en}</p>
               {#if w.definition_vi}
                 <p class="text-xs text-slate-400 mt-0.5 italic">{w.definition_vi}</p>
@@ -302,7 +300,7 @@
             </div>
             {#if w.example_en}
               <div class="pt-2 border-t border-slate-800/50">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Ví dụ:</span>
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Example:</span>
                 <p class="text-sm text-slate-300 italic mt-0.5">"{w.example_en}"</p>
                 {#if w.example_vi}
                   <p class="text-xs text-slate-500 mt-0.5">{w.example_vi}</p>
@@ -313,7 +311,7 @@
 
           <!-- SRS Rating Buttons -->
           <div class="flex items-center justify-between pt-1">
-            <span class="text-xs text-slate-500">Đánh giá ghi nhớ (SRS):</span>
+            <span class="text-xs text-slate-500">Spaced Repetition (SRS Recall):</span>
             <div class="flex items-center gap-1.5">
               <button
                 onclick={() => handleSrsRate(w.id, 1)}
@@ -412,7 +410,7 @@
               <!-- Back Side -->
               <div class="my-auto space-y-4">
                 <div class="space-y-1.5">
-                  <span class="text-xs uppercase text-slate-400 font-bold tracking-wider">Định nghĩa</span>
+                  <span class="text-xs uppercase text-slate-400 font-bold tracking-wider">Definition</span>
                   <p class="text-base text-slate-100 font-medium leading-relaxed">{curWord.definition_en}</p>
                   {#if curWord.definition_vi}
                     <p class="text-xs text-slate-400 italic">{curWord.definition_vi}</p>
@@ -420,7 +418,7 @@
                 </div>
                 {#if curWord.example_en}
                   <div class="pt-3 border-t border-slate-800">
-                    <span class="text-xs uppercase text-slate-400 font-bold tracking-wider">Ví dụ</span>
+                    <span class="text-xs uppercase text-slate-400 font-bold tracking-wider">Example</span>
                     <p class="text-sm text-slate-300 italic leading-relaxed">"{curWord.example_en}"</p>
                   </div>
                 {/if}
@@ -433,7 +431,7 @@
               <button
                 onclick={() => playWord(curWord.word)}
                 class="p-2 rounded-xl bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition cursor-pointer"
-                title="Phát âm"
+                title="Pronounce"
               >
                 <Volume2 class="w-4 h-4" />
               </button>
@@ -530,7 +528,7 @@
         </div>
 
         <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60 space-y-1">
-          <p class="text-xs text-slate-300"><strong class="text-slate-100">Nghĩa:</strong> {idiom.meaning_en}</p>
+          <p class="text-xs text-slate-300"><strong class="text-slate-100">Meaning:</strong> {idiom.meaning_en}</p>
           {#if idiom.meaning_vi}
             <p class="text-xs text-indigo-300 italic">{idiom.meaning_vi}</p>
           {/if}
@@ -538,7 +536,7 @@
 
         {#if idiom.example}
           <div class="text-xs text-slate-400 italic">
-            <span class="font-semibold text-slate-300">Ví dụ:</span> "{idiom.example}"
+            <span class="font-semibold text-slate-300">Example:</span> "{idiom.example}"
           </div>
         {/if}
       </div>
@@ -584,10 +582,10 @@
             <div class="flex items-center gap-1.5 font-bold">
               {#if selectedQuizOption === quiz.correct}
                 <CheckCircle2 class="w-4 h-4 text-emerald-400" />
-                <span class="text-emerald-400">Chính xác!</span>
+                <span class="text-emerald-400">Correct!</span>
               {:else}
                 <XCircle class="w-4 h-4 text-red-400" />
-                <span class="text-red-400">Chưa đúng. Đáp án: {quiz.correct}</span>
+                <span class="text-red-400">Incorrect. Correct answer: {quiz.correct}</span>
               {/if}
             </div>
             <p class="text-slate-300">{quiz.explanation}</p>

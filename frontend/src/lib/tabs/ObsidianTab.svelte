@@ -97,7 +97,7 @@
       <button
         onclick={loadObsidianData}
         class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer border border-slate-700"
-        title="Quét lại Obsidian Vault"
+        title="Rescan Obsidian Vault"
       >
         <RefreshCw class={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
       </button>
@@ -112,9 +112,9 @@
     </div>
   {:else if filteredItems.length === 0}
     <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-12 text-center space-y-3">
-      <p class="text-base font-semibold text-slate-300">Không có từ vựng nào trong danh sách này!</p>
+      <p class="text-base font-semibold text-slate-300">No saved vocabulary found in this view!</p>
       <p class="text-xs text-slate-500">
-        Hãy sang tab <strong>Vocabulary</strong> và bấm nút <em>"Save to Obsidian"</em> để lưu từ vựng vào Vault của bạn.
+        Go to the <strong>Vocabulary</strong> tab and click <em>"Save to Obsidian"</em> to bookmark words directly into your Vault.
       </p>
     </div>
   {:else}
@@ -141,14 +141,14 @@
               <button
                 onclick={() => playTTS(item.word)}
                 class="p-2 rounded-xl bg-slate-800 hover:bg-purple-600 text-slate-300 hover:text-white transition cursor-pointer"
-                title="Phát âm"
+                title="Pronounce"
               >
                 <Volume2 class="w-4 h-4" />
               </button>
               <button
                 onclick={() => handleOpenInObsidian(item.file_path)}
                 class="px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-purple-500/30"
-                title="Mở file Markdown trong Obsidian"
+                title="Open Markdown file in Obsidian"
               >
                 <span>Open in Obsidian</span>
                 <ExternalLink class="w-3.5 h-3.5" />
@@ -167,9 +167,9 @@
             <div class="text-slate-400 flex items-center gap-3">
               <span class="flex items-center gap-1">
                 <Calendar class="w-3 h-3 text-slate-500" />
-                Next Review: {item.next_review || 'Chưa đặt'}
+                Next Review: {item.next_review || 'Not set'}
               </span>
-              <span>Interval: {item.interval || 1} ngày</span>
+              <span>Interval: {item.interval || 1} day(s)</span>
             </div>
 
             <!-- Rating buttons -->

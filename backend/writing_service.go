@@ -50,7 +50,7 @@ func GetWritingPrompt(level string) (WritingPrompt, error) {
 			CategoryIcon: "🚗",
 			TargetMin:    20,
 			TargetMax:    50,
-			SituationVi:  "Bạn đang bị kẹt xe và sẽ vào muộn 20 phút. Hãy viết tin nhắn thông báo cho nhóm.",
+			SituationVi:  "You are stuck in heavy traffic and will be 20 minutes late. Write a Slack message to inform your team.",
 			Prompt:       "Write a quick 2 to 3 sentence Slack message to your team explaining the delay.",
 			SentenceStarters: []string{
 				"Good morning team, I'm currently stuck in heavy traffic on...",
@@ -78,16 +78,16 @@ func EvaluateWritingAI(prompt, text, situationVi, apiKey, provider, ollamaUrl, o
 
 	systemInstruction := `You are an expert English writing coach. 
 Evaluate the user's short English submission for the given scenario and prompt.
-Provide structured, constructive, and friendly feedback in Vietnamese and English:
+Provide structured, constructive, and friendly feedback:
 
 1. **Overall Rating & Score (x/10)**: Quick praise and overall impression.
 2. **Grammar & Spelling Fixes**: Point out exact errors and provide corrected versions.
-3. **Natural Phrasing (Diễn đạt tự nhiên hơn)**: Offer 1-2 native-sounding alternatives (Professional & Casual).
+3. **Natural Phrasing (More Natural Alternatives)**: Offer 1-2 native-sounding alternatives (Professional & Casual).
 4. **Vocabulary Highlight**: Comment on word choices or suggest 2 useful idiomatic collocations.`
 
-	userContent := fmt.Sprintf(`[Tình huống]: %s
-[Đề bài]: %s
-[Bài viết của học viên]:
+	userContent := fmt.Sprintf(`[Context]: %s
+[Prompt]: %s
+[User Submission]:
 "%s"`, situationVi, prompt, text)
 
 	client := &http.Client{Timeout: 30 * time.Second}
@@ -121,8 +121,6 @@ Provide structured, constructive, and friendly feedback in Vietnamese and Englis
 
 	// Default to Google Gemini API
 	if apiKey == "" {
-		// Use environment variable if available
-		// Or provide fallback simulated review
 		return generateLocalMockEvaluation(text), nil
 	}
 
@@ -166,11 +164,11 @@ Provide structured, constructive, and friendly feedback in Vietnamese and Englis
 
 func generateLocalMockEvaluation(text string) string {
 	wordCount := len(strings.Fields(text))
-	return fmt.Sprintf(`### 🌟 Đánh giá & Nhận xét AI (Chế độ Local)
-* **Số từ**: %d từ
-* **Độ trôi chảy**: Tốt, truyền đạt đúng trọng tâm tình huống.
+	return fmt.Sprintf(`### 🌟 AI Evaluation Summary (Local Mode)
+* **Word Count**: %d words
+* **Clarity & Tone**: Clear and appropriate for the context.
 
-#### 💡 Gợi ý nâng cao & Cách diễn đạt tự nhiên hơn:
-- Đảm bảo thì câu đồng nhất và dùng từ nối mượt mà.
-- *(Để nhận nhận xét AI chuyên sâu chi tiết từng câu từ Gemini 2.5 Flash, bạn vui lòng nhập Gemini API Key trong phần Cài đặt).*`, wordCount)
+#### 💡 Pro Tips:
+- Maintain consistent tense usage and smooth transition connectives.
+- *(To receive deep sentence-by-sentence feedback powered by Gemini 2.5 Flash, please enter your Gemini API Key in Settings).*`, wordCount)
 }
