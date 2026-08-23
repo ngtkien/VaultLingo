@@ -10,7 +10,21 @@
     RecordSrsReview 
   } from '../../../wailsjs/go/main/App.js';
   import { playTTS, stopAudio } from '../utils/audio';
-  import { Volume2, ExternalLink, Bookmark, Check, RefreshCw, Layers, Sparkles, HelpCircle, CheckCircle2, XCircle } from 'lucide-svelte';
+  import { 
+    Volume2, 
+    ExternalLink, 
+    Bookmark, 
+    Check, 
+    RefreshCw, 
+    Layers, 
+    Sparkles, 
+    HelpCircle, 
+    CheckCircle2, 
+    XCircle, 
+    ChevronLeft, 
+    ChevronRight,
+    RotateCcw
+  } from 'lucide-svelte';
 
   let words = $state<any[]>([]);
   let topics = $state<any[]>([]);
@@ -85,14 +99,32 @@
   async function handleSrsRate(wordId: number, rating: number) {
     try {
       await RecordSrsReview(wordId, rating);
-      // Move to next card in flashcard mode
+      // Auto move to next card in flashcard mode
       if (activeViewMode === 'flashcard' && currentCardIndex < words.length - 1) {
-        currentCardIndex++;
-        cardFlipped = false;
+        nextCard();
       }
     } catch (e) {
       console.error(e);
     }
+  }
+
+  function prevCard() {
+    if (currentCardIndex > 0) {
+      currentCardIndex--;
+      cardFlipped = false;
+    }
+  }
+
+  function nextCard() {
+    if (currentCardIndex < words.length - 1) {
+      currentCardIndex++;
+      cardFlipped = false;
+    }
+  }
+
+  function goToCard(idx: number) {
+    currentCardIndex = idx;
+    cardFlipped = false;
   }
 
   function playWord(word: string, slow = false) {
@@ -102,8 +134,26 @@
     });
   }
 
+  function handleKeydown(e: KeyboardEvent) {
+    if (activeViewMode !== 'flashcard') return;
+    if (e.key === 'ArrowLeft') {
+      prevCard();
+    } else if (e.key === 'ArrowRight') {
+      nextCard();
+    } else if (e.key === ' ' || e.key === 'Enter') {
+      // Don't intercept if inside an input
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+      e.preventDefault();
+      cardFlipped = !cardFlipped;
+    }
+  }
+
   onMount(() => {
     loadData();
+    window.addEventListener('keydown', handleKeydown);
+    return () => {
+      window.removeEventListener('keydown', handleKeydown);
+    };
   });
 </script>
 
@@ -295,71 +345,134 @@
       {/each}
     </div>
   {:else}
-    <!-- Flashcard Mode -->
+    <!-- Flashcard Mode with Navigation Buttons & Shortcuts -->
     {#if words.length > 0}
       {@const curWord = words[currentCardIndex]}
       <div class="max-w-xl mx-auto space-y-4">
-        <!-- Progress Bar -->
-        <div class="flex items-center justify-between text-xs text-slate-400">
-          <span>Card {currentCardIndex + 1} of {words.length}</span>
-          <span>{curWord.topic_title}</span>
+        <!-- Top Flashcard Header: Dots Navigation & Progress -->
+        <div class="flex items-center justify-between bg-slate-900/60 px-4 py-2.5 rounded-2xl border border-slate-800 backdrop-blur-md">
+          <div class="flex items-center gap-1.5">
+            {#each words as _, idx}
+              <button
+                onclick={() => goToCard(idx)}
+                class={`h-2 rounded-full transition-all cursor-pointer ${
+                  currentCardIndex === idx
+                    ? 'w-6 bg-blue-500'
+                    : 'w-2 bg-slate-700 hover:bg-slate-500'
+                }`}
+                title={`Go to card ${idx + 1}`}
+              ></button>
+            {/each}
+          </div>
+
+          <div class="flex items-center gap-2 text-xs font-medium text-slate-400">
+            <span>Card <strong class="text-slate-200">{currentCardIndex + 1}</strong> of {words.length}</span>
+            <span class="text-slate-600">•</span>
+            <span>{curWord.topic_title}</span>
+          </div>
         </div>
 
-        <!-- 3D Flipping Card -->
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-          onclick={() => cardFlipped = !cardFlipped}
-          class="min-h-[300px] bg-slate-900/90 border border-slate-700/80 rounded-3xl p-8 shadow-2xl backdrop-blur-xl flex flex-col justify-between items-center text-center cursor-pointer transition-all hover:border-blue-500/50"
-        >
-          {#if !cardFlipped}
-            <!-- Front -->
-            <div class="my-auto space-y-3">
-              <span class="text-4xl font-extrabold text-slate-100 tracking-tight">{curWord.word}</span>
-              <div class="flex items-center justify-center gap-2">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                  {curWord.pos}
+        <!-- 3D Flipping Card Container with Prev / Next side controls -->
+        <div class="relative flex items-center gap-3">
+          <!-- Previous Card Button -->
+          <button
+            onclick={prevCard}
+            disabled={currentCardIndex === 0}
+            class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 hover:text-white transition shadow-lg cursor-pointer shrink-0"
+            title="Previous Word (Left Arrow key)"
+          >
+            <ChevronLeft class="w-5 h-5" />
+          </button>
+
+          <!-- The Main Flipping Card -->
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div
+            onclick={() => cardFlipped = !cardFlipped}
+            class="flex-1 min-h-[320px] bg-slate-900/90 border border-slate-700/80 rounded-3xl p-8 shadow-2xl backdrop-blur-xl flex flex-col justify-between items-center text-center cursor-pointer transition-all hover:border-blue-500/50 select-none group"
+          >
+            {#if !cardFlipped}
+              <!-- Front Side -->
+              <div class="my-auto space-y-3">
+                <span class="text-4xl font-extrabold text-slate-100 tracking-tight group-hover:text-blue-300 transition-colors">
+                  {curWord.word}
                 </span>
-                <span class="text-sm font-mono text-slate-400">{curWord.phonetic}</span>
+                <div class="flex items-center justify-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                    {curWord.pos}
+                  </span>
+                  <span class="text-sm font-mono text-slate-400">{curWord.phonetic}</span>
+                </div>
+                <p class="text-xs text-slate-500 pt-6 flex items-center justify-center gap-1">
+                  <span>Click card or press <strong>Space</strong> to reveal definition</span>
+                  <span>👆</span>
+                </p>
               </div>
-              <p class="text-xs text-slate-500 pt-6">Click card to reveal definition & example 👆</p>
-            </div>
-          {:else}
-            <!-- Back -->
-            <div class="my-auto space-y-4">
-              <div class="space-y-1">
-                <span class="text-xs uppercase text-slate-400 font-bold tracking-wider">Định nghĩa</span>
-                <p class="text-base text-slate-100 font-medium">{curWord.definition_en}</p>
-                {#if curWord.definition_vi}
-                  <p class="text-xs text-slate-400 italic">{curWord.definition_vi}</p>
+            {:else}
+              <!-- Back Side -->
+              <div class="my-auto space-y-4">
+                <div class="space-y-1.5">
+                  <span class="text-xs uppercase text-slate-400 font-bold tracking-wider">Định nghĩa</span>
+                  <p class="text-base text-slate-100 font-medium leading-relaxed">{curWord.definition_en}</p>
+                  {#if curWord.definition_vi}
+                    <p class="text-xs text-slate-400 italic">{curWord.definition_vi}</p>
+                  {/if}
+                </div>
+                {#if curWord.example_en}
+                  <div class="pt-3 border-t border-slate-800">
+                    <span class="text-xs uppercase text-slate-400 font-bold tracking-wider">Ví dụ</span>
+                    <p class="text-sm text-slate-300 italic leading-relaxed">"{curWord.example_en}"</p>
+                  </div>
                 {/if}
               </div>
-              {#if curWord.example_en}
-                <div class="pt-3 border-t border-slate-800">
-                  <span class="text-xs uppercase text-slate-400 font-bold tracking-wider">Ví dụ</span>
-                  <p class="text-sm text-slate-300 italic">"{curWord.example_en}"</p>
-                </div>
-              {/if}
-            </div>
-          {/if}
+            {/if}
 
-          <!-- Card Footer Audio Button -->
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <div class="w-full flex items-center justify-between pt-4 border-t border-slate-800" onclick={(e) => e.stopPropagation()}>
-            <button
-              onclick={() => playWord(curWord.word)}
-              class="p-2 rounded-xl bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition cursor-pointer"
-            >
-              <Volume2 class="w-4 h-4" />
-            </button>
-            <span class="text-xs text-slate-500">Rate your recall:</span>
-            <button
-              onclick={() => handleSaveWord(curWord)}
-              class="p-2 rounded-xl bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white transition cursor-pointer"
-            >
-              <Bookmark class="w-4 h-4" />
-            </button>
+            <!-- Card Bottom Bar (Audio, Flip Hint & Obsidian Save) -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <div class="w-full flex items-center justify-between pt-4 border-t border-slate-800" onclick={(e) => e.stopPropagation()}>
+              <button
+                onclick={() => playWord(curWord.word)}
+                class="p-2 rounded-xl bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition cursor-pointer"
+                title="Phát âm"
+              >
+                <Volume2 class="w-4 h-4" />
+              </button>
+
+              <button
+                onclick={() => cardFlipped = !cardFlipped}
+                class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1 cursor-pointer"
+              >
+                <RotateCcw class="w-3 h-3" />
+                <span>{cardFlipped ? 'Show Word' : 'Flip Card'}</span>
+              </button>
+
+              <button
+                onclick={() => handleSaveWord(curWord)}
+                class={`p-2 rounded-xl transition cursor-pointer flex items-center gap-1 text-xs font-medium ${
+                  savedWordsMap[curWord.word.toLowerCase()]
+                    ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white'
+                }`}
+                title="Save to Obsidian Vault"
+              >
+                {#if savedWordsMap[curWord.word.toLowerCase()]}
+                  <Check class="w-4 h-4 text-emerald-400" />
+                {:else}
+                  <Bookmark class="w-4 h-4" />
+                {/if}
+              </button>
+            </div>
           </div>
+
+          <!-- Next Card Button -->
+          <button
+            onclick={nextCard}
+            disabled={currentCardIndex === words.length - 1}
+            class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 hover:text-white transition shadow-lg cursor-pointer shrink-0"
+            title="Next Word (Right Arrow key)"
+          >
+            <ChevronRight class="w-5 h-5" />
+          </button>
         </div>
 
         <!-- Rating Buttons in Flashcard -->
