@@ -1,5 +1,6 @@
 <script lang="ts">
   import { BookOpen, Headphones, MessageSquare, PenTool, FolderSync, Settings } from 'lucide-svelte';
+  import pegasusLogo from '../../assets/images/pegasus-logo.png';
 
   let { activeTab = $bindable('vocab') } = $props<{ activeTab: string }>();
 
@@ -13,19 +14,26 @@
   ];
 </script>
 
-<header class="bg-slate-950/80 border-b border-slate-800/80 backdrop-blur-xl sticky top-0 z-50 select-none">
+<header class="bg-slate-950/85 border-b border-slate-800/80 backdrop-blur-2xl sticky top-0 z-50 select-none shadow-xl">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-    <!-- Brand Logo with Pegasus (Thiên Mã) -->
+    <!-- Brand Logo with Cinematic Pegasus -->
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-500 to-blue-500 flex items-center justify-center text-xl shadow-lg shadow-indigo-500/25 ring-1 ring-indigo-400/30">
-        🦄
+      <div class="relative group">
+        <div class="absolute -inset-1 rounded-2xl bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 opacity-60 blur-sm group-hover:opacity-100 transition duration-300"></div>
+        <img
+          src={pegasusLogo}
+          alt="VaultLingo Pegasus"
+          class="relative w-10 h-10 rounded-xl object-cover ring-1 ring-cyan-400/40 shadow-lg shadow-cyan-500/20"
+        />
       </div>
       <div>
-        <div class="flex items-center gap-1.5">
-          <h1 class="text-lg font-black tracking-tight bg-gradient-to-r from-violet-400 via-indigo-300 to-blue-400 bg-clip-text text-transparent">
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-black tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
             VaultLingo
           </h1>
-          <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v1.0</span>
+          <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold font-mono bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border border-cyan-500/30">
+            v0.0.1
+          </span>
         </div>
         <p class="text-[10px] text-slate-400 font-medium">Daily AI English & Obsidian Vault Sync</p>
       </div>
@@ -39,7 +47,7 @@
           onclick={() => activeTab = t.id}
           class={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
             activeTab === t.id
-              ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-500/30 ring-1 ring-indigo-400/50'
+              ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-500/30 ring-1 ring-cyan-400/50'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
           }`}
         >

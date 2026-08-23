@@ -10,5 +10,8 @@
     "name": "Zeder",
     "email": "ngtkien95@gmail.com"
   },
-  "build:tags": "webkit2_41"
+  "build:tags": "webkit2_41",
+  "info": {
+    "version": "0.0.1"
+  }
 }
