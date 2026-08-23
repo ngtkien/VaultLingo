@@ -11,18 +11,18 @@ VaultLingo is a lightweight, cross-platform desktop application built with **Wai
                                VAULTLINGO APPLICATION
 ===================================================================================
 
-+---------------------------------------------------------------------------------+
-|                        PRESENTATION LAYER (SVELTE 5 + TS)                       |
-|                                                                                 |
-|  [Navbar: Tabs & Day/Night Toggle]                                              |
-|  +--------------------+---------------------+--------------------+------------+ |
-|  |  📚 Vocabulary     |  🎧 Dictation       |  🗣️ 75 Topics      |  ✍️ Writing | |
-|  |  - List / 3D Card  |  - Audio 1x / 0.75x |  - Q&A Stream      |  - AI Coach| |
-|  |  - SRS SM-2 Rating |  - Visual Diff LCS  |  - Active Listen   |  - Lock    | |
-|  +--------------------+---------------------+--------------------+------------+ |
-|  |  🗄️ Obsidian Vault Explorer & SRS Sync   |  ⚙️ Settings (Vault, AI, Audio) | |
-|  +------------------------------------------+---------------------------------+ |
-+---------------------------------------------------------------------------------+
++----------------------------------------------------------------------------------+
+|                        PRESENTATION LAYER (SVELTE 5 + TS)                        |
+|                                                                                  |
+|  [Navbar: Tabs & Day/Night Toggle]                                               |
+|  +--------------------+---------------------+--------------------+-------------+ |
+|  |   Vocabulary       |   Dictation         |   75 Topics        |   Writing   | |
+|  |  - List / 3D Card  |  - Audio 1x / 0.75x |  - Q&A Stream      |  - AI Coach | |
+|  |  - SRS SM-2 Rating |  - Visual Diff LCS  |  - Active Listen   |  - Lock     | |
+|  +--------------------+---------------------+--------------------+-------------+ |
+|  |   Obsidian Vault Explorer & SRS Sync   |   Settings (Vault, AI, Audio)  | |
+|  +------------------------------------------+----------------------------------+ |
++--------------------------------------------------------------------------------- +
                                       |
                       [Wails v2 IPC Bridge / Bindings]
                       - TypeScript Promise RPC Callbacks
