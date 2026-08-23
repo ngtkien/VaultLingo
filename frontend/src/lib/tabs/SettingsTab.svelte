@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { GetConfig, SaveConfig } from '../../../wailsjs/go/main/App.js';
-  import { Save, Check, Folder, Key, Cpu, Volume2, ShieldCheck } from 'lucide-svelte';
+  import { Save, Check, Folder, Key, Cpu, Volume2, ShieldCheck, Sparkles, ExternalLink } from 'lucide-svelte';
 
   let config = $state<any>({
     obsidian_vault_path: '',
@@ -46,10 +46,11 @@
 
 <div class="max-w-3xl mx-auto space-y-6">
   <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl shadow-xl space-y-6">
+    <!-- Header -->
     <div class="flex items-center justify-between border-b border-slate-800 pb-4">
       <div>
-        <h3 class="text-xl font-bold text-slate-100">Settings & Personalization</h3>
-        <p class="text-xs text-slate-400">Tùy biến đường dẫn Obsidian Vault và kết nối AI</p>
+        <h3 class="text-xl font-bold text-slate-100">Settings & Preferences</h3>
+        <p class="text-xs text-slate-400">Configure your Obsidian Vault path, AI provider, and audio options</p>
       </div>
 
       <button
@@ -59,10 +60,10 @@
       >
         {#if savedMessage}
           <Check class="w-4 h-4 text-white" />
-          <span>Đã lưu thành công!</span>
+          <span>Saved Successfully!</span>
         {:else}
           <Save class="w-4 h-4" />
-          <span>{saving ? 'Đang lưu...' : 'Lưu Cài Đặt'}</span>
+          <span>{saving ? 'Saving...' : 'Save Settings'}</span>
         {/if}
       </button>
     </div>
@@ -73,8 +74,8 @@
         <Folder class="w-4 h-4" />
         <span>Obsidian Vault Directory</span>
       </div>
-      <p class="text-xs text-slate-400">
-        Đường dẫn đến thư mục Vault Obsidian của bạn (ví dụ: <code class="text-slate-300">~/Obsidian/ZederVault</code>). Các file từ vựng sẽ tự động lưu vào <code class="text-slate-300">English/Vocab/</code> và bài viết vào <code class="text-slate-300">English/Writing/</code>.
+      <p class="text-xs text-slate-400 leading-relaxed">
+        The absolute or home-relative path to your Obsidian Vault (e.g., <code class="text-slate-300">~/Obsidian/ZederVault</code>). Vocabulary cards will be automatically organized into <code class="text-slate-300">English/Vocab/</code> and writing essays into <code class="text-slate-300">English/Writing/</code>.
       </p>
       <input
         type="text"
@@ -84,7 +85,7 @@
       />
     </div>
 
-    <!-- AI Coach Settings -->
+    <!-- AI Evaluation Engine Settings -->
     <div class="space-y-4 border-t border-slate-800 pt-5">
       <div class="flex items-center gap-2 text-sm font-bold text-blue-400">
         <Cpu class="w-4 h-4" />
@@ -102,7 +103,7 @@
           }`}
         >
           <div class="text-sm font-bold">Google Gemini API 🌟</div>
-          <div class="text-xs opacity-75">Tốc độ cao, chấm điểm chi tiết bằng Gemini 2.5 Flash</div>
+          <div class="text-xs opacity-75">Fast, highly accurate evaluation powered by Gemini 2.5 Flash</div>
         </button>
 
         <button
@@ -114,7 +115,7 @@
           }`}
         >
           <div class="text-sm font-bold">Local Ollama (Offline) 🦙</div>
-          <div class="text-xs opacity-75">Chạy mô hình cục bộ trên máy (Llama 3, Qwen 2.5)</div>
+          <div class="text-xs opacity-75">Run locally hosted open models on your machine (Llama 3, Qwen 2.5)</div>
         </button>
       </div>
 
@@ -128,9 +129,10 @@
             <a
               href="https://aistudio.google.com/app/apikey"
               target="_blank"
-              class="text-blue-400 hover:underline"
+              class="text-blue-400 hover:underline flex items-center gap-1"
             >
-              Lấy API Key miễn phí tại Google AI Studio ↗
+              <span>Get Free API Key from Google AI Studio</span>
+              <ExternalLink class="w-3 h-3" />
             </a>
           </div>
           <input
@@ -168,11 +170,11 @@
     <div class="space-y-3 border-t border-slate-800 pt-5">
       <div class="flex items-center gap-2 text-sm font-bold text-amber-400">
         <Volume2 class="w-4 h-4" />
-        <span>Audio Settings</span>
+        <span>Audio Playback Settings</span>
       </div>
 
       <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-        <span class="text-xs text-slate-300">Tốc độ phát âm mặc định:</span>
+        <span class="text-xs text-slate-300">Default Pronunciation Speed:</span>
         <div class="flex items-center gap-1.5">
           {#each [0.75, 0.85, 1.0] as spd}
             <button
