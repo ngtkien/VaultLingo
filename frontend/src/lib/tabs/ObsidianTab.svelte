@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { GetSavedObsidianVocab, UpdateObsidianSrsReview, OpenInObsidian, GetConfig } from '../../../wailsjs/go/main/App.js';
+  import { GetSavedObsidianVocab, UpdateObsidianSrsReview, DeleteWordFromObsidian, OpenInObsidian, GetConfig } from '../../../wailsjs/go/main/App.js';
   import { playTTS } from '../utils/audio';
-  import { FolderSync, ExternalLink, RefreshCw, Volume2, Calendar, Clock, Layers } from 'lucide-svelte';
+  import { FolderSync, ExternalLink, RefreshCw, Volume2, Calendar, Clock, Layers, Trash2 } from 'lucide-svelte';
 
   let items = $state<any[]>([]);
   let config = $state<any>(null);
@@ -31,6 +31,15 @@
       console.error(e);
     } finally {
       loading = false;
+    }
+  }
+
+  async function handleDeleteWord(word: string) {
+    try {
+      await DeleteWordFromObsidian(word);
+      await loadObsidianData();
+    } catch (e) {
+      console.error(e);
     }
   }
 
@@ -153,6 +162,13 @@
                 <span>Open in Obsidian</span>
                 <ExternalLink class="w-3.5 h-3.5" />
               </button>
+              <button
+                onclick={() => handleDeleteWord(item.word)}
+                class="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/30 transition cursor-pointer"
+                title="Delete from Obsidian Vault"
+              >
+                <Trash2 class="w-4 h-4" />
+              </button>
             </div>
           </div>
 
@@ -197,6 +213,14 @@
                 class="px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition cursor-pointer"
               >
                 Easy (7d)
+              </button>
+              <button
+                onclick={() => handleDeleteWord(item.word)}
+                class="px-2.5 py-1 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition cursor-pointer flex items-center gap-1"
+                title="Delete from Vault"
+              >
+                <Trash2 class="w-3 h-3" />
+                <span>Delete</span>
               </button>
             </div>
           </div>

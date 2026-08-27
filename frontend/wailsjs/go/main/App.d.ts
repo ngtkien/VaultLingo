@@ -4,6 +4,8 @@ import {backend} from '../models';
 
 export function CheckDictation(arg1:string,arg2:string):Promise<backend.DictationResult>;
 
+export function DeleteWordFromObsidian(arg1:string):Promise<boolean>;
+
 export function EvaluateWriting(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function GetAvailableTopics():Promise<Array<Record<string, string>>>;

@@ -113,6 +113,11 @@ func (a *App) GetSavedObsidianVocab() ([]backend.ObsidianItem, error) {
 	return backend.GetSavedObsidianVocab(cfg.ObsidianVaultPath)
 }
 
+func (a *App) DeleteWordFromObsidian(wordName string) (bool, error) {
+	cfg := backend.LoadConfig()
+	return backend.DeleteWordFromObsidian(wordName, cfg.ObsidianVaultPath)
+}
+
 func (a *App) UpdateObsidianSrsReview(wordName, filePath string, rating int) error {
 	return backend.UpdateObsidianSrsReview(wordName, filePath, rating)
 }

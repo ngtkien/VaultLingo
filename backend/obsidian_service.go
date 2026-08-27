@@ -38,6 +38,31 @@ func GetDefaultVaultPath() string {
 	return filepath.Join(home, "Obsidian")
 }
 
+var TopicSlugMap = map[string]string{
+	"01_Daily_Life_and_Social":      "Daily_Life_and_Social",
+	"02_Workplace_and_Business":     "Workplace_and_Business",
+	"03_Current_Events_and_Economy": "Current_Events_and_Economy",
+	"04_Science_Tech_and_AI":        "Science_Tech_and_AI",
+	"05_Travel_and_Culture":         "Travel_and_Culture",
+	"06_Health_and_Wellness":        "Health_and_Wellness",
+	"07_Embedded_and_Electronics":   "Embedded_and_Electronics",
+	"01_Firmware_and_Architecture":  "Firmware_and_Architecture",
+	"02_Hardware_and_Circuits":      "Hardware_and_Circuits",
+	"03_Protocols_and_Communication": "Protocols_and_Communication",
+	"dest_b1":                       "Destination_B1",
+	"dest_b2":                       "Destination_B2",
+	"destination_b2":                "Destination_B2",
+	"destination_b1":                "Destination_B1",
+	"08_General_English":            "General_English",
+}
+
+func GetCleanTopicSlug(topic string) string {
+	if slug, ok := TopicSlugMap[topic]; ok {
+		return slug
+	}
+	return strings.ReplaceAll(topic, " ", "_")
+}
+
 func SaveWordToObsidian(item Word, customVaultPath string) (ObsidianSaveResult, error) {
 	vaultPath := ExpandPath(customVaultPath)
 	if vaultPath == "" {
@@ -45,16 +70,16 @@ func SaveWordToObsidian(item Word, customVaultPath string) (ObsidianSaveResult, 
 	}
 
 	vocabDir := filepath.Join(vaultPath, "English", "Vocab")
-	topicDir := filepath.Join(vocabDir, item.Topic)
-	if err := os.MkdirAll(topicDir, 0755); err != nil {
+	if err := os.MkdirAll(vocabDir, 0755); err != nil {
 		return ObsidianSaveResult{Success: false, Error: err.Error()}, err
 	}
 
 	today := time.Now().Format("2006-01-02")
 	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 
-	fileName := fmt.Sprintf("%s_Vol_01.md", item.Topic)
-	filePath := filepath.Join(topicDir, fileName)
+	topicSlug := GetCleanTopicSlug(item.Topic)
+	fileName := fmt.Sprintf("%s.md", topicSlug)
+	filePath := filepath.Join(vocabDir, fileName)
 
 	srsTag := fmt.Sprintf(`<!-- srs: {"next_review": "%s", "interval": 1, "repetitions": 0, "status": "learning", "created": "%s"} -->`, tomorrow, today)
 
@@ -68,10 +93,16 @@ func SaveWordToObsidian(item Word, customVaultPath string) (ObsidianSaveResult, 
 		dictLink = "https://dictionary.cambridge.org/dictionary/english/" + strings.ToLower(item.Word)
 	}
 
-	// If file does not exist, create with YAML header
+	topicTitle := item.TopicTitle
+	topicIcon := item.TopicIcon
+	if topicTitle == "" {
+		topicTitle, topicIcon = GetTopicMeta(item.Topic)
+	}
+
+	// If file does not exist, create with clean YAML header
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		content := fmt.Sprintf(`---
-title: "%s Vocabulary - Vol 01"
+title: "%s Vocabulary"
 category: "%s"
 date: %s
 tags:
@@ -79,15 +110,15 @@ tags:
   - %s
 ---
 
-# %s %s Vocabulary (Vol 01)
+# %s %s Vocabulary
 
-### 1. %s
+### %s
 - **Phonetic & POS**: `+"`%s` `%s`"+`
 - **Definition**: %s
 - **Example**: *%s*
 - **Reference**: [Cambridge Dictionary](%s)
 %s
-`, item.TopicTitle, item.Topic, today, item.Topic, item.TopicIcon, item.TopicTitle, displayWord, pos, item.Phonetic, item.DefinitionEn, item.ExampleEn, dictLink, srsTag)
+`, topicTitle, topicSlug, today, strings.ToLower(strings.ReplaceAll(topicSlug, "_", "-")), topicIcon, topicTitle, displayWord, pos, item.Phonetic, item.DefinitionEn, item.ExampleEn, dictLink, srsTag)
 
 		if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
 			return ObsidianSaveResult{Success: false, Error: err.Error()}, err
@@ -98,12 +129,13 @@ tags:
 	// If file exists, check if word is already present
 	data, err := os.ReadFile(filePath)
 	if err == nil {
-		if strings.Contains(strings.ToLower(string(data)), strings.ToLower(item.Word)) {
+		wordPattern := regexp.MustCompile(`(?mi)^###\s+(?:[0-9]+\.\s*)?` + regexp.QuoteMeta(displayWord) + `(?:\s+` + "`" + `|$)`)
+		if wordPattern.Match(data) {
 			return ObsidianSaveResult{Success: true, Word: displayWord, File: filePath}, nil
 		}
 	}
 
-	// Append word
+	// Append word cleanly
 	appendContent := fmt.Sprintf(`
 ---
 
@@ -126,6 +158,80 @@ tags:
 	}
 
 	return ObsidianSaveResult{Success: true, Word: displayWord, File: filePath}, nil
+}
+
+func DeleteWordFromObsidian(wordName, customVaultPath string) (bool, error) {
+	vaultPath := ExpandPath(customVaultPath)
+	if vaultPath == "" {
+		vaultPath = GetDefaultVaultPath()
+	}
+
+	vocabDir := filepath.Join(vaultPath, "English", "Vocab")
+	if _, err := os.Stat(vocabDir); os.IsNotExist(err) {
+		return false, nil
+	}
+
+	cleanTarget := strings.ToLower(strings.TrimSpace(wordName))
+	deleted := false
+
+	_ = filepath.Walk(vocabDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() || !strings.HasSuffix(info.Name(), ".md") {
+			return nil
+		}
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil
+		}
+
+		content := string(data)
+		blocks := strings.Split(content, "### ")
+		if len(blocks) <= 1 {
+			return nil
+		}
+
+		var newBlocks []string
+		newBlocks = append(newBlocks, blocks[0])
+		fileModified := false
+
+		for _, block := range blocks[1:] {
+			lines := strings.Split(block, "\n")
+			if len(lines) == 0 {
+				continue
+			}
+			header := strings.TrimSpace(lines[0])
+			header = regexp.MustCompile(`^[0-9]+\.\s*`).ReplaceAllString(header, "")
+			header = strings.Split(header, "`")[0]
+			header = strings.ToLower(strings.TrimSpace(header))
+
+			if header == cleanTarget {
+				deleted = true
+				fileModified = true
+				continue
+			}
+
+			newBlocks = append(newBlocks, block)
+		}
+
+		if fileModified {
+			if len(newBlocks) <= 1 {
+				// No more words left in this file
+				_ = os.Remove(path)
+				parent := filepath.Dir(path)
+				if parent != vocabDir {
+					_ = os.Remove(parent) // remove empty dir
+				}
+			} else {
+				newContent := strings.Join(newBlocks, "### ")
+				newContent = regexp.MustCompile(`\n\s*---\s*\n\s*---\s*\n`).ReplaceAllString(newContent, "\n\n---\n\n")
+				_ = os.WriteFile(path, []byte(newContent), 0644)
+			}
+		}
+
+		return nil
+	})
+
+	return deleted, nil
 }
 
 func SaveWritingToObsidian(title, situationVi, prompt, essayText, aiEvaluation, customVaultPath string) (ObsidianSaveResult, error) {

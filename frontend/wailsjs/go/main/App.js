@@ -6,6 +6,10 @@ export function CheckDictation(arg1, arg2) {
   return window['go']['main']['App']['CheckDictation'](arg1, arg2);
 }
 
+export function DeleteWordFromObsidian(arg1) {
+  return window['go']['main']['App']['DeleteWordFromObsidian'](arg1);
+}
+
 export function EvaluateWriting(arg1, arg2, arg3) {
   return window['go']['main']['App']['EvaluateWriting'](arg1, arg2, arg3);
 }

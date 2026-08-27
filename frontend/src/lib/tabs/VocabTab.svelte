@@ -7,6 +7,7 @@
     GetAvailableTopics, 
     SaveWordToObsidian, 
     SaveAllWordsToObsidian, 
+    DeleteWordFromObsidian,
     RecordSrsReview 
   } from '../../../wailsjs/go/main/App.js';
   import { playTTS, stopAudio } from '../utils/audio';
@@ -23,7 +24,8 @@
     XCircle, 
     ChevronLeft, 
     ChevronRight,
-    RotateCcw
+    RotateCcw,
+    Trash2
   } from 'lucide-svelte';
 
   let words = $state<any[]>([]);
@@ -73,11 +75,31 @@
   }
 
   async function handleSaveWord(word: any) {
-    try {
-      const res = await SaveWordToObsidian(word);
-      if (res.success) {
-        savedWordsMap[word.word.toLowerCase()] = true;
+    const key = word.word.toLowerCase();
+    if (savedWordsMap[key]) {
+      try {
+        await DeleteWordFromObsidian(word.word);
+        savedWordsMap[key] = false;
+      } catch (e) {
+        console.error(e);
       }
+    } else {
+      try {
+        const res = await SaveWordToObsidian(word);
+        if (res.success) {
+          savedWordsMap[key] = true;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+
+  async function handleDeleteWord(word: string) {
+    const key = word.toLowerCase();
+    try {
+      await DeleteWordFromObsidian(word);
+      savedWordsMap[key] = false;
     } catch (e) {
       console.error(e);
     }
@@ -278,7 +300,7 @@
                     ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
                     : 'bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white'
                 }`}
-                title="Save to Obsidian Vault"
+                title={savedWordsMap[w.word.toLowerCase()] ? "Saved in Vault (Click to unsave)" : "Save to Obsidian Vault"}
               >
                 {#if savedWordsMap[w.word.toLowerCase()]}
                   <Check class="w-4 h-4 text-emerald-400" />
@@ -286,6 +308,16 @@
                   <Bookmark class="w-4 h-4" />
                 {/if}
               </button>
+
+              {#if savedWordsMap[w.word.toLowerCase()]}
+                <button
+                  onclick={() => handleDeleteWord(w.word)}
+                  class="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/30 transition cursor-pointer"
+                  title="Delete from Obsidian Vault"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              {/if}
             </div>
           </div>
 
