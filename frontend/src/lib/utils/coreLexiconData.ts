@@ -426,5 +426,138 @@ export const CORE_LEXICON_DATABASE: Record<string, Partial<SmartWordResult>> = {
     ],
     nuance_tips: 'Always takes the preposition "on" when used as a verb ("focus on solutions").',
     source: 'lexicon'
+  },
+  'unpleasant': {
+    word: new backend.Word({
+      id: 3011,
+      word: 'unpleasant',
+      raw_word: 'unpleasant',
+      pos: 'Adjective',
+      phonetic: '/ʌnˈplez.ənt/',
+      definition_en: 'Causing discomfort, dissatisfaction, or unhappiness; disagreeable or offensive to the senses or feelings.',
+      definition_vi: 'Khó chịu, không vừa ý, làm phiền lòng, đáng ghét; gây cảm giác không thoải mái.',
+      example_en: 'The medicine had an unpleasant taste, but it cured the fever quickly.',
+      example_vi: 'Thuốc có vị khá khó chịu nhưng đã hạ cơn sốt rất nhanh chóng.',
+      level: 'B1 Intermediate',
+      topic: 'feelings',
+      topic_title: 'Sensations & Feelings',
+      topic_icon: '😣',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/unpleasant'
+    }),
+    isLocal: true,
+    synonyms: ['disagreeable', 'distasteful', 'uncomfortable', 'offensive', 'obnoxious', 'irritating'],
+    antonyms: ['pleasant', 'delightful', 'enjoyable', 'agreeable', 'comforting'],
+    collocations: ['unpleasant smell', 'unpleasant surprise', 'unpleasant experience', 'unpleasant truth', 'unpleasant side effects'],
+    word_family: [
+      { pos: 'Adjective', word: 'unpleasant' },
+      { pos: 'Adjective', word: 'pleasant' },
+      { pos: 'Adverb', word: 'unpleasantly' },
+      { pos: 'Noun', word: 'unpleasantness' },
+      { pos: 'Verb / Noun', word: 'please' },
+      { pos: 'Noun', word: 'pleasure' }
+    ],
+    etymology: 'Formed from prefix "un-" (not) + Old French "plaisant" (agreeable, pleasing), from Latin "placere" (to please).',
+    mnemonic_hook: 'Un + Pleasant = The opposite of pleasing; something that feels uncomfortable or grating!',
+    examples: [
+      {
+        en: 'The medicine had an unpleasant taste, but it cured the fever quickly.',
+        vi: 'Thuốc có vị khá khó chịu nhưng đã hạ cơn sốt rất nhanh chóng.'
+      },
+      {
+        en: 'She had the unpleasant task of informing the staff about the budget cuts.',
+        vi: 'Cô ấy phải đảm nhận nhiệm vụ khó xử là thông báo cho nhân viên về việc cắt giảm ngân sách.'
+      },
+      {
+        en: 'Addressing an unpleasant truth early prevents catastrophic problems later.',
+        vi: 'Đối diện với sự thật mất lòng từ sớm giúp ngăn ngừa những vấn đề thảm họa về sau.'
+      }
+    ],
+    nuance_tips: 'Commonly collocated with sensory nouns (unpleasant smell/taste) as well as social duties (unpleasant task/truth).',
+    source: 'lexicon'
+  },
+  'knowledge': {
+    word: new backend.Word({
+      id: 3012,
+      word: 'knowledge',
+      raw_word: 'knowledge',
+      pos: 'Noun',
+      phonetic: '/ˈnɒl.ɪdʒ/',
+      definition_en: 'Facts, information, and skills acquired through experience or education; the theoretical or practical understanding of a subject.',
+      definition_vi: 'Tri thức, kiến thức, sự hiểu biết tích lũy qua học tập và trải nghiệm thực tế.',
+      example_en: 'Continuous reading expands your knowledge base and sharpens critical thinking.',
+      example_vi: 'Đọc sách liên tục mở rộng kho tàng tri thức và rèn giũa tư duy phản biện của bạn.',
+      level: 'A2 Elementary',
+      topic: 'education',
+      topic_title: 'Wisdom & Learning',
+      topic_icon: '🧠',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/knowledge'
+    }),
+    isLocal: true,
+    synonyms: ['wisdom', 'understanding', 'expertise', 'insight', 'erudition', 'comprehension'],
+    antonyms: ['ignorance', 'illiteracy', 'inexperience'],
+    collocations: ['gain knowledge', 'profound knowledge', 'knowledge base', 'knowledge transfer', 'thirst for knowledge'],
+    word_family: [
+      { pos: 'Noun', word: 'knowledge' },
+      { pos: 'Verb', word: 'know' },
+      { pos: 'Adjective', word: 'knowledgeable' },
+      { pos: 'Adverb', word: 'knowledgeably' },
+      { pos: 'Verb', word: 'acknowledge' }
+    ],
+    etymology: 'From Middle English "knowleche", from "knowen" (to know) + suffix "-leche" (action/state).',
+    mnemonic_hook: 'Know + Ledge = The standing ledge of facts and insights upon which you see the world!',
+    examples: [
+      {
+        en: 'Continuous reading expands your knowledge base and sharpens critical thinking.',
+        vi: 'Đọc sách liên tục mở rộng kho tàng tri thức và rèn giũa tư duy phản biện của bạn.'
+      },
+      {
+        en: 'Knowledge without practical application remains merely potential power.',
+        vi: 'Kiến thức mà không có sự ứng dụng thực tế thì chỉ dừng lại ở mức tiềm năng.'
+      }
+    ],
+    nuance_tips: 'Uncountable noun in standard English (do NOT say "a knowledge" or "knowledges"; use "a wealth of knowledge").',
+    source: 'lexicon'
+  },
+  'opportunity': {
+    word: new backend.Word({
+      id: 3013,
+      word: 'opportunity',
+      raw_word: 'opportunity',
+      pos: 'Noun',
+      phonetic: '/ˌɒp.əˈtʃuː.nə.ti/',
+      definition_en: 'A set of circumstances that makes it possible to do something; a favorable chance for advancement.',
+      definition_vi: 'Cơ hội, thời cơ, dịp thuận lợi để thực hiện hoặc đạt được điều gì đó.',
+      example_en: 'Every unexpected challenge carries within it the seed of an equal opportunity.',
+      example_vi: 'Mỗi thử thách bất ngờ đều mang trong mình hạt mầm của một cơ hội tương đương.',
+      level: 'B1 Intermediate',
+      topic: 'career',
+      topic_title: 'Growth & Advancement',
+      topic_icon: '🚪',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/opportunity'
+    }),
+    isLocal: true,
+    synonyms: ['chance', 'opening', 'occasion', 'favorable moment', 'prospect', 'break'],
+    antonyms: ['misfortune', 'obstacle', 'disadvantage', 'setback'],
+    collocations: ['seize an opportunity', 'golden opportunity', 'miss an opportunity', 'equal opportunity', 'provide opportunity'],
+    word_family: [
+      { pos: 'Noun', word: 'opportunity' },
+      { pos: 'Adjective', word: 'opportune' },
+      { pos: 'Noun', word: 'opportunist' },
+      { pos: 'Adjective', word: 'opportunistic' }
+    ],
+    etymology: 'From Latin "opportunitas", from "opportunus" (favorable, literally "coming toward the port/harbor").',
+    mnemonic_hook: 'Port + Unity = The favorable wind blowing ships directly into the harbor of success!',
+    examples: [
+      {
+        en: 'Every unexpected challenge carries within it the seed of an equal opportunity.',
+        vi: 'Mỗi thử thách bất ngờ đều mang trong mình hạt mầm của một cơ hội tương đương.'
+      },
+      {
+        en: 'Technological disruption creates unprecedented career opportunities for adaptable professionals.',
+        vi: 'Sự đột phá công nghệ tạo ra những cơ hội nghề nghiệp chưa từng có cho những nhân sự biết thích nghi.'
+      }
+    ],
+    nuance_tips: 'Followed by "to" + infinitive ("opportunity to learn") or "for" + noun ("opportunity for growth").',
+    source: 'lexicon'
   }
 };
