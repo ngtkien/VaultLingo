@@ -1,6 +1,5 @@
 import { GetDailyVocab, GetSavedObsidianVocab, EvaluateWriting } from '../../../wailsjs/go/main/App.js';
 import { backend } from '../../../wailsjs/go/models';
-import { CORE_LEXICON_DATABASE } from './coreLexiconData';
 import { lookupInComprehensiveLexicon } from './comprehensiveLexicon';
 
 export interface WordFamilyMember {
@@ -61,9 +60,8 @@ function saveToLexiconCache(query: string, result: SmartWordResult) {
   }
 }
 
-// Built-in offline rich lexicon for popular, fundamental & academic words
+// Built-in offline rich lexicon for advanced/academic showcase words
 const OFFLINE_LEXICON: Record<string, Partial<SmartWordResult>> = {
-  ...CORE_LEXICON_DATABASE,
   'work': {
     word: new backend.Word({
       id: 2001,

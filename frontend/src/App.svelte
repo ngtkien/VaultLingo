@@ -11,9 +11,17 @@
   import { getInitialThemeState, applyThemeState, type ColorMode, type StyleMode, type ThemePalette } from './lib/utils/theme';
 
   let currentTab = $state('vocab');
+  let dictionaryInitialWord = $state('serendipity');
   let palette = $state<ThemePalette>('default');
   let colorMode = $state<ColorMode>('dark');
   let styleMode = $state<StyleMode>('normal');
+
+  function handleNavigateToDictionary(word: string) {
+    if (word && word.trim()) {
+      dictionaryInitialWord = word.trim();
+      currentTab = 'dictionary';
+    }
+  }
 
   function handleSelectPalette(newPalette: ThemePalette) {
     palette = newPalette;
@@ -54,9 +62,9 @@
   <!-- Main Content Body -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
     {#if currentTab === 'vocab'}
-      <VocabTab />
+      <VocabTab onNavigateToDictionary={handleNavigateToDictionary} />
     {:else if currentTab === 'dictionary'}
-      <DictionaryTab />
+      <DictionaryTab initialWord={dictionaryInitialWord} />
     {:else if currentTab === 'dictation'}
       <DictationTab />
     {:else if currentTab === 'listening'}
@@ -64,9 +72,10 @@
     {:else if currentTab === 'writing'}
       <WritingTab onNavigateTab={(tab) => currentTab = tab} />
     {:else if currentTab === 'obsidian'}
-      <ObsidianTab />
+      <ObsidianTab onNavigateToDictionary={handleNavigateToDictionary} />
     {:else if currentTab === 'settings'}
       <SettingsTab />
     {/if}
   </main>
 </div>
+

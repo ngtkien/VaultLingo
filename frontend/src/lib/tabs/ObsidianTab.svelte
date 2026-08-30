@@ -2,7 +2,9 @@
   import { onMount } from 'svelte';
   import { GetSavedObsidianVocab, UpdateObsidianSrsReview, DeleteWordFromObsidian, OpenInObsidian, GetConfig } from '../../../wailsjs/go/main/App.js';
   import { playTTS } from '../utils/audio';
-  import { FolderSync, ExternalLink, RefreshCw, Volume2, Calendar, Clock, Layers, Trash2 } from 'lucide-svelte';
+  import { FolderSync, ExternalLink, RefreshCw, Volume2, Calendar, Clock, Layers, Trash2, BookA } from 'lucide-svelte';
+
+  let { onNavigateToDictionary } = $props<{ onNavigateToDictionary?: (word: string) => void }>();
 
   let items = $state<any[]>([]);
   let config = $state<any>(null);
@@ -133,7 +135,14 @@
           <div class="flex items-start justify-between gap-4">
             <div>
               <div class="flex items-center gap-2">
-                <h4 class="text-xl font-bold text-slate-100">{item.word}</h4>
+                <button
+                  onclick={() => onNavigateToDictionary?.(item.word)}
+                  class="text-xl font-bold text-slate-100 hover:text-cyan-400 text-left transition cursor-pointer flex items-center gap-1.5 group/title"
+                  title="Click to view in Smart Dictionary"
+                >
+                  <span>{item.word}</span>
+                  <BookA class="w-3.5 h-3.5 opacity-0 group-hover/title:opacity-100 text-cyan-400 transition" />
+                </button>
                 {#if item.is_due}
                   <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">
                     SRS Due Today 🔥
@@ -147,6 +156,13 @@
 
             <!-- Actions -->
             <div class="flex items-center gap-2">
+              <button
+                onclick={() => onNavigateToDictionary?.(item.word)}
+                class="p-2 rounded-xl bg-slate-800 hover:bg-cyan-600 text-slate-300 hover:text-white transition cursor-pointer"
+                title="Look up in Smart Dictionary"
+              >
+                <BookA class="w-4 h-4" />
+              </button>
               <button
                 onclick={() => playTTS(item.word)}
                 class="p-2 rounded-xl bg-slate-800 hover:bg-purple-600 text-slate-300 hover:text-white transition cursor-pointer"
