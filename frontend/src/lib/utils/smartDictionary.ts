@@ -24,6 +24,8 @@ export interface SmartWordResult {
   nuance_tips?: string;
   source: 'vault' | 'app_vocab' | 'ai' | 'online_dict' | 'lexicon';
   audioUrl?: string;
+  debugLogs?: string[];
+  executionTimeMs?: number;
 }
 
 /**
@@ -59,7 +61,8 @@ export function ensureRichUnifiedResult(result: SmartWordResult): SmartWordResul
     synonyms: result.synonyms || [],
     antonyms: result.antonyms || [],
     mnemonic_hook: result.mnemonic_hook || '',
-    nuance_tips: result.nuance_tips || ''
+    nuance_tips: result.nuance_tips || '',
+    debugLogs: result.debugLogs || []
   };
 }
 
@@ -71,78 +74,112 @@ export function ensureRichUnifiedResult(result: SmartWordResult): SmartWordResul
  * 4. Honest Clean Fallback with direct Oxford/Cambridge links
  */
 export async function lookupSmartDictionary(rawQuery: string, forceAI = false): Promise<SmartWordResult> {
+  const startTime = performance.now();
   const query = rawQuery.trim().toLowerCase();
+  const logs: string[] = [];
+
+  const log = (msg: string) => {
+    const elapsed = Math.round(performance.now() - startTime);
+    const logLine = `[+${elapsed}ms] ${msg}`;
+    logs.push(logLine);
+    console.log(`%c[VaultLingo Dict]%c ${logLine}`, 'color: #38bdf8; font-weight: bold', 'color: inherit');
+  };
+
   if (!query) {
     throw new Error('Please enter a word to search');
   }
 
+  log(`🚀 Starting search pipeline for keyword: "${query}" (forceAI=${forceAI})`);
+
   // If forceAI is explicitly requested (via "AI Deep Enrich ✨"), run AI engine & save to SQLite DB
   if (forceAI) {
+    log(`✨ Step 0: User requested AI Deep Enrich. Triggering AI model evaluation...`);
     try {
-      const aiResult = await lookupViaAI(query);
+      const aiResult = await lookupViaAI(query, null, log);
       if (aiResult) {
+        log(`💾 Writing AI-enriched result to SQLite database (~/.local/share/VaultLingo/vocab.db)...`);
         try {
           await SaveWordToDB(aiResult.word);
+          log(`✅ Successfully saved "${query}" into SQLite database.`);
         } catch (dbErr) {
-          console.warn('Failed saving AI word to SQLite DB:', dbErr);
+          log(`⚠️ Failed saving AI word to SQLite DB: ${dbErr}`);
         }
+        aiResult.debugLogs = logs;
+        aiResult.executionTimeMs = Math.round(performance.now() - startTime);
         return ensureRichUnifiedResult(aiResult);
       }
     } catch (err) {
-      console.warn('Force AI lookup failed, falling back:', err);
+      log(`⚠️ Force AI lookup failed: ${err}`);
     }
   }
 
   // 1. Native SQLite Database File Lookup (Instant 0ms from vocab.db)
+  log(`🔍 Step 1: Querying native SQLite database file (vocab.db)...`);
   try {
     const dbWord = await LookupWordInDB(query);
     if (dbWord && dbWord.word) {
+      log(`🎯 SQLite HIT! Found "${dbWord.word}" (ID: ${dbWord.id}, Topic: ${dbWord.topic || 'general'}) in SQLite DB.`);
       const res: SmartWordResult = {
         word: dbWord,
         isLocal: true,
-        source: 'app_vocab'
+        source: 'app_vocab',
+        debugLogs: logs,
+        executionTimeMs: Math.round(performance.now() - startTime)
       };
       return ensureRichUnifiedResult(res);
     }
   } catch (err) {
-    // Word not found in SQLite yet, proceed to Online / AI pipeline
+    log(`⚠️ Step 1 SQLite MISS: "${query}" not found in local SQLite database.`);
   }
 
   // 2. Online Dictionary API + AI Template Synthesis
+  log(`🌐 Step 2: Fetching online dictionary definition and phonetics...`);
   try {
-    const onlineData = await lookupViaOnlineAPI(query);
-    const aiResult = await lookupViaAI(query, onlineData);
+    const onlineData = await lookupViaOnlineAPI(query, log);
+    log(`🤖 Step 3: Synthesizing full 6-block Oxford template via AI model...`);
+    const aiResult = await lookupViaAI(query, onlineData, log);
+    
     if (aiResult) {
-      // Auto-save the AI-structured word directly into SQLite DB (vocab.db)
+      log(`💾 Auto-saving AI-structured entry into native SQLite database file (vocab.db)...`);
       try {
         await SaveWordToDB(aiResult.word);
+        log(`✅ Successfully saved "${query}" to SQLite. Future lookups will be 0ms instant.`);
       } catch (dbErr) {
-        console.warn('Failed auto-saving word to SQLite DB:', dbErr);
+        log(`⚠️ Failed auto-saving word to SQLite DB: ${dbErr}`);
       }
+      aiResult.debugLogs = logs;
+      aiResult.executionTimeMs = Math.round(performance.now() - startTime);
       return ensureRichUnifiedResult(aiResult);
     }
 
     if (onlineData) {
+      log(`💾 Saving online dictionary entry to SQLite database...`);
       try {
         await SaveWordToDB(onlineData.word);
+        log(`✅ Saved online entry into SQLite DB.`);
       } catch (dbErr) {
-        console.warn('Failed saving online word to SQLite DB:', dbErr);
+        log(`⚠️ Failed saving online word to SQLite DB: ${dbErr}`);
       }
+      onlineData.debugLogs = logs;
+      onlineData.executionTimeMs = Math.round(performance.now() - startTime);
       return ensureRichUnifiedResult(onlineData);
     }
   } catch (aiErr) {
-    console.warn('Online & AI dictionary lookup fallback:', aiErr);
+    log(`⚠️ Online & AI dictionary pipeline error: ${aiErr}`);
   }
 
   // 3. Clean Honest Fallback Entry (No slop, clear Cambridge/Oxford/Longman links)
+  log(`🛡️ Step 4: Generating clean honest fallback card with direct external dictionary links.`);
   const synth = createSynthesizedEntry(query);
+  synth.debugLogs = logs;
+  synth.executionTimeMs = Math.round(performance.now() - startTime);
   return ensureRichUnifiedResult(synth);
 }
 
 /**
  * Uses backend AI engine with Oxford lexicographer standards to generate rich, structured JSON for the word
  */
-async function lookupViaAI(word: string, onlineContext?: SmartWordResult | null): Promise<SmartWordResult | null> {
+async function lookupViaAI(word: string, onlineContext?: SmartWordResult | null, log?: (msg: string) => void): Promise<SmartWordResult | null> {
   const contextNote = onlineContext
     ? `Online Phonetic: ${onlineContext.word.phonetic || ''}, Raw Definition: ${onlineContext.word.definition_en || ''}`
     : '';
@@ -184,6 +221,7 @@ Return ONLY valid JSON (no markdown formatting, no backticks, no markdown codebl
 }`;
 
   try {
+    log?.(`🤖 Sending dictionary prompt to AI provider backend...`);
     const rawResponse = await EvaluateWriting(
       `Dictionary Entry for: ${word}`,
       `Please parse and define the word: ${word}`,
@@ -191,6 +229,7 @@ Return ONLY valid JSON (no markdown formatting, no backticks, no markdown codebl
     );
 
     if (!rawResponse || typeof rawResponse !== 'string') {
+      log?.(`⚠️ AI response was empty or invalid string.`);
       return null;
     }
 
@@ -207,8 +246,11 @@ Return ONLY valid JSON (no markdown formatting, no backticks, no markdown codebl
 
     const data = JSON.parse(cleanJson);
     if (!data.word || !data.definition_en) {
+      log?.(`⚠️ AI JSON was missing required fields.`);
       return null;
     }
+
+    log?.(`✅ Successfully parsed AI linguistic JSON for "${word}".`);
 
     const wordObj = new backend.Word({
       id: Date.now(),
@@ -243,7 +285,7 @@ Return ONLY valid JSON (no markdown formatting, no backticks, no markdown codebl
       source: 'ai'
     };
   } catch (parseErr) {
-    console.warn('AI lookup skipped:', parseErr);
+    log?.(`⚠️ AI lookup skipped: ${parseErr}`);
     return null;
   }
 }
@@ -251,23 +293,28 @@ Return ONLY valid JSON (no markdown formatting, no backticks, no markdown codebl
 /**
  * Free Dictionary API with short 1.5s timeout
  */
-async function lookupViaOnlineAPI(word: string): Promise<SmartWordResult | null> {
+async function lookupViaOnlineAPI(word: string, log?: (msg: string) => void): Promise<SmartWordResult | null> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 1500);
 
   try {
     const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
+    log?.(`🌐 Fetching ${url} (1.5s timeout)...`);
     const resp = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (!resp.ok) {
+      log?.(`⚠️ Online Dictionary API returned status ${resp.status}`);
       return null;
     }
 
     const entries = await resp.json();
     if (!entries || !entries.length) {
+      log?.(`⚠️ Online Dictionary returned no entries.`);
       return null;
     }
+
+    log?.(`✅ Online Dictionary returned ${entries.length} entry/entries.`);
 
     const entry = entries[0];
     const firstMeaning = entry.meanings?.[0];
