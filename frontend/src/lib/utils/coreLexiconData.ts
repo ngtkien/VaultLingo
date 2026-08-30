@@ -6,6 +6,222 @@ import type { SmartWordResult } from './smartDictionary';
  * Covering top essential words across technology, science, education, work, society, psychology, mindset, and daily life.
  */
 export const CORE_LEXICON_DATABASE: Record<string, Partial<SmartWordResult>> = {
+  'keyboard': {
+    word: new backend.Word({
+      id: 2998,
+      word: 'keyboard',
+      raw_word: 'keyboard',
+      pos: 'Noun',
+      phonetic: '/ˈkiː.bɔːd/ (UK) • /ˈkiː.bɔːrd/ (US)',
+      definition_en: 'A panel of keys that operate a computer, typewriter, or musical instrument.',
+      definition_vi: 'Bàn phím máy tính, bàn phím điều khiển hoặc bàn phím nhạc cụ (đàn piano/organ).',
+      example_en: 'She prefers using a mechanical keyboard for software engineering and writing.',
+      example_vi: 'Cô ấy thích sử dụng bàn phím cơ để lập trình phần mềm và viết lách.',
+      level: 'A1 Essential',
+      topic: 'technology',
+      topic_title: 'Hardware & Tech',
+      topic_icon: '⌨️',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/keyboard'
+    }),
+    isLocal: true,
+    synonyms: ['keypad', 'console', 'input device', 'piano keyboard'],
+    antonyms: [],
+    collocations: ['mechanical keyboard', 'wireless keyboard', 'type on a keyboard', 'keyboard shortcuts', 'QWERTY keyboard', 'keyboard layout'],
+    word_family: [
+      { pos: 'Noun', word: 'keyboard' },
+      { pos: 'Noun', word: 'keyboardist' },
+      { pos: 'Noun', word: 'key' },
+      { pos: 'Noun', word: 'keypad' }
+    ],
+    etymology: 'Compound of "key" (Old English cǣg) + "board" (Old English bord). Originally designated musical instrument keys before typewriters and computers.',
+    mnemonic_hook: 'Key + Board = The board of keys that unlocks digital creation with your fingertips!',
+    examples: [
+      {
+        en: 'She prefers using a mechanical keyboard for software engineering and writing.',
+        vi: 'Cô ấy thích sử dụng bàn phím cơ để lập trình phần mềm và viết lách.'
+      },
+      {
+        en: 'Mastering keyboard shortcuts significantly boosts your daily coding efficiency.',
+        vi: 'Thành thạo các phím tắt trên bàn phím giúp nâng cao đáng kể hiệu suất lập trình hàng ngày.'
+      },
+      {
+        en: 'He played a mesmerizing melody on the electronic keyboard during the concert.',
+        vi: 'Anh ấy đã chơi một giai điệu đầy mê hoặc trên cây đàn phím điện tử trong buổi hòa nhạc.'
+      }
+    ],
+    nuance_tips: 'Countable noun. "Keyboard" refers to full alphanumeric input boards, while "keypad" refers to smaller numeric blocks (such as on ATMs or door locks).',
+    source: 'lexicon'
+  },
+  'computer': {
+    word: new backend.Word({
+      id: 2997,
+      word: 'computer',
+      raw_word: 'computer',
+      pos: 'Noun',
+      phonetic: '/kəmˈpjuː.tər/ (UK) • /kəmˈpjuː.t̬ɚ/ (US)',
+      definition_en: 'An electronic device for storing and processing data, typically in binary form, according to instructions given to it in a variable program.',
+      definition_vi: 'Máy vi tính, thiết bị điện tử xử lý và lưu trữ dữ liệu số theo chương trình.',
+      example_en: 'Modern computers can execute billions of calculations per second with remarkable precision.',
+      example_vi: 'Máy tính hiện đại có thể thực hiện hàng tỷ phép tính mỗi giây với độ chính xác đáng kinh ngạc.',
+      level: 'A1 Essential',
+      topic: 'technology',
+      topic_title: 'Computing & Digital Life',
+      topic_icon: '💻',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/computer'
+    }),
+    isLocal: true,
+    synonyms: ['PC', 'workstation', 'laptop', 'machine', 'server', 'processor'],
+    antonyms: [],
+    collocations: ['personal computer', 'computer science', 'computer programming', 'use a computer', 'computer network', 'computer software'],
+    word_family: [
+      { pos: 'Noun', word: 'computer' },
+      { pos: 'Verb', word: 'compute' },
+      { pos: 'Noun', word: 'computation' },
+      { pos: 'Adjective', word: 'computational' },
+      { pos: 'Noun', word: 'computing' }
+    ],
+    etymology: 'From Latin "computare" (to calculate together, reckon), from "com-" (together) + "putare" (to think, reckon). Originally designated human mathematicians.',
+    mnemonic_hook: 'Compute (Calculate) + er (Machine) = The ultimate thinking and calculating machine!',
+    examples: [
+      {
+        en: 'Modern computers can execute billions of calculations per second with remarkable precision.',
+        vi: 'Máy tính hiện đại có thể thực hiện hàng tỷ phép tính mỗi giây với độ chính xác đáng kinh ngạc.'
+      },
+      {
+        en: 'Studying computer science opens doors to innovative careers in artificial intelligence.',
+        vi: 'Học ngành khoa học máy tính mở ra cánh cửa tới các nghề nghiệp đổi mới sáng tạo trong trí tuệ nhân tạo.'
+      }
+    ],
+    nuance_tips: 'Historically referred to a person who calculated tables before electronic machines were invented in the 1940s.',
+    source: 'lexicon'
+  },
+  'internet': {
+    word: new backend.Word({
+      id: 2996,
+      word: 'internet',
+      raw_word: 'internet',
+      pos: 'Noun',
+      phonetic: '/ˈɪn.tə.net/ (UK) • /ˈɪn.t̬ɚ.net/ (US)',
+      definition_en: 'A global computer network providing a variety of information and communication facilities, consisting of interconnected networks.',
+      definition_vi: 'Mạng internet, mạng lưới máy tính toàn cầu kết nối thông tin và liên lạc.',
+      example_en: 'The internet has democratized access to education and global market opportunities.',
+      example_vi: 'Mạng internet đã bình đẳng hóa việc tiếp cận giáo dục và các cơ hội thị trường toàn cầu.',
+      level: 'A1 Essential',
+      topic: 'technology',
+      topic_title: 'Global Connectivity',
+      topic_icon: '🌐',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/internet'
+    }),
+    isLocal: true,
+    synonyms: ['World Wide Web', 'web', 'net', 'cyberspace', 'online network'],
+    antonyms: ['offline network'],
+    collocations: ['access the internet', 'browse the internet', 'high-speed internet', 'on the internet', 'internet connection', 'internet access'],
+    word_family: [
+      { pos: 'Noun', word: 'internet' },
+      { pos: 'Noun', word: 'intranet' },
+      { pos: 'Noun', word: 'network' },
+      { pos: 'Adjective', word: 'online' }
+    ],
+    etymology: 'Portmanteau of "interconnected" + "network", coined in the 1970s during TCP/IP development.',
+    mnemonic_hook: 'Inter (Global) + Net (Network) = The world\'s giant invisible net connecting all human knowledge!',
+    examples: [
+      {
+        en: 'The internet has democratized access to education and global market opportunities.',
+        vi: 'Mạng internet đã bình đẳng hóa việc tiếp cận giáo dục và các cơ hội thị trường toàn cầu.'
+      },
+      {
+        en: 'Reliable internet connectivity is essential for distributed remote engineering teams.',
+        vi: 'Kết nối internet ổn định là điều cốt lõi cho các đội ngũ kỹ sư làm việc từ xa.'
+      }
+    ],
+    nuance_tips: 'Almost always preceded by "the" ("on the internet", "surf the internet").',
+    source: 'lexicon'
+  },
+  'music': {
+    word: new backend.Word({
+      id: 2995,
+      word: 'music',
+      raw_word: 'music',
+      pos: 'Noun',
+      phonetic: '/ˈmjuː.zɪk/',
+      definition_en: 'Vocal or instrumental sounds combined in such a way as to produce beauty of form, harmony, and expression of emotion.',
+      definition_vi: 'Âm nhạc; giai điệu và thanh âm nghệ thuật thể hiện cảm xúc con người.',
+      example_en: 'Listening to instrumental music improves concentration during analytical problem solving.',
+      example_vi: 'Nghe nhạc không lời giúp cải thiện sự tập trung trong khi giải quyết vấn đề phân tích.',
+      level: 'A1 Essential',
+      topic: 'art',
+      topic_title: 'Arts & Harmony',
+      topic_icon: '🎵',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/music'
+    }),
+    isLocal: true,
+    synonyms: ['melody', 'harmony', 'tune', 'song', 'composition', 'soundtrack', 'score'],
+    antonyms: ['silence', 'cacophony', 'noise'],
+    collocations: ['listen to music', 'play music', 'classical music', 'background music', 'music industry', 'live music'],
+    word_family: [
+      { pos: 'Noun', word: 'music' },
+      { pos: 'Noun', word: 'musician' },
+      { pos: 'Adjective', word: 'musical' },
+      { pos: 'Adverb', word: 'musically' },
+      { pos: 'Noun', word: 'musicality' }
+    ],
+    etymology: 'From Greek "mousike tekhne" (art of the Muses), the mythological patron goddesses of poetry, music, and learning.',
+    mnemonic_hook: 'Music = The sacred art of the Muses that speaks directly to the heart!',
+    examples: [
+      {
+        en: 'Listening to instrumental music improves concentration during analytical problem solving.',
+        vi: 'Nghe nhạc không lời giúp cải thiện sự tập trung trong khi giải quyết vấn đề phân tích.'
+      },
+      {
+        en: 'Music serves as a universal language that transcends cultural and linguistic barriers.',
+        vi: 'Âm nhạc đóng vai trò như một ngôn ngữ phổ quát vượt qua mọi rào cản văn hóa và ngôn ngữ.'
+      }
+    ],
+    nuance_tips: 'Uncountable noun in English (never say "a music"; use "a song", "a piece of music", or "a track").',
+    source: 'lexicon'
+  },
+  'food': {
+    word: new backend.Word({
+      id: 2994,
+      word: 'food',
+      raw_word: 'food',
+      pos: 'Noun',
+      phonetic: '/fuːd/',
+      definition_en: 'Any nutritious substance that people or animals eat or drink in order to maintain life and growth.',
+      definition_vi: 'Thức ăn, thực phẩm, lương thực cung cấp năng lượng và duy trì sự sống.',
+      example_en: 'Wholesome, nutritious food is essential for sustaining high cognitive performance.',
+      example_vi: 'Thực phẩm lành mạnh, giàu dinh dưỡng là điều thiết yếu để duy trì hiệu suất tư duy cao.',
+      level: 'A1 Essential',
+      topic: 'health',
+      topic_title: 'Health & Nutrition',
+      topic_icon: '🍲',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/food'
+    }),
+    isLocal: true,
+    synonyms: ['nourishment', 'sustenance', 'nutrition', 'cuisine', 'fare', 'meal'],
+    antonyms: ['starvation', 'poison'],
+    collocations: ['healthy food', 'food industry', 'organic food', 'fast food', 'food security', 'delicious food'],
+    word_family: [
+      { pos: 'Noun', word: 'food' },
+      { pos: 'Verb', word: 'feed' },
+      { pos: 'Noun', word: 'feeder' },
+      { pos: 'Noun', word: 'foodstuff' }
+    ],
+    etymology: 'From Old English "fōda" (nourishment), of Germanic origin, closely related to "feed" and "fodder".',
+    mnemonic_hook: 'Food = Fuel that revitalizes your body and mind every single day!',
+    examples: [
+      {
+        en: 'Wholesome, nutritious food is essential for sustaining high cognitive performance.',
+        vi: 'Thực phẩm lành mạnh, giàu dinh dưỡng là điều thiết yếu để duy trì hiệu suất tư duy cao.'
+      },
+      {
+        en: 'Traditional cuisine reflects the rich cultural heritage and geography of a nation.',
+        vi: 'Ẩm thực truyền thống phản ánh di sản văn hóa và địa lý phong phú của một quốc gia.'
+      }
+    ],
+    nuance_tips: 'Uncountable in general contexts ("healthy food"). Countable ("foods") when referring to specific types ("fermented foods").',
+    source: 'lexicon'
+  },
   'phone': {
     word: new backend.Word({
       id: 2999,
