@@ -6,6 +6,138 @@ import type { SmartWordResult } from './smartDictionary';
  * Covering top essential words across technology, science, education, work, society, psychology, mindset, and daily life.
  */
 export const CORE_LEXICON_DATABASE: Record<string, Partial<SmartWordResult>> = {
+  'book': {
+    word: new backend.Word({
+      id: 3000,
+      word: 'book',
+      raw_word: 'book',
+      pos: 'Noun / Verb',
+      phonetic: '/bʊk/',
+      definition_en: 'A written or printed work consisting of pages glued or sewn together along one side and bound in covers; to reserve accommodation, a seat, or tickets.',
+      definition_vi: 'Quyển sách, tác phẩm viết; đặt chỗ trước, đặt vé, đăng ký trước.',
+      example_en: 'She was reading an insightful book on cognitive psychology.',
+      example_vi: 'Cô ấy đang đọc một cuốn sách sâu sắc về tâm lý học nhận thức.',
+      level: 'A1 Essential',
+      topic: 'education',
+      topic_title: 'Literature & Learning',
+      topic_icon: '📖',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/book'
+    }),
+    isLocal: true,
+    synonyms: ['volume', 'publication', 'tome', 'novel', 'manual', 'reserve', 'schedule'],
+    antonyms: ['cancel', 'cancel reservation'],
+    collocations: ['read a book', 'write a book', 'publish a book', 'book a flight', 'book a hotel', 'open a book', 'by the book'],
+    word_family: [
+      { pos: 'Noun / Verb', word: 'book' },
+      { pos: 'Noun', word: 'booking' },
+      { pos: 'Noun', word: 'booklet' },
+      { pos: 'Noun', word: 'bookstore' },
+      { pos: 'Adjective', word: 'bookish' }
+    ],
+    etymology: 'From Old English "bōc" (document, book), of Germanic origin, traditionally linked to the beech tree ("bēce") on which ancient runes were inscribed.',
+    mnemonic_hook: 'Book = Bound Pages of Knowledge — open a book to open your world!',
+    examples: [
+      {
+        en: 'She was reading an insightful book on cognitive psychology.',
+        vi: 'Cô ấy đang đọc một cuốn sách sâu sắc về tâm lý học nhận thức.'
+      },
+      {
+        en: 'We need to book the flight tickets well in advance before prices rise.',
+        vi: 'Chúng ta cần đặt vé máy bay từ sớm trước khi giá vé tăng.'
+      },
+      {
+        en: 'Doing everything by the book ensures safety, compliance, and excellence.',
+        vi: 'Làm mọi thứ đúng theo quy tắc và quy chuẩn đảm bảo tính an toàn và xuất sắc.'
+      }
+    ],
+    nuance_tips: 'Noun: countable ("two books"). Verb: "book a flight/table". Idioms: "by the book" (strictly following rules), "in my book" (in my opinion).',
+    source: 'lexicon'
+  },
+  'school': {
+    word: new backend.Word({
+      id: 3014,
+      word: 'school',
+      raw_word: 'school',
+      pos: 'Noun / Verb',
+      phonetic: '/skuːl/',
+      definition_en: 'An institution for educating children or students; to educate or train someone.',
+      definition_vi: 'Trường học, cơ sở giáo dục; rèn luyện, đào tạo.',
+      example_en: 'Education at school shapes a child\'s worldview and social skills.',
+      example_vi: 'Giáo dục tại trường học định hình thế giới quan và kỹ năng xã hội của trẻ.',
+      level: 'A1 Essential',
+      topic: 'education',
+      topic_title: 'Education & Community',
+      topic_icon: '🏫',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/school'
+    }),
+    isLocal: true,
+    synonyms: ['academy', 'institution', 'college', 'seminary', 'train', 'educate'],
+    antonyms: [],
+    collocations: ['go to school', 'high school', 'school curriculum', 'school district', 'after school'],
+    word_family: [
+      { pos: 'Noun / Verb', word: 'school' },
+      { pos: 'Noun', word: 'schooling' },
+      { pos: 'Noun', word: 'schoolchild' },
+      { pos: 'Adjective', word: 'scholastic' }
+    ],
+    etymology: 'From Greek "skhole" (leisure, philosophy, lecture), which evolved into places where lectures were held during free time.',
+    mnemonic_hook: 'School comes from "Skhole" (creative leisure) — dedicated time to cultivate the mind!',
+    examples: [
+      {
+        en: 'Education at school shapes a child\'s worldview and social skills.',
+        vi: 'Giáo dục tại trường học định hình thế giới quan và kỹ năng xã hội của trẻ.'
+      },
+      {
+        en: 'He schooled himself in modern programming languages through self-study.',
+        vi: 'Anh ấy tự rèn luyện các ngôn ngữ lập trình hiện đại thông qua tự học.'
+      }
+    ],
+    nuance_tips: 'British English often uses "at school" without an article when referring to being a student.',
+    source: 'lexicon'
+  },
+  'friend': {
+    word: new backend.Word({
+      id: 3015,
+      word: 'friend',
+      raw_word: 'friend',
+      pos: 'Noun',
+      phonetic: '/frend/',
+      definition_en: 'A person whom one knows and with whom one has a bond of mutual affection and trust.',
+      definition_vi: 'Bạn bè, người bạn gắn bó thân thiết và tin cậy lẫn nhau.',
+      example_en: 'A loyal friend offers comfort during times of adversity.',
+      example_vi: 'Một người bạn trung thành mang lại sự an ủi trong những lúc nghịch cảnh.',
+      level: 'A1 Essential',
+      topic: 'relationships',
+      topic_title: 'Relationships & Trust',
+      topic_icon: '🤝',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/friend'
+    }),
+    isLocal: true,
+    synonyms: ['companion', 'ally', 'confidant', 'pal', 'comrade', 'buddy'],
+    antonyms: ['enemy', 'foe', 'adversary', 'rival'],
+    collocations: ['close friend', 'make friends', 'childhood friend', 'loyal friend', 'circle of friends'],
+    word_family: [
+      { pos: 'Noun', word: 'friend' },
+      { pos: 'Noun', word: 'friendship' },
+      { pos: 'Adjective', word: 'friendly' },
+      { pos: 'Adjective', word: 'unfriendly' },
+      { pos: 'Noun', word: 'friendliness' }
+    ],
+    etymology: 'From Old English "frēond" (friend, lover), of Germanic origin, related to "frēon" (to love, free).',
+    mnemonic_hook: 'Friend = Someone who makes you feel Free and Endeared!',
+    examples: [
+      {
+        en: 'A loyal friend offers comfort during times of adversity.',
+        vi: 'Một người bạn trung thành mang lại sự an ủi trong những lúc nghịch cảnh.'
+      },
+      {
+        en: 'They have maintained a deep friendship for over twenty years.',
+        vi: 'Họ đã duy trì một tình bạn sâu sắc trong suốt hơn hai mươi năm.'
+      }
+    ],
+    nuance_tips: 'Contrast "friend" (close personal relationship) with "acquaintance" (casual person you know).',
+    source: 'lexicon'
+  },
   'ability': {
     word: new backend.Word({
       id: 3001,

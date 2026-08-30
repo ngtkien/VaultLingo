@@ -791,17 +791,19 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
     console.warn('App vocab check skipped:', err);
   }
 
-  // 3. Online Free Dictionary API with short 1.5s timeout (Never blocks UI)
+  // 3. AI Structured Lookup for any new/custom word (Generates real, non-slop dictionary data)
   try {
-    const onlineResult = await lookupViaOnlineAPI(query);
-    if (onlineResult) {
-      return ensureRichUnifiedResult(onlineResult);
+    const aiResult = await lookupViaAI(query);
+    if (aiResult) {
+      // Cache in offline lexicon for instant 0ms access next time
+      OFFLINE_LEXICON[query] = aiResult;
+      return ensureRichUnifiedResult(aiResult);
     }
-  } catch (apiErr) {
-    // Fast fail - proceed immediately without hanging
+  } catch (aiErr) {
+    console.warn('AI lookup fallback:', aiErr);
   }
 
-  // 4. Instant Synthesized Fallback Entry (Zero-latency guarantee)
+  // 4. Fallback Entry
   const synth = createSynthesizedEntry(query);
   return ensureRichUnifiedResult(synth);
 }
