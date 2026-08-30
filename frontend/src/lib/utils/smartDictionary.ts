@@ -115,41 +115,72 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
 
   // 1. Native SQLite Database File Lookup (Instant 0ms from vocab.db)
   log(`🔍 Step 1: Querying native SQLite database file (vocab.db)...`);
+  let existingDbWord: backend.Word | null = null;
   try {
     const dbWord = await LookupWordInDB(query);
     if (dbWord && dbWord.word) {
-      log(`🎯 SQLite HIT! Found "${dbWord.word}" (ID: ${dbWord.id}, Topic: ${dbWord.topic || 'general'}) in SQLite DB.`);
-      const res: SmartWordResult = {
-        word: dbWord,
-        isLocal: true,
-        source: 'app_vocab',
-        debugLogs: logs,
-        executionTimeMs: Math.round(performance.now() - startTime)
-      };
-      return ensureRichUnifiedResult(res);
+      existingDbWord = dbWord;
+      const hasViMeaning = dbWord.definition_vi && 
+                           dbWord.definition_vi.trim().length > 0 && 
+                           !dbWord.definition_vi.includes('available in details');
+      const hasViExample = dbWord.example_vi && 
+                           dbWord.example_vi.trim().length > 0;
+      
+      // If the word already has complete, rich Vietnamese explanations & examples, return immediately (0ms)
+      if (hasViMeaning && hasViExample) {
+        log(`🎯 SQLite HIT! Found complete entry "${dbWord.word}" (ID: ${dbWord.id}, Topic: ${dbWord.topic || 'general'}) in SQLite DB.`);
+        const res: SmartWordResult = {
+          word: dbWord,
+          isLocal: true,
+          source: 'app_vocab',
+          debugLogs: logs,
+          executionTimeMs: Math.round(performance.now() - startTime)
+        };
+        return ensureRichUnifiedResult(res);
+      } else {
+        log(`⚠️ SQLite HIT for "${dbWord.word}", but record is incomplete (missing Vietnamese definitions/examples). Auto-upgrading via AI...`);
+      }
     }
   } catch (err) {
     log(`⚠️ Step 1 SQLite MISS: "${query}" not found in local SQLite database.`);
   }
 
-  // 2. Online Dictionary API + AI Template Synthesis
+  // 2. Online Dictionary API + AI Template Synthesis (or Upgrading Incomplete SQLite Record)
   log(`🌐 Step 2: Fetching online dictionary definition and phonetics...`);
   try {
     const onlineData = await lookupViaOnlineAPI(query, log);
+    const contextForAI: SmartWordResult | null = onlineData || (existingDbWord ? {
+      word: existingDbWord,
+      isLocal: true,
+      source: 'app_vocab'
+    } : null);
+
     log(`🤖 Step 3: Synthesizing full 6-block Oxford template via AI model...`);
-    const aiResult = await lookupViaAI(query, onlineData, log);
+    const aiResult = await lookupViaAI(query, contextForAI, log);
     
     if (aiResult) {
       log(`💾 Auto-saving AI-structured entry into native SQLite database file (vocab.db)...`);
       try {
         await SaveWordToDB(aiResult.word);
-        log(`✅ Successfully saved "${query}" to SQLite. Future lookups will be 0ms instant.`);
+        log(`✅ Successfully upgraded & saved "${query}" to SQLite. Future lookups will be 0ms instant.`);
       } catch (dbErr) {
         log(`⚠️ Failed auto-saving word to SQLite DB: ${dbErr}`);
       }
       aiResult.debugLogs = logs;
       aiResult.executionTimeMs = Math.round(performance.now() - startTime);
       return ensureRichUnifiedResult(aiResult);
+    }
+
+    if (existingDbWord) {
+      log(`📌 AI unavailable. Returning existing SQLite record.`);
+      const res: SmartWordResult = {
+        word: existingDbWord,
+        isLocal: true,
+        source: 'app_vocab',
+        debugLogs: logs,
+        executionTimeMs: Math.round(performance.now() - startTime)
+      };
+      return ensureRichUnifiedResult(res);
     }
 
     if (onlineData) {
