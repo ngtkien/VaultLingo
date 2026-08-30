@@ -234,19 +234,33 @@ Return ONLY valid JSON (no markdown formatting, no backticks, no markdown codebl
     }
 
     let cleanJson = rawResponse.trim();
-    if (cleanJson.startsWith('```')) {
-      cleanJson = cleanJson.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+
+    // 1. Extract from ```json ... ``` codeblocks if present
+    const codeBlockMatch = cleanJson.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (codeBlockMatch && codeBlockMatch[1]) {
+      cleanJson = codeBlockMatch[1].trim();
     }
 
+    // 2. Extract substring between outermost { and }
     const firstBrace = cleanJson.indexOf('{');
     const lastBrace = cleanJson.lastIndexOf('}');
-    if (firstBrace !== -1 && lastBrace !== -1) {
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
       cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
     }
 
-    const data = JSON.parse(cleanJson);
-    if (!data.word || !data.definition_en) {
-      log?.(`⚠️ AI JSON was missing required fields.`);
+    // 3. Clean trailing commas before closing braces/brackets
+    cleanJson = cleanJson.replace(/,\s*([}\]])/g, '$1');
+
+    let data: any;
+    try {
+      data = JSON.parse(cleanJson);
+    } catch (parseErr) {
+      log?.(`⚠️ JSON parse error on AI response. Content preview: ${cleanJson.slice(0, 100)}... Error: ${parseErr}`);
+      return null;
+    }
+
+    if (!data || !data.definition_en) {
+      log?.(`⚠️ AI JSON was missing required definition_en field.`);
       return null;
     }
 
