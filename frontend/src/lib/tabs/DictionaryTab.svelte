@@ -15,11 +15,17 @@
     Tag, 
     Layers, 
     ArrowRight,
-    Compass
+    Compass,
+    History,
+    Network,
+    Quote,
+    BrainCircuit
   } from 'lucide-svelte';
   import { lookupSmartDictionary, type SmartWordResult } from '../utils/smartDictionary';
   import { SaveWordToObsidian, DeleteWordFromObsidian, GetSavedObsidianVocab } from '../../../wailsjs/go/main/App.js';
   import { playTTS, playAudioUrl } from '../utils/audio';
+
+  let { initialWord = 'serendipity' } = $props<{ initialWord?: string }>();
 
   let searchQuery = $state('');
   let loading = $state(false);
@@ -54,7 +60,7 @@
     isSavedInVault = false;
   }
 
-  async function handleSearch(targetWord?: string) {
+  export async function handleSearch(targetWord?: string) {
     const term = (targetWord || searchQuery).trim();
     if (!term) return;
 
@@ -115,8 +121,16 @@
     }
   }
 
-  onMount(() => {
-    handleSearch('serendipity');
+  let lastLoadedInitialWord = $state('');
+
+  // React to initialWord changes ONLY when initialWord prop changes from outside
+  $effect(() => {
+    const target = initialWord?.trim() || '';
+    if (target && target !== lastLoadedInitialWord) {
+      lastLoadedInitialWord = target;
+      searchQuery = target;
+      handleSearch(target);
+    }
   });
 </script>
 
@@ -132,13 +146,13 @@
           </h2>
         </div>
         <p class="text-xs sm:text-sm text-slate-400 theme-text-muted mt-1">
-          Search any English word • Structured VaultLingo schema • One-click sync to Obsidian
+          Search any English word • In-depth linguistic insights • One-click sync to Obsidian
         </p>
       </div>
 
       <div class="flex items-center gap-2">
         <span class="px-3 py-1 text-xs font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded-xl">
-          ⚡ AI Lexicon Ready
+          ⚡ Comprehensive Lexicon
         </span>
       </div>
     </div>
@@ -200,7 +214,7 @@
       <div>
         <h3 class="text-lg font-bold text-slate-200">Analyzing & Formatting Word...</h3>
         <p class="text-xs text-slate-400 mt-1">
-          Generating definitions, bilingual translation, CEFR level, examples, and synonyms.
+          Generating definitions, bilingual translation, CEFR level, examples, word family, and synonyms.
         </p>
       </div>
     </div>
@@ -217,14 +231,17 @@
     </div>
   {/if}
 
-  <!-- Word Result Card -->
+  <!-- Word Result Card: Comprehensive 6-Block Content Layout -->
   {#if currentResult && !loading}
     <div class="bg-slate-900/85 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-md theme-card">
-      <!-- Main Word Header & Badges -->
+      
+      <!-- ========================================================================= -->
+      <!-- BLOCK 1: Main Word Identity, Badges, Audio & Obsidian Action -->
+      <!-- ========================================================================= -->
       <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-slate-800 pb-6">
         <div class="space-y-2">
           <div class="flex flex-wrap items-center gap-3">
-            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-100">
+            <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-100">
               {currentResult.word.word}
             </h1>
 
@@ -260,7 +277,7 @@
 
           <!-- Phonetic -->
           {#if currentResult.word.phonetic}
-            <div class="text-base text-slate-400 font-mono">
+            <div class="text-base sm:text-lg text-slate-400 font-mono">
               {currentResult.word.phonetic}
             </div>
           {/if}
@@ -271,7 +288,7 @@
           <!-- Audio 1.0x -->
           <button
             onclick={() => handlePlayAudio(false)}
-            class="px-3 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/40 transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
+            class="px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/40 transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold active:scale-95"
             title="Pronounce at 1.0x standard speed"
           >
             <Volume2 class="w-4 h-4" />
@@ -281,7 +298,7 @@
           <!-- Audio 0.75x Slow -->
           <button
             onclick={() => handlePlayAudio(true)}
-            class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer text-xs font-mono"
+            class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer text-xs font-mono active:scale-95"
             title="Pronounce slowly (0.75x)"
           >
             0.75x 🐢
@@ -291,7 +308,7 @@
           <button
             onclick={toggleSaveToVault}
             disabled={savingVault}
-            class={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition cursor-pointer flex items-center gap-2 shadow-md ${
+            class={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition cursor-pointer flex items-center gap-2 shadow-md active:scale-95 ${
               isSavedInVault
                 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-emerald-500/10'
                 : 'bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white border-purple-500/40'
@@ -309,11 +326,13 @@
         </div>
       </div>
 
-      <!-- Definitions Grid -->
+      <!-- ========================================================================= -->
+      <!-- BLOCK 2: Definitions Grid (English & Vietnamese) -->
+      <!-- ========================================================================= -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- English Definition Card -->
-        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4.5 space-y-2 theme-inner">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-blue-400">
+        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-2 theme-inner">
+          <div class="flex items-center gap-1.5 text-xs font-bold text-blue-400 uppercase tracking-wider">
             <BookOpen class="w-4 h-4" />
             <span>English Definition</span>
           </div>
@@ -323,8 +342,8 @@
         </div>
 
         <!-- Vietnamese Meaning Card -->
-        <div class="bg-amber-950/15 border border-amber-500/25 rounded-xl p-4.5 space-y-2 theme-inner">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+        <div class="bg-amber-950/15 border border-amber-500/25 rounded-xl p-5 space-y-2 theme-inner">
+          <div class="flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-wider">
             <Sparkles class="w-4 h-4" />
             <span>Vietnamese Meaning</span>
           </div>
@@ -334,38 +353,102 @@
         </div>
       </div>
 
-      <!-- Example Sentence Card -->
-      {#if currentResult.word.example_en}
-        <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-5 space-y-2.5 theme-inner">
-          <div class="text-xs font-bold text-purple-400 flex items-center gap-1.5">
-            <span>💬</span>
-            <span>Example in Context</span>
-          </div>
-          <blockquote class="text-sm sm:text-base text-slate-200 italic pl-3 border-l-2 border-purple-500/60">
-            "{currentResult.word.example_en}"
-          </blockquote>
-          {#if currentResult.word.example_vi}
-            <p class="text-xs sm:text-sm text-slate-400 pl-3">
-              👉 {currentResult.word.example_vi}
-            </p>
+      <!-- ========================================================================= -->
+      <!-- BLOCK 3: Word Family & Etymology (Linguistic Root & Derivations) -->
+      <!-- ========================================================================= -->
+      {#if (currentResult.word_family && currentResult.word_family.length > 0) || currentResult.etymology}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Word Family -->
+          {#if currentResult.word_family && currentResult.word_family.length > 0}
+            <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2.5 theme-inner">
+              <div class="flex items-center gap-1.5 text-xs font-bold text-cyan-400">
+                <Network class="w-4 h-4" />
+                <span>Word Family / Related Forms</span>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                {#each currentResult.word_family as member}
+                  <button
+                    onclick={() => handleSearch(member.word)}
+                    class="px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-mono transition cursor-pointer flex items-center gap-1.5 active:scale-95"
+                    title={`Lookup "${member.word}"`}
+                  >
+                    <span class="text-[10px] text-cyan-400/70 uppercase">({member.pos}):</span>
+                    <span class="font-bold">{member.word}</span>
+                  </button>
+                {/each}
+              </div>
+            </div>
+          {/if}
+
+          <!-- Etymology / Linguistic Root -->
+          {#if currentResult.etymology}
+            <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2 theme-inner">
+              <div class="flex items-center gap-1.5 text-xs font-bold text-purple-400">
+                <History class="w-4 h-4" />
+                <span>Etymology & Root Origin</span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
+                {currentResult.etymology}
+              </p>
+            </div>
           {/if}
         </div>
       {/if}
 
-      <!-- Synonyms, Antonyms & Collocations Section -->
+      <!-- ========================================================================= -->
+      <!-- BLOCK 4: Contextual Bilingual Examples (Multiple Sentences) -->
+      <!-- ========================================================================= -->
+      <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-5 space-y-3.5 theme-inner">
+        <div class="text-xs font-bold text-purple-400 flex items-center gap-1.5 uppercase tracking-wider">
+          <Quote class="w-4 h-4" />
+          <span>Real-World Contextual Examples</span>
+        </div>
+
+        <div class="space-y-3">
+          {#if currentResult.examples && currentResult.examples.length > 0}
+            {#each currentResult.examples as ex, i}
+              <div class="pl-3.5 border-l-2 border-purple-500/60 space-y-1">
+                <p class="text-sm sm:text-base text-slate-200 italic font-sans">
+                  "{ex.en}"
+                </p>
+                {#if ex.vi}
+                  <p class="text-xs sm:text-sm text-slate-400">
+                    👉 {ex.vi}
+                  </p>
+                {/if}
+              </div>
+            {/each}
+          {:else if currentResult.word.example_en}
+            <div class="pl-3.5 border-l-2 border-purple-500/60 space-y-1">
+              <p class="text-sm sm:text-base text-slate-200 italic font-sans">
+                "{currentResult.word.example_en}"
+              </p>
+              {#if currentResult.word.example_vi}
+                <p class="text-xs sm:text-sm text-slate-400">
+                  👉 {currentResult.word.example_vi}
+                </p>
+              {/if}
+            </div>
+          {/if}
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- BLOCK 5: Synonyms, Antonyms & High-Yield Collocations -->
+      <!-- ========================================================================= -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Synonyms -->
+        <!-- Synonyms (Clickable Tags) -->
         {#if currentResult.synonyms && currentResult.synonyms.length > 0}
-          <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-4 space-y-2 theme-inner">
+          <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2.5 theme-inner">
             <div class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
               <Tag class="w-3.5 h-3.5" />
-              <span>Synonyms:</span>
+              <span>Synonyms (Click to explore):</span>
             </div>
             <div class="flex flex-wrap gap-1.5">
               {#each currentResult.synonyms as syn}
                 <button
                   onclick={() => handleSearch(syn)}
-                  class="px-2 py-0.5 text-xs bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/25 rounded-md transition cursor-pointer active:scale-95"
+                  class="px-2.5 py-1 text-xs bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/25 rounded-md transition cursor-pointer active:scale-95"
                   title={`Lookup "${syn}"`}
                 >
                   {syn}
@@ -375,18 +458,18 @@
           </div>
         {/if}
 
-        <!-- Antonyms -->
+        <!-- Antonyms (Clickable Tags) -->
         {#if currentResult.antonyms && currentResult.antonyms.length > 0}
-          <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-4 space-y-2 theme-inner">
+          <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2.5 theme-inner">
             <div class="text-xs font-bold text-rose-400 flex items-center gap-1.5">
               <Tag class="w-3.5 h-3.5" />
-              <span>Antonyms:</span>
+              <span>Antonyms (Click to explore):</span>
             </div>
             <div class="flex flex-wrap gap-1.5">
               {#each currentResult.antonyms as ant}
                 <button
                   onclick={() => handleSearch(ant)}
-                  class="px-2 py-0.5 text-xs bg-rose-500/10 hover:bg-rose-500/25 text-rose-300 border border-rose-500/25 rounded-md transition cursor-pointer active:scale-95"
+                  class="px-2.5 py-1 text-xs bg-rose-500/10 hover:bg-rose-500/25 text-rose-300 border border-rose-500/25 rounded-md transition cursor-pointer active:scale-95"
                   title={`Lookup "${ant}"`}
                 >
                   {ant}
@@ -397,26 +480,45 @@
         {/if}
       </div>
 
-      <!-- Collocations & Nuance / Usage Tips -->
-      {#if currentResult.collocations && currentResult.collocations.length > 0 || currentResult.nuance_tips}
+      <!-- High-Yield Collocations -->
+      {#if currentResult.collocations && currentResult.collocations.length > 0}
         <div class="bg-indigo-950/15 border border-indigo-500/25 rounded-xl p-4.5 space-y-2.5 theme-inner">
           <div class="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
             <Lightbulb class="w-4 h-4 text-amber-400" />
-            <span>Collocations & Usage Tips</span>
+            <span>High-Yield Collocations</span>
+          </div>
+          <div class="flex flex-wrap gap-2 text-xs font-mono text-indigo-200">
+            {#each currentResult.collocations as col}
+              <span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-500/30">
+                ⚡ {col}
+              </span>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      <!-- ========================================================================= -->
+      <!-- BLOCK 6: Memory Hook, IELTS Nuance & Multi-Dictionary Links -->
+      <!-- ========================================================================= -->
+      {#if currentResult.mnemonic_hook || currentResult.nuance_tips}
+        <div class="bg-amber-950/10 border border-amber-500/20 rounded-xl p-4.5 space-y-2.5 theme-inner">
+          <div class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+            <BrainCircuit class="w-4 h-4 text-amber-400" />
+            <span>Memory Hook & IELTS / Communication Nuance</span>
           </div>
 
-          {#if currentResult.collocations && currentResult.collocations.length > 0}
-            <div class="flex flex-wrap gap-2 text-xs font-mono text-indigo-200">
-              {#each currentResult.collocations as col}
-                <span class="px-2.5 py-1 rounded-md bg-indigo-500/15 border border-indigo-500/30">
-                  ⚡ {col}
-                </span>
-              {/each}
+          {#if currentResult.mnemonic_hook}
+            <div class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs sm:text-sm text-amber-200 flex items-start gap-2">
+              <span class="text-base">🧠</span>
+              <div>
+                <strong class="text-amber-300 block mb-0.5">Memory Hook:</strong>
+                {currentResult.mnemonic_hook}
+              </div>
             </div>
           {/if}
 
           {#if currentResult.nuance_tips}
-            <p class="text-xs sm:text-sm text-slate-300 mt-1">
+            <p class="text-xs sm:text-sm text-slate-300 mt-1 pl-2 border-l-2 border-amber-400/50">
               💡 {currentResult.nuance_tips}
             </p>
           {/if}
@@ -424,7 +526,7 @@
       {/if}
 
       <!-- External Dictionary Quick Links -->
-      <div class="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
         <span class="text-slate-400 theme-text-muted flex items-center gap-1">
           <ExternalLink class="w-3.5 h-3.5 text-amber-400" />
           Open in External Dictionaries:
