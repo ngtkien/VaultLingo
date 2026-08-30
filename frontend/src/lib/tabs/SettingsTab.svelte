@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { GetConfig, SaveConfig } from '../../../wailsjs/go/main/App.js';
+  import { GetConfig, SaveConfig, GetSavedObsidianVocab } from '../../../wailsjs/go/main/App.js';
   import { Save, Check, Folder, Key, Cpu, Volume2, ShieldCheck, Sparkles, ExternalLink, Zap, Lock, Info, Bot } from 'lucide-svelte';
 
   let config = $state<any>({
@@ -54,6 +54,53 @@
       console.error(e);
     } finally {
       saving = false;
+    }
+  }
+
+  async function handleExportBackup() {
+    try {
+      const items = await GetSavedObsidianVocab();
+      const backupData = {
+        app: 'VaultLingo',
+        version: '0.1.0',
+        export_date: new Date().toISOString(),
+        config: {
+          ai_provider: config.ai_provider,
+          default_audio_speed: config.default_audio_speed
+        },
+        saved_vocabulary: items || []
+      };
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `vaultlingo-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Backup error:', e);
+    }
+  }
+
+  function handleFactoryReset() {
+    if (confirm('Are you sure you want to restore all settings and cache to default values? This will not delete your Obsidian files.')) {
+      localStorage.clear();
+      config = {
+        obsidian_vault_path: '',
+        ai_provider: 'agy',
+        agy_model: 'gemini-3.7-flash',
+        agy_path: '',
+        openrouter_api_key: '',
+        openrouter_model: 'meta-llama/llama-3.3-70b-instruct:free',
+        groq_api_key: '',
+        groq_model: 'llama-3.3-70b-versatile',
+        ollama_url: 'http://localhost:11434',
+        ollama_model: 'llama3:latest',
+        auto_play_audio: true,
+        default_audio_speed: 1.0
+      };
+      handleSave();
+      window.location.reload();
     }
   }
 
@@ -376,6 +423,54 @@
               {spd}x
             </button>
           {/each}
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Safety, Backup & Factory Reset -->
+    <div class="space-y-4 border-t border-slate-800 pt-5">
+      <div class="flex items-center gap-2 text-sm font-bold text-emerald-400">
+        <ShieldCheck class="w-4 h-4" />
+        <span>Data Safety & Backup Management</span>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-3">
+        <!-- Backup Export Button -->
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+          <div>
+            <h4 class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+              <span>📦</span>
+              <span>Export Vocabulary Backup</span>
+            </h4>
+            <p class="text-[11px] text-slate-400 mt-0.5">
+              Download all saved vocabulary, configurations, and review history as a JSON backup.
+            </p>
+          </div>
+          <button
+            onclick={handleExportBackup}
+            class="w-full py-2 px-3 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-95"
+          >
+            <span>Download Backup (.json)</span>
+          </button>
+        </div>
+
+        <!-- Factory Reset Button -->
+        <div class="p-4 rounded-xl bg-slate-950 border border-red-500/30 space-y-2.5">
+          <div>
+            <h4 class="text-xs font-bold text-red-400 flex items-center gap-1.5">
+              <span>⚠️</span>
+              <span>Factory Reset & Clear Cache</span>
+            </h4>
+            <p class="text-[11px] text-slate-400 mt-0.5">
+              Restore app configurations and search cache to factory defaults. (Keeps Obsidian notes safe).
+            </p>
+          </div>
+          <button
+            onclick={handleFactoryReset}
+            class="w-full py-2 px-3 rounded-lg bg-red-500/15 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-95"
+          >
+            <span>Restore Factory Defaults</span>
+          </button>
         </div>
       </div>
     </div>

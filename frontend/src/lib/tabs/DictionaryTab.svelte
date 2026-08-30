@@ -87,6 +87,23 @@
     }
   }
 
+  async function handleDeepEnrich() {
+    if (!currentResult?.word?.word) return;
+    const term = currentResult.word.word;
+    loading = true;
+    errorMsg = '';
+    try {
+      const result = await lookupSmartDictionary(term, true);
+      currentResult = result;
+      await checkSavedStatus(result.word.word);
+    } catch (err: any) {
+      console.error('Deep enrich error:', err);
+      errorMsg = 'Could not enrich with AI: ' + (err?.message || 'AI timeout');
+    } finally {
+      loading = false;
+    }
+  }
+
   async function toggleSaveToVault() {
     if (!currentResult?.word) return;
     savingVault = true;
@@ -167,7 +184,7 @@
           type="text"
           bind:value={searchQuery}
           onkeydown={handleKeydown}
-          placeholder="Type any English word (e.g., ubiquitous, resilience, serendipity...)"
+          placeholder="Type any English word (e.g., work, ubiquitous, resilience, serendipity...)"
           class="w-full pl-11 pr-4 py-3 bg-slate-950/80 border border-slate-700 focus:border-amber-400 text-slate-100 placeholder-slate-500 rounded-xl text-base outline-none transition theme-input shadow-inner"
         />
       </div>
@@ -259,20 +276,28 @@
               </span>
             {/if}
 
-            <!-- Source Origin Badge -->
-            <span class="px-2.5 py-0.5 text-[11px] font-mono rounded-md bg-slate-800 text-slate-400 border border-slate-700">
-              {#if currentResult.source === 'vault'}
-                📁 Saved in Vault
-              {:else if currentResult.source === 'app_vocab'}
-                📚 App Lexicon
-              {:else if currentResult.source === 'ai'}
-                ✨ AI Formatted
-              {:else if currentResult.source === 'online_dict'}
-                🌐 Online Dictionary
-              {:else}
-                📖 Lexicon
-              {/if}
-            </span>
+            <!-- Source Origin Badge with Clear Visual Indicator -->
+            {#if currentResult.source === 'app_vocab'}
+              <span class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/30 flex items-center gap-1.5" title="Loaded from Local App Vocabulary">
+                <span>📚</span>
+                <span>App Lexicon</span>
+              </span>
+            {:else if currentResult.source === 'online_dict'}
+              <span class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5" title="Loaded from Free Dictionary Online API (~150ms)">
+                <span>🌐</span>
+                <span>Online API (Fast)</span>
+              </span>
+            {:else if currentResult.source === 'ai'}
+              <span class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center gap-1.5" title="Generated and Formatted by AI Engine">
+                <span>✨</span>
+                <span>AI Generated</span>
+              </span>
+            {:else}
+              <span class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5" title="Loaded from Built-in Rich Lexicon">
+                <span>📖</span>
+                <span>Built-in Lexicon</span>
+              </span>
+            {/if}
           </div>
 
           <!-- Phonetic -->
@@ -283,8 +308,20 @@
           {/if}
         </div>
 
-        <!-- Action Buttons (Pronounce & Save to Vault) -->
+        <!-- Action Buttons (Pronounce, AI Enrich & Save to Vault) -->
         <div class="flex flex-wrap items-center gap-2">
+          <!-- AI Deep Enrich Button (Available if not already AI generated) -->
+          {#if currentResult.source !== 'ai'}
+            <button
+              onclick={handleDeepEnrich}
+              class="px-3 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/40 transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold active:scale-95 shadow-sm"
+              title="Request AI to analyze deeper: IELTS nuance, etymology, mnemonic hook, and Vietnamese contextual translation"
+            >
+              <Sparkles class="w-3.5 h-3.5 text-purple-400" />
+              <span>AI Deep Enrich ✨</span>
+            </button>
+          {/if}
+
           <!-- Audio 1.0x -->
           <button
             onclick={() => handlePlayAudio(false)}

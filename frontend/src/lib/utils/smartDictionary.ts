@@ -328,17 +328,28 @@ const OFFLINE_LEXICON: Record<string, Partial<SmartWordResult>> = {
 
 /**
  * Searches for a word across:
- * 1. Built-in Lexicon
- * 2. Obsidian Vault
- * 3. Daily Vocab
- * 4. AI Structured Definition
- * 5. Online Free Dictionary API
- * 6. Synthesized Lexical Fallback
+ * 1. Built-in Lexicon (Instant 0ms)
+ * 2. App Preloaded Vocab (<10ms)
+ * 3. Online Free Dictionary API (~150ms ultra fast, e.g. for "work", "play")
+ * 4. AI Structured Definition (On-demand or fallback)
+ * 5. Synthesized Fallback (Zero crash guarantee)
  */
-export async function lookupSmartDictionary(rawQuery: string): Promise<SmartWordResult> {
+export async function lookupSmartDictionary(rawQuery: string, forceAI = false): Promise<SmartWordResult> {
   const query = rawQuery.trim().toLowerCase();
   if (!query) {
     throw new Error('Please enter a word to search');
+  }
+
+  // If forceAI is requested, jump directly to AI engine
+  if (forceAI) {
+    try {
+      const aiResult = await lookupViaAI(query);
+      if (aiResult) {
+        return aiResult;
+      }
+    } catch (err) {
+      console.warn('Force AI lookup failed, falling back:', err);
+    }
   }
 
   // 1. Built-in Offline Lexicon Check
@@ -359,42 +370,7 @@ export async function lookupSmartDictionary(rawQuery: string): Promise<SmartWord
     };
   }
 
-  // 2. Check Obsidian Vault
-  try {
-    const obsidianItems = await GetSavedObsidianVocab();
-    if (obsidianItems && obsidianItems.length > 0) {
-      const match = obsidianItems.find(
-        (item) => item.word.toLowerCase() === query
-      );
-      if (match) {
-        const wordObj = new backend.Word({
-          id: Date.now(),
-          word: match.word,
-          raw_word: match.word,
-          pos: match.pos || 'Word',
-          phonetic: match.phonetic || '',
-          definition_en: match.definition || '',
-          definition_vi: '',
-          example_en: match.example || '',
-          example_vi: '',
-          level: 'Vault Synced',
-          topic: match.topic_key || 'vault',
-          topic_title: match.topic_title || 'Saved in Vault',
-          topic_icon: '📁',
-          dict_link: match.dict_link || `https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(match.word)}`
-        });
-        return {
-          word: wordObj,
-          isLocal: true,
-          source: 'vault'
-        };
-      }
-    }
-  } catch (err) {
-    console.warn('Obsidian lookup check skipped:', err);
-  }
-
-  // 3. Check App Preloaded Daily Vocab
+  // 2. Check App Preloaded Daily Vocab
   try {
     const dailyVocab = await GetDailyVocab('all', 100);
     if (dailyVocab && dailyVocab.length > 0) {
@@ -413,24 +389,27 @@ export async function lookupSmartDictionary(rawQuery: string): Promise<SmartWord
     console.warn('App vocab check skipped:', err);
   }
 
-  // 4. AI Smart Lookup & Structure Generation
+  // 3. Online Free Dictionary API (Ultra fast ~150ms for words like "work", "study", etc.)
+  try {
+    const onlineResult = await lookupViaOnlineAPI(query);
+    if (onlineResult) {
+      return onlineResult;
+    }
+  } catch (apiErr) {
+    console.warn('Online dictionary API skipped or failed:', apiErr);
+  }
+
+  // 4. AI Smart Lookup & Structure Generation (Fallback for rare/slang/academic words)
   try {
     const aiResult = await lookupViaAI(query);
     if (aiResult) {
       return aiResult;
     }
   } catch (err) {
-    console.warn('AI lookup encountered error, proceeding to online API:', err);
+    console.warn('AI lookup encountered error, proceeding to synthesized fallback:', err);
   }
 
-  // 5. Online Dictionary API
-  try {
-    return await lookupViaOnlineAPI(query);
-  } catch (apiErr) {
-    console.warn('Online dictionary API unreachable:', apiErr);
-  }
-
-  // 6. Synthesized Fallback Entry (Never crash with Load Failed)
+  // 5. Synthesized Fallback Entry (Never crash with Load Failed)
   return createSynthesizedEntry(query);
 }
 
