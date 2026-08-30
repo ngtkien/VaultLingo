@@ -134,3 +134,11 @@ func (a *App) GetConfig() backend.Config {
 func (a *App) SaveConfig(cfg backend.Config) error {
 	return backend.SaveConfig(cfg)
 }
+
+func (a *App) LookupWordInDB(query string) (*backend.Word, error) {
+	return backend.LookupWordInDB(query)
+}
+
+func (a *App) SaveWordToDB(w backend.Word) error {
+	return backend.SaveWordToDB(w)
+}

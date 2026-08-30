@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"fmt"
 	"encoding/json"
 	"math"
 	"math/rand"
@@ -233,4 +234,60 @@ func GetAvailableTopics() []map[string]string {
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+}
+
+func LookupWordInDB(query string) (*Word, error) {
+	query = strings.TrimSpace(query)
+	if query == "" {
+		return nil, fmt.Errorf("empty word query")
+	}
+
+	var w Word
+	err := DB.QueryRow(`
+		SELECT w.id, w.word, w.pos, w.phonetic, w.definition_en, w.definition_vi, 
+		       w.example_en, w.example_vi, w.level, w.topic,
+		       COALESCE(s.interval, 1), COALESCE(s.repetitions, 0), 
+		       COALESCE(s.ease_factor, 2.5), COALESCE(s.next_review, ''), 
+		       COALESCE(s.status, 'new')
+		FROM words w
+		LEFT JOIN srs_reviews s ON w.id = s.word_id
+		WHERE LOWER(w.word) = LOWER(?)
+		LIMIT 1
+	`, query).Scan(
+		&w.ID, &w.Word, &w.POS, &w.Phonetic, &w.DefinitionEn, &w.DefinitionVi,
+		&w.ExampleEn, &w.ExampleVi, &w.Level, &w.Topic,
+		&w.Interval, &w.Repetitions, &w.EaseFactor, &w.NextReview, &w.Status,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	w.RawWord = strings.ToLower(w.Word)
+	w.TopicTitle, w.TopicIcon = GetTopicMeta(w.Topic)
+	w.DictLink = "https://dictionary.cambridge.org/dictionary/english/" + strings.ReplaceAll(w.RawWord, " ", "-")
+	return &w, nil
+}
+
+func SaveWordToDB(w Word) error {
+	word := strings.TrimSpace(w.Word)
+	if word == "" {
+		return fmt.Errorf("empty word")
+	}
+
+	_, err := DB.Exec(`
+		INSERT INTO words (word, pos, phonetic, definition_en, definition_vi, example_en, example_vi, level, topic, source)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'dictionary')
+		ON CONFLICT(word) DO UPDATE SET
+			pos = excluded.pos,
+			phonetic = excluded.phonetic,
+			definition_en = excluded.definition_en,
+			definition_vi = excluded.definition_vi,
+			example_en = excluded.example_en,
+			example_vi = excluded.example_vi,
+			level = excluded.level,
+			topic = excluded.topic
+	`, word, w.POS, w.Phonetic, w.DefinitionEn, w.DefinitionVi, w.ExampleEn, w.ExampleVi, w.Level, w.Topic)
+
+	return err
 }

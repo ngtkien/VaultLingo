@@ -50,6 +50,10 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function LookupWordInDB(arg1) {
+  return window['go']['main']['App']['LookupWordInDB'](arg1);
+}
+
 export function OpenInObsidian(arg1) {
   return window['go']['main']['App']['OpenInObsidian'](arg1);
 }
@@ -72,6 +76,10 @@ export function SaveAllWordsToObsidian(arg1) {
 
 export function SaveConfig(arg1) {
   return window['go']['main']['App']['SaveConfig'](arg1);
+}
+
+export function SaveWordToDB(arg1) {
+  return window['go']['main']['App']['SaveWordToDB'](arg1);
 }
 
 export function SaveWordToObsidian(arg1) {
