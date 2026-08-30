@@ -6,6 +6,52 @@ import type { SmartWordResult } from './smartDictionary';
  * Covering top essential words across technology, science, education, work, society, psychology, mindset, and daily life.
  */
 export const CORE_LEXICON_DATABASE: Record<string, Partial<SmartWordResult>> = {
+  'phone': {
+    word: new backend.Word({
+      id: 2999,
+      word: 'phone',
+      raw_word: 'phone',
+      pos: 'Noun / Verb',
+      phonetic: '/fəʊn/ (UK) • /foʊn/ (US)',
+      definition_en: 'A telephone or mobile device used for voice communication, messaging, and digital access; to contact someone by telephone.',
+      definition_vi: 'Điện thoại, thiết bị liên lạc cầm tay; gọi điện thoại cho ai đó.',
+      example_en: 'She answered her phone immediately when the client called.',
+      example_vi: 'Cô ấy nhấc điện thoại ngay lập tức khi khách hàng gọi đến.',
+      level: 'A1 Essential',
+      topic: 'technology',
+      topic_title: 'Communication & Tech',
+      topic_icon: '📱',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/phone'
+    }),
+    isLocal: true,
+    synonyms: ['telephone', 'cellphone', 'mobile', 'smartphone', 'handset', 'call', 'ring'],
+    antonyms: ['hang up'],
+    collocations: ['answer the phone', 'mobile phone', 'smart phone', 'on the phone', 'phone call', 'phone number', 'pick up the phone'],
+    word_family: [
+      { pos: 'Noun / Verb', word: 'phone' },
+      { pos: 'Noun', word: 'telephone' },
+      { pos: 'Adjective', word: 'phonetic' },
+      { pos: 'Noun', word: 'phonetics' }
+    ],
+    etymology: 'Shortened from "telephone", from Greek "tele" (far, distant) + "phone" (voice, sound). Literally "distant sound".',
+    mnemonic_hook: 'Tele (Distant) + Phone (Voice) = Bringing distant voices right next to your ear!',
+    examples: [
+      {
+        en: 'She answered her phone immediately when the client called.',
+        vi: 'Cô ấy nhấc điện thoại ngay lập tức khi khách hàng gọi đến.'
+      },
+      {
+        en: 'Smartphones have revolutionized global communication and digital commerce.',
+        vi: 'Điện thoại thông minh đã cách mạng hóa truyền thông toàn cầu và thương mại số.'
+      },
+      {
+        en: 'I will phone you tomorrow morning to confirm our meeting time.',
+        vi: 'Tôi sẽ gọi điện thoại cho bạn vào sáng mai để xác nhận giờ họp.'
+      }
+    ],
+    nuance_tips: 'Colloquial abbreviation of telephone. As a verb: "phone someone" (do NOT say "phone to someone").',
+    source: 'lexicon'
+  },
   'book': {
     word: new backend.Word({
       id: 3000,
