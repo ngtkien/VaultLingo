@@ -183,8 +183,8 @@
         <span>AI Evaluation Provider</span>
       </div>
 
-      <!-- 4 Provider Selector Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <!-- 5 Provider Selector Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
         <!-- Antigravity (agy) -->
         <button
           onclick={() => config.ai_provider = 'agy'}
@@ -195,10 +195,26 @@
           }`}
         >
           <div class="flex items-center justify-between">
-            <span class="text-sm font-bold">Antigravity (agy) 🛸</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-violet-500/20 text-violet-300">Zero-Key</span>
+            <span class="text-sm font-bold">Antigravity 🛸</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-violet-500/20 text-violet-300">Native</span>
           </div>
-          <div class="text-xs opacity-75">Runs via local agy CLI with dynamic model support</div>
+          <div class="text-xs opacity-75">Runs via local agy CLI</div>
+        </button>
+
+        <!-- OpenCode CLI -->
+        <button
+          onclick={() => config.ai_provider = 'opencode'}
+          class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
+            config.ai_provider === 'opencode'
+              ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40'
+              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+          }`}
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold">OpenCode 🤖</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300">Free Agent</span>
+          </div>
+          <div class="text-xs opacity-75">Runs via opencode CLI</div>
         </button>
 
         <!-- OpenRouter -->
@@ -212,9 +228,9 @@
         >
           <div class="flex items-center justify-between">
             <span class="text-sm font-bold">OpenRouter 🌐</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-500/20 text-cyan-300">Free Tier</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-500/20 text-cyan-300">Cloud</span>
           </div>
-          <div class="text-xs opacity-75">Llama 3.3, Gemini 2.0 & DeepSeek Free</div>
+          <div class="text-xs opacity-75">Llama 3.3 & DeepSeek Free</div>
         </button>
 
         <!-- Groq -->
@@ -228,9 +244,9 @@
         >
           <div class="flex items-center justify-between">
             <span class="text-sm font-bold">Groq ⚡</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300">Fast</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300">Ultra-Fast</span>
           </div>
-          <div class="text-xs opacity-75">Ultra-fast inference on Llama 3.3 70B</div>
+          <div class="text-xs opacity-75">Fast inference Llama 70B</div>
         </button>
 
         <!-- Ollama -->
@@ -238,17 +254,33 @@
           onclick={() => config.ai_provider = 'ollama'}
           class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
             config.ai_provider === 'ollama'
-              ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40'
+              ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 ring-1 ring-indigo-500/40'
               : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
           }`}
         >
           <div class="flex items-center justify-between">
             <span class="text-sm font-bold">Local Ollama 🦙</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300">Offline</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300">Offline</span>
           </div>
-          <div class="text-xs opacity-75">100% private and offline on your computer</div>
+          <div class="text-xs opacity-75">100% private offline</div>
         </button>
       </div>
+
+      <!-- OpenCode Info Panel -->
+      {#if config.ai_provider === 'opencode'}
+        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-emerald-300 font-bold flex items-center gap-1.5">
+              <Bot class="w-4 h-4 text-emerald-400" />
+              <span>OpenCode CLI Agent Configuration:</span>
+            </span>
+            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[11px]">/usr/bin/opencode</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            VaultLingo directly invokes <code class="text-emerald-300 font-mono">opencode run</code> locally without requiring third-party API keys. Free AI agents are used to evaluate writing and synthesize Oxford 6-block dictionary entries.
+          </p>
+        </div>
+      {/if}
 
       <!-- Detail Form for Selected Provider -->
       {#if config.ai_provider === 'agy'}

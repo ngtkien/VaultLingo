@@ -72,9 +72,27 @@ func GetWritingPrompt(level string) (WritingPrompt, error) {
 	return p, nil
 }
 
-// CallAI handles arbitrary prompt execution across configured providers (AGY, OpenRouter, Groq, Ollama)
+// CallAI handles arbitrary prompt execution across configured providers (OpenCode, AGY, OpenRouter, Groq, Ollama)
 func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
-	// 1. Antigravity CLI (Native system-authenticated agy CLI)
+	// 1. OpenCode CLI (Local Free AI Agent)
+	if cfg.AiProvider == "opencode" {
+		fullPrompt := userContent
+		if systemInstruction != "" {
+			fullPrompt = fmt.Sprintf("%s\n\n%s", systemInstruction, userContent)
+		}
+		cmdPath, err := exec.LookPath("opencode")
+		if err != nil {
+			cmdPath = "/usr/bin/opencode"
+		}
+		cmd := exec.Command(cmdPath, "run", fullPrompt)
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return "", fmt.Errorf("opencode execution failed: %s (%w)", string(out), err)
+		}
+		return strings.TrimSpace(string(out)), nil
+	}
+
+	// 2. Antigravity CLI (Native system-authenticated agy CLI)
 	if cfg.AiProvider == "agy" || cfg.AiProvider == "" {
 		fullPrompt := userContent
 		if systemInstruction != "" {
@@ -106,7 +124,7 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 
 	client := &http.Client{Timeout: 35 * time.Second}
 
-	// 2. OpenRouter (Free & Open Source Models)
+	// 3. OpenRouter (Free & Open Source Models)
 	if cfg.AiProvider == "openrouter" {
 		if cfg.OpenrouterApiKey == "" {
 			return generateLocalMockEvaluation(userContent), nil
@@ -121,7 +139,7 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 		})
 	}
 
-	// 3. Groq (Free & Ultra Fast)
+	// 4. Groq (Free & Ultra Fast)
 	if cfg.AiProvider == "groq" {
 		if cfg.GroqApiKey == "" {
 			return generateLocalMockEvaluation(userContent), nil
@@ -133,7 +151,7 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 		return callOpenAICompatible(client, "https://api.groq.com/openai/v1/chat/completions", cfg.GroqApiKey, model, systemInstruction, userContent, nil)
 	}
 
-	// 4. Local Ollama (100% Free & Offline)
+	// 5. Local Ollama (100% Free & Offline)
 	if cfg.AiProvider == "ollama" {
 		url := cfg.OllamaUrl
 		if url == "" {
@@ -249,5 +267,5 @@ func generateLocalMockEvaluation(text string) string {
 
 #### 💡 Pro Tips:
 - Maintain consistent tense usage and smooth transition connectives.
-- *(To receive deep feedback, please configure Antigravity CLI / OpenRouter / Groq in Settings).*`, wordCount)
+- *(To receive deep feedback, please configure Antigravity CLI / OpenRouter / Groq / OpenCode in Settings).*`, wordCount)
 }
