@@ -26,8 +26,56 @@ export interface SmartWordResult {
   audioUrl?: string;
 }
 
-// Built-in offline rich lexicon for popular & essential words
+// Built-in offline rich lexicon for popular, fundamental & academic words
 const OFFLINE_LEXICON: Record<string, Partial<SmartWordResult>> = {
+  'work': {
+    word: new backend.Word({
+      id: 2001,
+      word: 'work',
+      raw_word: 'work',
+      pos: 'Noun / Verb',
+      phonetic: '/wɜːk/ (UK) • /wɝːk/ (US)',
+      definition_en: 'Activity involving mental or physical effort done in order to achieve a purpose or result; a job or employment.',
+      definition_vi: 'Công việc, lao động, sự làm việc; nghề nghiệp hoặc việc làm tạo ra giá trị.',
+      example_en: 'She is deeply dedicated to her work as a software architect.',
+      example_vi: 'Cô ấy rất tận tâm với công việc của một kiến trúc sư phần mềm.',
+      level: 'A1 Essential',
+      topic: 'career',
+      topic_title: 'Career & Life',
+      topic_icon: '💼',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/work'
+    }),
+    isLocal: true,
+    synonyms: ['job', 'employment', 'labor', 'occupation', 'task', 'profession', 'endeavor'],
+    antonyms: ['leisure', 'rest', 'idleness', 'inactivity', 'play'],
+    collocations: ['hard work', 'remote work', 'work-life balance', 'work ethic', 'at work', 'team work'],
+    word_family: [
+      { pos: 'Noun / Verb', word: 'work' },
+      { pos: 'Noun', word: 'worker' },
+      { pos: 'Noun', word: 'workplace' },
+      { pos: 'Noun', word: 'workflow' },
+      { pos: 'Adjective', word: 'workable' },
+      { pos: 'Adjective', word: 'working' }
+    ],
+    etymology: 'From Old English "weorc" (deed, labor), of Germanic origin, sharing ancient Indo-European roots with Greek "ergon" (energy, work).',
+    mnemonic_hook: 'Work = Energy directed toward a meaningful purpose and productive outcome!',
+    examples: [
+      {
+        en: 'She is deeply dedicated to her work as a software architect.',
+        vi: 'Cô ấy rất tận tâm với công việc của một kiến trúc sư phần mềm.'
+      },
+      {
+        en: 'Maintaining a healthy work-life balance prevents burnout and boosts long-term creativity.',
+        vi: 'Duy trì sự cân bằng giữa công việc và cuộc sống giúp ngăn ngừa kiệt sức và thúc đẩy sự sáng tạo lâu dài.'
+      },
+      {
+        en: 'Teamwork and clear communication make the dream work.',
+        vi: 'Làm việc nhóm và giao tiếp rõ ràng sẽ biến ước mơ thành hiện thực.'
+      }
+    ],
+    nuance_tips: 'Uncountable when referring to general labor or employment ("I have a lot of work"). Countable when referring to artistic/literary creations ("the works of Shakespeare").',
+    source: 'lexicon'
+  },
   'serendipity': {
     word: new backend.Word({
       id: 1001,
@@ -322,17 +370,100 @@ const OFFLINE_LEXICON: Record<string, Partial<SmartWordResult>> = {
     ],
     nuance_tips: 'Frequently used in discussions on time management, productivity, and study habits.',
     source: 'lexicon'
+  },
+  'study': {
+    word: new backend.Word({
+      id: 2002,
+      word: 'study',
+      raw_word: 'study',
+      pos: 'Noun / Verb',
+      phonetic: '/ˈstʌd.i/',
+      definition_en: 'The devotion of time and attention to acquiring knowledge on an academic subject; to examine closely.',
+      definition_vi: 'Sự học tập, nghiên cứu; học hỏi kiến thức hoặc xem xét cẩn thận một chủ đề.',
+      example_en: 'Consistent study habits are essential for mastering foreign languages.',
+      example_vi: 'Thói quen học tập kiên định là điều cốt yếu để làm chủ các ngoại ngữ.',
+      level: 'A1 Essential',
+      topic: 'education',
+      topic_title: 'Learning & Education',
+      topic_icon: '📚',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/study'
+    }),
+    isLocal: true,
+    synonyms: ['learn', 'examine', 'analyze', 'research', 'investigate', 'scrutinize'],
+    antonyms: ['neglect', 'ignore', 'overlook'],
+    collocations: ['study hard', 'conduct a study', 'study abroad', 'study habits', 'field of study'],
+    word_family: [
+      { pos: 'Noun / Verb', word: 'study' },
+      { pos: 'Noun', word: 'student' },
+      { pos: 'Adjective', word: 'studious' },
+      { pos: 'Noun', word: 'studies' }
+    ],
+    etymology: 'From Old French "estudie", from Latin "studium" meaning "zeal, eagerness, devotion".',
+    mnemonic_hook: 'Study comes from "Studium" (passion/devotion) — learning with eager curiosity!',
+    examples: [
+      {
+        en: 'Consistent study habits are essential for mastering foreign languages.',
+        vi: 'Thói quen học tập kiên định là điều cốt yếu để làm chủ các ngoại ngữ.'
+      },
+      {
+        en: 'Recent scientific studies confirm that regular sleep improves memory retention.',
+        vi: 'Các nghiên cứu khoa học gần đây xác nhận rằng giấc ngủ điều độ cải thiện khả năng ghi nhớ.'
+      }
+    ],
+    nuance_tips: 'Can refer to the act of learning, a formal academic paper, or a room dedicated to reading and work.',
+    source: 'lexicon'
+  },
+  'time': {
+    word: new backend.Word({
+      id: 2003,
+      word: 'time',
+      raw_word: 'time',
+      pos: 'Noun / Verb',
+      phonetic: '/taɪm/',
+      definition_en: 'The indefinite continued progress of existence and events in the past, present, and future regarded as a whole.',
+      definition_vi: 'Thời gian; khoảnh khắc, thời điểm, tiến trình tiếp diễn của các sự việc.',
+      example_en: 'Time is the most valuable currency; spend it on what truly matters.',
+      example_vi: 'Thời gian là loại tài sản quý giá nhất; hãy dành nó cho những điều thực sự quan trọng.',
+      level: 'A1 Essential',
+      topic: 'philosophy',
+      topic_title: 'Time & Life',
+      topic_icon: '⏰',
+      dict_link: 'https://dictionary.cambridge.org/dictionary/english/time'
+    }),
+    isLocal: true,
+    synonyms: ['moment', 'period', 'duration', 'era', 'epoch', 'occasion'],
+    antonyms: ['timelessness', 'eternity'],
+    collocations: ['save time', 'spend time', 'time management', 'in time', 'on time', 'take time'],
+    word_family: [
+      { pos: 'Noun / Verb', word: 'time' },
+      { pos: 'Adjective', word: 'timely' },
+      { pos: 'Adjective', word: 'timeless' },
+      { pos: 'Noun', word: 'timing' }
+    ],
+    etymology: 'From Old English "tīma", of Germanic origin, related to "tide" (division of time/season).',
+    mnemonic_hook: 'Time and Tide wait for no man — seize the present moment!',
+    examples: [
+      {
+        en: 'Time is the most valuable currency; spend it on what truly matters.',
+        vi: 'Thời gian là loại tài sản quý giá nhất; hãy dành nó cho những điều thực sự quan trọng.'
+      },
+      {
+        en: 'Effective time management allows you to accomplish your goals without stress.',
+        vi: 'Quản lý thời gian hiệu quả giúp bạn hoàn thành mục tiêu mà không bị căng thẳng.'
+      }
+    ],
+    nuance_tips: 'Distinguish between "on time" (punctual, at the exact scheduled time) and "in time" (early enough before a deadline).',
+    source: 'lexicon'
   }
 };
 
-
 /**
  * Searches for a word across:
- * 1. Built-in Lexicon (Instant 0ms)
- * 2. App Preloaded Vocab (<10ms)
- * 3. Online Free Dictionary API (~150ms ultra fast, e.g. for "work", "play")
- * 4. AI Structured Definition (On-demand or fallback)
- * 5. Synthesized Fallback (Zero crash guarantee)
+ * 1. Built-in Offline Lexicon (Instant 0ms)
+ * 2. App Preloaded Daily Vocab (<10ms)
+ * 3. Online Free Dictionary API (Fast 1.5s timeout)
+ * 4. AI Structured Definition (ONLY when forceAI === true)
+ * 5. Instant Synthesized Fallback (Instant 0ms, never hangs)
  */
 export async function lookupSmartDictionary(rawQuery: string, forceAI = false): Promise<SmartWordResult> {
   const query = rawQuery.trim().toLowerCase();
@@ -340,7 +471,7 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
     throw new Error('Please enter a word to search');
   }
 
-  // If forceAI is requested, jump directly to AI engine
+  // If forceAI is explicitly requested (via "AI Deep Enrich ✨"), run AI engine
   if (forceAI) {
     try {
       const aiResult = await lookupViaAI(query);
@@ -352,7 +483,7 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
     }
   }
 
-  // 1. Built-in Offline Lexicon Check
+  // 1. Built-in Offline Lexicon Check (0ms Instant)
   if (OFFLINE_LEXICON[query]) {
     const item = OFFLINE_LEXICON[query];
     return {
@@ -370,7 +501,7 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
     };
   }
 
-  // 2. Check App Preloaded Daily Vocab
+  // 2. Check App Preloaded Daily Vocab (<10ms)
   try {
     const dailyVocab = await GetDailyVocab('all', 100);
     if (dailyVocab && dailyVocab.length > 0) {
@@ -389,27 +520,17 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
     console.warn('App vocab check skipped:', err);
   }
 
-  // 3. Online Free Dictionary API (Ultra fast ~150ms for words like "work", "study", etc.)
+  // 3. Online Free Dictionary API with short 1.5s timeout (Never blocks UI)
   try {
     const onlineResult = await lookupViaOnlineAPI(query);
     if (onlineResult) {
       return onlineResult;
     }
   } catch (apiErr) {
-    console.warn('Online dictionary API skipped or failed:', apiErr);
+    // Fast fail - proceed immediately without hanging
   }
 
-  // 4. AI Smart Lookup & Structure Generation (Fallback for rare/slang/academic words)
-  try {
-    const aiResult = await lookupViaAI(query);
-    if (aiResult) {
-      return aiResult;
-    }
-  } catch (err) {
-    console.warn('AI lookup encountered error, proceeding to synthesized fallback:', err);
-  }
-
-  // 5. Synthesized Fallback Entry (Never crash with Load Failed)
+  // 4. Instant Synthesized Fallback Entry (Zero-latency guarantee)
   return createSynthesizedEntry(query);
 }
 
@@ -518,81 +639,86 @@ Return ONLY a valid JSON object (no markdown formatting, no backticks, no outer 
 }
 
 /**
- * Free Dictionary API
+ * Free Dictionary API with short 1.5s timeout
  */
-async function lookupViaOnlineAPI(word: string): Promise<SmartWordResult> {
+async function lookupViaOnlineAPI(word: string): Promise<SmartWordResult | null> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 4000);
+  const timeoutId = setTimeout(() => controller.abort(), 1500);
 
-  const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
-  const resp = await fetch(url, { signal: controller.signal });
-  clearTimeout(timeoutId);
+  try {
+    const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
+    const resp = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
 
-  if (!resp.ok) {
-    throw new Error(`Word "${word}" was not found in online dictionary.`);
-  }
-
-  const entries = await resp.json();
-  if (!entries || !entries.length) {
-    throw new Error(`No definition found for "${word}".`);
-  }
-
-  const entry = entries[0];
-  const firstMeaning = entry.meanings?.[0];
-  const firstDef = firstMeaning?.definitions?.[0];
-
-  let phonetic = entry.phonetic || '';
-  let audioUrl = '';
-  if (entry.phonetics && entry.phonetics.length > 0) {
-    for (const p of entry.phonetics) {
-      if (p.text && !phonetic) phonetic = p.text;
-      if (p.audio && !audioUrl) audioUrl = p.audio;
+    if (!resp.ok) {
+      return null;
     }
-  }
 
-  const synonyms: string[] = [];
-  const antonyms: string[] = [];
-
-  for (const m of entry.meanings || []) {
-    if (m.synonyms) synonyms.push(...m.synonyms);
-    if (m.antonyms) antonyms.push(...m.antonyms);
-    for (const d of m.definitions || []) {
-      if (d.synonyms) synonyms.push(...d.synonyms);
-      if (d.antonyms) antonyms.push(...d.antonyms);
+    const entries = await resp.json();
+    if (!entries || !entries.length) {
+      return null;
     }
+
+    const entry = entries[0];
+    const firstMeaning = entry.meanings?.[0];
+    const firstDef = firstMeaning?.definitions?.[0];
+
+    let phonetic = entry.phonetic || '';
+    let audioUrl = '';
+    if (entry.phonetics && entry.phonetics.length > 0) {
+      for (const p of entry.phonetics) {
+        if (p.text && !phonetic) phonetic = p.text;
+        if (p.audio && !audioUrl) audioUrl = p.audio;
+      }
+    }
+
+    const synonyms: string[] = [];
+    const antonyms: string[] = [];
+
+    for (const m of entry.meanings || []) {
+      if (m.synonyms) synonyms.push(...m.synonyms);
+      if (m.antonyms) antonyms.push(...m.antonyms);
+      for (const d of m.definitions || []) {
+        if (d.synonyms) synonyms.push(...d.synonyms);
+        if (d.antonyms) antonyms.push(...d.antonyms);
+      }
+    }
+
+    const wordObj = new backend.Word({
+      id: Date.now(),
+      word: entry.word || word,
+      raw_word: entry.word || word,
+      pos: firstMeaning?.partOfSpeech ? (firstMeaning.partOfSpeech.charAt(0).toUpperCase() + firstMeaning.partOfSpeech.slice(1)) : 'Word',
+      phonetic: phonetic || `/${word}/`,
+      definition_en: firstDef?.definition || 'Definition retrieved from international dictionary.',
+      definition_vi: '',
+      example_en: firstDef?.example || `Natural usage example for "${entry.word || word}".`,
+      example_vi: '',
+      level: 'B1 Intermediate',
+      topic: 'vocabulary',
+      topic_title: 'Online Dictionary',
+      topic_icon: '🌐',
+      dict_link: `https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(word)}`
+    });
+
+    return {
+      word: wordObj,
+      isLocal: false,
+      synonyms: [...new Set(synonyms)].slice(0, 6),
+      antonyms: [...new Set(antonyms)].slice(0, 4),
+      collocations: [],
+      nuance_tips: '',
+      source: 'online_dict',
+      audioUrl
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    return null;
   }
-
-  const wordObj = new backend.Word({
-    id: Date.now(),
-    word: entry.word || word,
-    raw_word: entry.word || word,
-    pos: firstMeaning?.partOfSpeech ? (firstMeaning.partOfSpeech.charAt(0).toUpperCase() + firstMeaning.partOfSpeech.slice(1)) : 'Word',
-    phonetic: phonetic || '',
-    definition_en: firstDef?.definition || 'Definition retrieved from online dictionary.',
-    definition_vi: '',
-    example_en: firstDef?.example || `Example sentence demonstrating the use of "${entry.word || word}".`,
-    example_vi: '',
-    level: 'B2 Intermediate',
-    topic: 'vocabulary',
-    topic_title: 'Online Dictionary',
-    topic_icon: '🌐',
-    dict_link: `https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(word)}`
-  });
-
-  return {
-    word: wordObj,
-    isLocal: false,
-    synonyms: [...new Set(synonyms)].slice(0, 6),
-    antonyms: [...new Set(antonyms)].slice(0, 4),
-    collocations: [],
-    nuance_tips: '',
-    source: 'online_dict',
-    audioUrl
-  };
 }
 
 /**
- * Creates a clean synthesized dictionary entry when offline
+ * Creates an instant, clean synthesized dictionary entry without network delay
  */
 function createSynthesizedEntry(word: string): SmartWordResult {
   const capitalized = word.charAt(0).toUpperCase() + word.slice(1);
@@ -602,11 +728,11 @@ function createSynthesizedEntry(word: string): SmartWordResult {
     raw_word: word,
     pos: 'Word',
     phonetic: `/${word}/`,
-    definition_en: `Search query for "${capitalized}". Click external dictionaries below for comprehensive entries.`,
-    definition_vi: `Từ khóa tra cứu "${capitalized}".`,
-    example_en: `The word "${word}" is frequently used in academic and conversational English.`,
-    example_vi: `Từ "${word}" thường được sử dụng trong tiếng Anh học thuật và giao tiếp.`,
-    level: 'B2 Intermediate',
+    definition_en: `Search entry for "${capitalized}". Click external dictionaries below or use "AI Deep Enrich ✨" for advanced linguistic analysis.`,
+    definition_vi: `Từ vựng "${capitalized}". Bấm các liên kết từ điển bên dưới hoặc chọn "AI Deep Enrich ✨" để AI phân tích chi tiết.`,
+    example_en: `The word "${word}" is frequently used in everyday English and professional communication.`,
+    example_vi: `Từ "${word}" được sử dụng thường xuyên trong tiếng Anh giao tiếp và công việc hàng ngày.`,
+    level: 'B1 Intermediate',
     topic: 'vocabulary',
     topic_title: 'Vocabulary Search',
     topic_icon: '📖',
@@ -615,11 +741,11 @@ function createSynthesizedEntry(word: string): SmartWordResult {
 
   return {
     word: wordObj,
-    isLocal: false,
+    isLocal: true,
     synonyms: [],
     antonyms: [],
     collocations: [],
-    nuance_tips: 'Open external dictionary links below to view in-depth phonetics, idioms, and grammar notes.',
+    nuance_tips: 'Open external dictionary links below to view in-depth phonetics, idioms, and grammar notes, or click "AI Deep Enrich ✨".',
     source: 'lexicon'
   };
 }
