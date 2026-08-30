@@ -2,13 +2,16 @@ package backend
 
 import (
 	"database/sql"
+	_ "embed"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
 	_ "modernc.org/sqlite"
 )
+
+//go:embed data/vocab.db
+var embeddedVocabDB []byte
 
 var DB *sql.DB
 
@@ -23,16 +26,10 @@ func InitDB() (*sql.DB, error) {
 
 	dbPath := filepath.Join(appDataDir, "vocab.db")
 
-	// If database doesn't exist in appDataDir, try copying from bundled data/vocab.db
+	// If database doesn't exist in appDataDir, automatically unpack the embedded database
 	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
-		bundledDb := filepath.Join("data", "vocab.db")
-		if _, err := os.Stat(bundledDb); err == nil {
-			_ = copyFile(bundledDb, dbPath)
-		} else {
-			devBundledDb := filepath.Join(homeDir, "Work", "VaultLingo", "data", "vocab.db")
-			if _, err := os.Stat(devBundledDb); err == nil {
-				_ = copyFile(devBundledDb, dbPath)
-			}
+		if len(embeddedVocabDB) > 0 {
+			_ = os.WriteFile(dbPath, embeddedVocabDB, 0644)
 		}
 	}
 
@@ -67,21 +64,4 @@ func InitDB() (*sql.DB, error) {
 
 	DB = db
 	return db, nil
-}
-
-func copyFile(src, dst string) error {
-	in, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, in)
-	return err
 }
