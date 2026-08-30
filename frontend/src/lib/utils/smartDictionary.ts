@@ -1,6 +1,7 @@
 import { GetDailyVocab, GetSavedObsidianVocab, EvaluateWriting } from '../../../wailsjs/go/main/App.js';
 import { backend } from '../../../wailsjs/go/models';
 import { CORE_LEXICON_DATABASE } from './coreLexiconData';
+import { lookupInComprehensiveLexicon } from './comprehensiveLexicon';
 
 export interface WordFamilyMember {
   pos: string;
@@ -25,6 +26,39 @@ export interface SmartWordResult {
   nuance_tips?: string;
   source: 'vault' | 'app_vocab' | 'ai' | 'online_dict' | 'lexicon';
   audioUrl?: string;
+}
+
+const CACHE_KEY = 'vaultlingo_lexicon_cache_v1';
+
+function getCachedLexiconEntry(query: string): SmartWordResult | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const cache = JSON.parse(raw);
+    if (cache && cache[query]) {
+      const item = cache[query];
+      return {
+        ...item,
+        word: new backend.Word(item.word),
+        isLocal: true,
+        source: 'lexicon'
+      };
+    }
+  } catch (e) {
+    console.warn('Failed reading lexicon cache:', e);
+  }
+  return null;
+}
+
+function saveToLexiconCache(query: string, result: SmartWordResult) {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    const cache = raw ? JSON.parse(raw) : {};
+    cache[query] = result;
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch (e) {
+    console.warn('Failed saving to lexicon cache:', e);
+  }
 }
 
 // Built-in offline rich lexicon for popular, fundamental & academic words
@@ -692,7 +726,7 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
     }
   }
 
-  // 1. Built-in Offline Lexicon Check (0ms Instant)
+  // 1. Built-in Handcrafted Lexicon Check (0ms Instant)
   if (OFFLINE_LEXICON[query]) {
     const item = OFFLINE_LEXICON[query];
     const res: SmartWordResult = {
@@ -711,7 +745,19 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
     return ensureRichUnifiedResult(res);
   }
 
-  // 2. Check App Preloaded Daily Vocab (<10ms)
+  // 2. Comprehensive Core Lexicon Dataset Check (0ms Instant)
+  const compResult = lookupInComprehensiveLexicon(query);
+  if (compResult) {
+    return ensureRichUnifiedResult(compResult);
+  }
+
+  // 3. Persistent Local Cache Check (0ms Instant)
+  const cachedResult = getCachedLexiconEntry(query);
+  if (cachedResult) {
+    return ensureRichUnifiedResult(cachedResult);
+  }
+
+  // 4. App Preloaded Daily Vocab Check (SQLite Backend <10ms)
   try {
     const dailyVocab = await GetDailyVocab('all', 100);
     if (dailyVocab && dailyVocab.length > 0) {
@@ -731,11 +777,12 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
     console.warn('App vocab check skipped:', err);
   }
 
-  // 3. AI Structured Lookup for any new/custom word (Generates real, non-slop dictionary data)
+  // 5. AI Structured Lookup for any new/custom word (Generates real, non-slop dictionary data)
   try {
     const aiResult = await lookupViaAI(query);
     if (aiResult) {
-      // Cache in offline lexicon for instant 0ms access next time
+      // Persist in local storage cache for instant 0ms access next time
+      saveToLexiconCache(query, aiResult);
       OFFLINE_LEXICON[query] = aiResult;
       return ensureRichUnifiedResult(aiResult);
     }
@@ -743,7 +790,7 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
     console.warn('AI lookup fallback:', aiErr);
   }
 
-  // 4. Fallback Entry
+  // 6. Clean Honest Fallback Entry (No slop, clear Cambridge/Oxford links)
   const synth = createSynthesizedEntry(query);
   return ensureRichUnifiedResult(synth);
 }
