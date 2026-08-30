@@ -25,12 +25,100 @@
     ChevronLeft, 
     ChevronRight,
     RotateCcw,
-    Trash2
+    Trash2,
+    BookA,
+    Dices
   } from 'lucide-svelte';
+
+  let { onNavigateToDictionary } = $props<{ onNavigateToDictionary?: (word: string) => void }>();
+
+  const IDIOM_BANK = [
+    {
+      id: 1,
+      idiom: 'Back to the drawing board',
+      phonetic: '/bæk tə ðə ˈdrɔː.ɪŋ bɔːd/',
+      meaning_en: 'To start planning something again because the previous plan failed.',
+      meaning_vi: 'Làm lại từ đầu, lên lại kế hoạch từ con số không.',
+      example: 'Our first design prototype was too expensive to manufacture, so it is back to the drawing board.'
+    },
+    {
+      id: 2,
+      idiom: 'Bite the bullet',
+      phonetic: '/baɪt ðə ˈbʊl.ɪt/',
+      meaning_en: 'To face a difficult or painful situation with courage and fortitude.',
+      meaning_vi: 'Cắn răng chịu đựng, dũng cảm đương đầu với khó khăn không thể né tránh.',
+      example: 'I decided to bite the bullet and have that tough conversation with my manager.'
+    },
+    {
+      id: 3,
+      idiom: 'Burn the midnight oil',
+      phonetic: '/bɜːn ðə ˈmɪd.naɪt ɔɪl/',
+      meaning_en: 'To work or study late into the night.',
+      meaning_vi: 'Thức khuya miệt mài học tập hoặc làm việc đến tận đêm muộn.',
+      example: 'She has been burning the midnight oil all week to finish the engineering thesis.'
+    },
+    {
+      id: 4,
+      idiom: 'Break the ice',
+      phonetic: '/breɪk ði aɪs/',
+      meaning_en: 'To say or do something that makes people feel relaxed in a social setting.',
+      meaning_vi: 'Phá vỡ bầu không khí ngượng ngùng ban đầu, tạo sự cởi mở.',
+      example: 'A lighthearted joke is a wonderful way to break the ice at new meetings.'
+    },
+    {
+      id: 5,
+      idiom: 'Call it a day',
+      phonetic: '/kɔːl ɪt ə deɪ/',
+      meaning_en: 'To stop working on something for the rest of the day.',
+      meaning_vi: 'Tạm dừng công việc trong ngày, kết thúc một ngày làm việc.',
+      example: 'We have made tremendous progress today; let us call it a day.'
+    },
+    {
+      id: 6,
+      idiom: 'Hit the nail on the head',
+      phonetic: '/hɪt ðə neɪl ɒn ðə hed/',
+      meaning_en: 'To describe exactly what is causing a situation or problem.',
+      meaning_vi: 'Nói trúng phóc, chỉ ra đúng trọng tâm của vấn đề.',
+      example: 'Her analysis hit the nail on the head regarding our app performance issue.'
+    },
+    {
+      id: 7,
+      idiom: 'Piece of cake',
+      phonetic: '/piːs əv keɪk/',
+      meaning_en: 'Something that is very easy to achieve or complete.',
+      meaning_vi: 'Dễ như trở bàn tay, chuyện vô cùng đơn giản.',
+      example: 'After months of practice, passing the driving exam was a piece of cake.'
+    },
+    {
+      id: 8,
+      idiom: 'Once in a blue moon',
+      phonetic: '/wʌns ɪn ə bluː muːn/',
+      meaning_en: 'Occurring very rarely or almost never.',
+      meaning_vi: 'Năm thì mười họa, rất hiếm khi xảy ra.',
+      example: 'He only visits his hometown once in a blue moon due to his busy schedule.'
+    },
+    {
+      id: 9,
+      idiom: 'Through thick and thin',
+      phonetic: '/θruː θɪk ænd θɪn/',
+      meaning_en: 'Under all circumstances, supporting each other through good and bad times.',
+      meaning_vi: 'Cùng nhau trải qua mọi thăng trầm, hoạn nạn có nhau.',
+      example: 'True friends stand by each other through thick and thin.'
+    },
+    {
+      id: 10,
+      idiom: 'Blessing in disguise',
+      phonetic: '/ˈbles.ɪŋ ɪn dɪsˈɡaɪz/',
+      meaning_en: 'An apparent misfortune that eventually has good or fortunate results.',
+      meaning_vi: 'Trong cái rủi có cái may, họa hóa thành phúc.',
+      example: 'Losing that old job turned out to be a blessing in disguise as I found my true passion.'
+    }
+  ];
 
   let words = $state<any[]>([]);
   let topics = $state<any[]>([]);
   let selectedTopic = $state('all');
+  let idiomIndex = $state(0);
   let idiom = $state<any>(null);
   let quiz = $state<any>(null);
   let selectedQuizOption = $state('');
@@ -42,12 +130,27 @@
   let cardFlipped = $state(false);
   let playingWord = $state('');
 
+  function getDayBasedIdiom() {
+    const dayNumber = Math.floor(Date.now() / 86400000);
+    return IDIOM_BANK[dayNumber % IDIOM_BANK.length];
+  }
+
+  function handleNextIdiom() {
+    idiomIndex = (idiomIndex + 1) % IDIOM_BANK.length;
+    idiom = IDIOM_BANK[idiomIndex];
+  }
+
   async function loadData() {
     loading = true;
     try {
       topics = await GetAvailableTopics();
       words = await GetDailyVocab(selectedTopic, 5);
-      idiom = await GetDailyIdiom();
+      
+      // Auto-update daily idiom dynamically based on current calendar date
+      const dayIdiom = getDayBasedIdiom();
+      idiomIndex = IDIOM_BANK.findIndex(i => i.id === dayIdiom.id);
+      idiom = dayIdiom;
+
       quiz = await GetQuickQuiz();
       selectedQuizOption = '';
       quizAnswered = false;
@@ -256,7 +359,14 @@
               </span>
               <div>
                 <div class="flex items-center gap-2">
-                  <h3 class="text-xl font-bold text-slate-100 tracking-tight">{w.word}</h3>
+                  <button
+                    onclick={() => onNavigateToDictionary?.(w.word)}
+                    class="text-xl font-bold text-slate-100 tracking-tight hover:text-cyan-400 text-left transition cursor-pointer flex items-center gap-1.5 group/title"
+                    title="Click to view detailed Dictionary entry"
+                  >
+                    <span>{w.word}</span>
+                    <BookA class="w-3.5 h-3.5 opacity-0 group-hover/title:opacity-100 text-cyan-400 transition" />
+                  </button>
                   <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-800 text-blue-400 border border-slate-700">
                     {w.pos || 'Noun'}
                   </span>
@@ -271,6 +381,13 @@
 
             <!-- Actions -->
             <div class="flex items-center gap-2">
+              <button
+                onclick={() => onNavigateToDictionary?.(w.word)}
+                class="p-2 rounded-xl bg-slate-800 hover:bg-cyan-600 text-slate-300 hover:text-white transition cursor-pointer"
+                title="Look up in Smart Dictionary"
+              >
+                <BookA class="w-4 h-4" />
+              </button>
               <button
                 onclick={() => playWord(w.word, false)}
                 class="p-2 rounded-xl bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition cursor-pointer"
@@ -457,16 +574,25 @@
               </div>
             {/if}
 
-            <!-- Card Bottom Bar (Audio, Flip Hint & Obsidian Save) -->
+            <!-- Card Bottom Bar (Audio, Dictionary, Flip Hint & Obsidian Save) -->
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <div class="w-full flex items-center justify-between pt-4 border-t border-slate-800" onclick={(e) => e.stopPropagation()}>
-              <button
-                onclick={() => playWord(curWord.word)}
-                class="p-2 rounded-xl bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition cursor-pointer"
-                title="Pronounce"
-              >
-                <Volume2 class="w-4 h-4" />
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  onclick={() => playWord(curWord.word)}
+                  class="p-2 rounded-xl bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition cursor-pointer"
+                  title="Pronounce"
+                >
+                  <Volume2 class="w-4 h-4" />
+                </button>
+                <button
+                  onclick={() => onNavigateToDictionary?.(curWord.word)}
+                  class="p-2 rounded-xl bg-slate-800 hover:bg-cyan-600 text-slate-300 hover:text-white transition cursor-pointer"
+                  title="Look up in Smart Dictionary"
+                >
+                  <BookA class="w-4 h-4" />
+                </button>
+              </div>
 
               <button
                 onclick={() => cardFlipped = !cardFlipped}
@@ -540,26 +666,51 @@
   <div class="grid md:grid-cols-2 gap-4 pt-4">
     <!-- Daily Idiom Card -->
     {#if idiom}
-      <div class="bg-gradient-to-br from-slate-900/90 to-indigo-950/40 border border-indigo-900/30 rounded-2xl p-5 space-y-3 shadow-lg">
+      <div class="bg-gradient-to-br from-slate-900/90 to-indigo-950/40 border border-indigo-900/30 rounded-2xl p-5 space-y-3 shadow-lg theme-card">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="text-lg">💡</span>
             <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-400">Daily Idiom</h4>
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+              📅 Auto-updates daily
+            </span>
           </div>
-          <button
-            onclick={() => playTTS(idiom.idiom)}
-            class="p-1.5 rounded-lg bg-indigo-900/40 hover:bg-indigo-600 text-indigo-200 transition cursor-pointer"
-          >
-            <Volume2 class="w-3.5 h-3.5" />
-          </button>
+
+          <div class="flex items-center gap-1.5">
+            <!-- Next / Shuffle Idiom -->
+            <button
+              onclick={handleNextIdiom}
+              class="px-2 py-1 rounded-lg bg-indigo-900/40 hover:bg-indigo-600 text-indigo-200 text-xs font-medium transition cursor-pointer flex items-center gap-1 active:scale-95"
+              title="Next / Explore Another Idiom"
+            >
+              <Dices class="w-3.5 h-3.5" />
+              <span class="text-[11px]">Next Idiom</span>
+            </button>
+
+            <!-- Pronounce -->
+            <button
+              onclick={() => playTTS(idiom.idiom)}
+              class="p-1.5 rounded-lg bg-indigo-900/40 hover:bg-indigo-600 text-indigo-200 transition cursor-pointer"
+              title="Pronounce"
+            >
+              <Volume2 class="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         <div>
-          <h5 class="text-lg font-bold text-slate-100">{idiom.idiom}</h5>
+          <button
+            onclick={() => onNavigateToDictionary?.(idiom.idiom)}
+            class="text-lg font-bold text-slate-100 hover:text-cyan-400 text-left transition cursor-pointer flex items-center gap-1.5 group/idm"
+            title="Click to view detailed Dictionary entry"
+          >
+            <span>{idiom.idiom}</span>
+            <BookA class="w-3.5 h-3.5 opacity-0 group-hover/idm:opacity-100 text-cyan-400 transition" />
+          </button>
           <p class="text-xs font-mono text-slate-400">{idiom.phonetic}</p>
         </div>
 
-        <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60 space-y-1">
+        <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60 space-y-1 theme-inner">
           <p class="text-xs text-slate-300"><strong class="text-slate-100">Meaning:</strong> {idiom.meaning_en}</p>
           {#if idiom.meaning_vi}
             <p class="text-xs text-indigo-300 italic">{idiom.meaning_vi}</p>
