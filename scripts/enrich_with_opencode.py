@@ -56,7 +56,7 @@ Return ONLY a valid raw JSON Array (NO markdown codeblocks, NO backticks) strict
 def enrich_words_batch(words):
     prompt = SCHEMA_PROMPT_TEMPLATE.format(words_list=", ".join(f'"{w}"' for w in words))
     try:
-        res = subprocess.run(["opencode", "run", prompt], capture_output=True, text=True, timeout=45)
+        res = subprocess.run(["opencode", "run", prompt], capture_output=True, text=True, timeout=60)
         output = res.stdout.strip()
         
         # Clean code fences
@@ -156,14 +156,26 @@ def save_to_db(entries):
         shutil.copyfile(DB_PATH, REPO_DB_PATH)
     return saved
 
+
+def chunk_list(lst, n):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         target_words = sys.argv[1:]
     else:
-        target_words = ["compare", "resilience", "hello", "bandwidth", "procrastinate"]
+        target_words = ["resilience", "bandwidth", "procrastinate", "influence", "serendipity", "ephemeral", "ubiquitous", "eloquent", "pragmatic"]
     
-    print(f"🚀 Enriching {len(target_words)} words with OpenCode CLI (Full 6 Oxford Blocks)...")
-    entries = enrich_words_batch(target_words)
-    print(f"✅ Received {len(entries)} valid entries from OpenCode.")
-    saved = save_to_db(entries)
-    print(f"💾 Successfully saved {saved} words with ALL 6 blocks into SQLite database {DB_PATH}!")
+    print(f"🚀 Enriching {len(target_words)} words with OpenCode CLI (in micro-batches of 3)...")
+    total_saved = 0
+    for chunk in chunk_list(target_words, 3):
+        print(f"👉 Processing batch: {chunk}...")
+        entries = enrich_words_batch(chunk)
+        if entries:
+            saved = save_to_db(entries)
+            total_saved += saved
+            print(f"  ✅ Saved {saved} words to SQLite.")
+        else:
+            print(f"  ⚠️ Batch {chunk} failed.")
+    print(f"🎉 Done! Total {total_saved} words enriched with ALL 6 blocks in {DB_PATH}!")
