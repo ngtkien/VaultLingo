@@ -70,7 +70,7 @@
             VaultLingo
           </h1>
           <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold font-mono bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-400 border border-cyan-500/30">
-            v0.1.0
+            v0.1.1
           </span>
         </div>
         <p class={`text-[10px] font-medium ${colorMode === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
