@@ -72,28 +72,14 @@ func GetWritingPrompt(level string) (WritingPrompt, error) {
 	return p, nil
 }
 
-func EvaluateWritingAI(prompt, text, situationVi string, cfg Config) (string, error) {
-	if strings.TrimSpace(text) == "" {
-		return "Please write something before submitting for evaluation!", nil
-	}
-
-	systemInstruction := `You are an expert English writing coach. 
-Evaluate the user's short English submission for the given scenario and prompt.
-Provide structured, constructive, and friendly feedback in clear Markdown:
-
-1. **Overall Rating & Score (x/10)**: Quick praise and overall impression.
-2. **Grammar & Spelling Fixes**: Point out exact errors and provide corrected versions.
-3. **Natural Phrasing (More Natural Alternatives)**: Offer 1-2 native-sounding alternatives (Professional & Casual).
-4. **Vocabulary Highlight**: Comment on word choices or suggest 2 useful idiomatic collocations.`
-
-	userContent := fmt.Sprintf(`[Context]: %s
-[Prompt]: %s
-[User Submission]:
-"%s"`, situationVi, prompt, text)
-
+// CallAI handles arbitrary prompt execution across configured providers (AGY, OpenRouter, Groq, Ollama)
+func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 	// 1. Antigravity CLI (Native system-authenticated agy CLI)
-	if cfg.AiProvider == "agy" {
-		fullPrompt := fmt.Sprintf("%s\n\n%s", systemInstruction, userContent)
+	if cfg.AiProvider == "agy" || cfg.AiProvider == "" {
+		fullPrompt := userContent
+		if systemInstruction != "" {
+			fullPrompt = fmt.Sprintf("%s\n\n%s", systemInstruction, userContent)
+		}
 		cmdPath := cfg.AgyPath
 		if cmdPath == "" {
 			var err error
@@ -123,7 +109,7 @@ Provide structured, constructive, and friendly feedback in clear Markdown:
 	// 2. OpenRouter (Free & Open Source Models)
 	if cfg.AiProvider == "openrouter" {
 		if cfg.OpenrouterApiKey == "" {
-			return generateLocalMockEvaluation(text), nil
+			return generateLocalMockEvaluation(userContent), nil
 		}
 		model := cfg.OpenrouterModel
 		if model == "" {
@@ -138,7 +124,7 @@ Provide structured, constructive, and friendly feedback in clear Markdown:
 	// 3. Groq (Free & Ultra Fast)
 	if cfg.AiProvider == "groq" {
 		if cfg.GroqApiKey == "" {
-			return generateLocalMockEvaluation(text), nil
+			return generateLocalMockEvaluation(userContent), nil
 		}
 		model := cfg.GroqModel
 		if model == "" {
@@ -158,9 +144,14 @@ Provide structured, constructive, and friendly feedback in clear Markdown:
 			model = "llama3:latest"
 		}
 
+		prompt := userContent
+		if systemInstruction != "" {
+			prompt = fmt.Sprintf("%s\n\n%s", systemInstruction, userContent)
+		}
+
 		payload := map[string]interface{}{
 			"model":  model,
-			"prompt": fmt.Sprintf("%s\n\n%s", systemInstruction, userContent),
+			"prompt": prompt,
 			"stream": false,
 		}
 		bodyBytes, _ := json.Marshal(payload)
@@ -177,7 +168,29 @@ Provide structured, constructive, and friendly feedback in clear Markdown:
 		return res.Response, nil
 	}
 
-	return generateLocalMockEvaluation(text), nil
+	return generateLocalMockEvaluation(userContent), nil
+}
+
+func EvaluateWritingAI(prompt, text, situationVi string, cfg Config) (string, error) {
+	if strings.TrimSpace(text) == "" {
+		return "Please write something before submitting for evaluation!", nil
+	}
+
+	systemInstruction := `You are an expert English writing coach. 
+Evaluate the user's short English submission for the given scenario and prompt.
+Provide structured, constructive, and friendly feedback in clear Markdown:
+
+1. **Overall Rating & Score (x/10)**: Quick praise and overall impression.
+2. **Grammar & Spelling Fixes**: Point out exact errors and provide corrected versions.
+3. **Natural Phrasing (More Natural Alternatives)**: Offer 1-2 native-sounding alternatives (Professional & Casual).
+4. **Vocabulary Highlight**: Comment on word choices or suggest 2 useful idiomatic collocations.`
+
+	userContent := fmt.Sprintf(`[Context]: %s
+[Prompt]: %s
+[User Submission]:
+"%s"`, situationVi, prompt, text)
+
+	return CallAI(systemInstruction, userContent, cfg)
 }
 
 func callOpenAICompatible(client *http.Client, endpoint, apiKey, model, systemPrompt, userPrompt string, extraHeaders map[string]string) (string, error) {

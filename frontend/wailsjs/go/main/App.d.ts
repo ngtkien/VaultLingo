@@ -34,6 +34,8 @@ export function PlayAudioUrl(arg1:string,arg2:number):Promise<void>;
 
 export function PlayTTS(arg1:string,arg2:number):Promise<void>;
 
+export function QueryAI(arg1:string,arg2:string):Promise<string>;
+
 export function RecordSrsReview(arg1:number,arg2:number):Promise<void>;
 
 export function SaveAllWordsToObsidian(arg1:Array<backend.Word>):Promise<Array<backend.ObsidianSaveResult>>;

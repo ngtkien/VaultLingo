@@ -66,6 +66,10 @@ export function PlayTTS(arg1, arg2) {
   return window['go']['main']['App']['PlayTTS'](arg1, arg2);
 }
 
+export function QueryAI(arg1, arg2) {
+  return window['go']['main']['App']['QueryAI'](arg1, arg2);
+}
+
 export function RecordSrsReview(arg1, arg2) {
   return window['go']['main']['App']['RecordSrsReview'](arg1, arg2);
 }

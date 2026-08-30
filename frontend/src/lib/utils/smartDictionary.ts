@@ -1,4 +1,4 @@
-import { LookupWordInDB, SaveWordToDB, EvaluateWriting } from '../../../wailsjs/go/main/App.js';
+import { LookupWordInDB, SaveWordToDB, QueryAI } from '../../../wailsjs/go/main/App.js';
 import { backend } from '../../../wailsjs/go/models';
 
 export interface WordFamilyMember {
@@ -221,12 +221,9 @@ Return ONLY valid JSON (no markdown formatting, no backticks, no markdown codebl
 }`;
 
   try {
-    log?.(`🤖 Sending dictionary prompt to AI provider backend...`);
-    const rawResponse = await EvaluateWriting(
-      `Dictionary Entry for: ${word}`,
-      `Please parse and define the word: ${word}`,
-      prompt
-    );
+    log?.(`🤖 Sending dictionary prompt to AI provider backend via QueryAI...`);
+    const systemPrompt = `You are a distinguished Oxford lexicographer and English-Vietnamese linguist. Return ONLY valid raw JSON strictly matching the requested schema. Do NOT include markdown commentary or headers.`;
+    const rawResponse = await QueryAI(systemPrompt, prompt);
 
     if (!rawResponse || typeof rawResponse !== 'string') {
       log?.(`⚠️ AI response was empty or invalid string.`);

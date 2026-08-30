@@ -80,6 +80,11 @@ func (a *App) GetWritingPrompt(level string) (backend.WritingPrompt, error) {
 	return backend.GetWritingPrompt(level)
 }
 
+func (a *App) QueryAI(systemPrompt, userPrompt string) (string, error) {
+	cfg := backend.LoadConfig()
+	return backend.CallAI(systemPrompt, userPrompt, cfg)
+}
+
 func (a *App) EvaluateWriting(prompt, text, situationVi string) (string, error) {
 	cfg := backend.LoadConfig()
 	return backend.EvaluateWritingAI(prompt, text, situationVi, cfg)
