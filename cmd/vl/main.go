@@ -109,7 +109,8 @@ func handleSearch(query string, isJSON bool) {
 	}
 
 	if len(words) == 0 {
-		fmt.Printf("No matching words found for '%s'.\n", query)
+		fmt.Printf("No matching words found in local database for '%s'.\n", query)
+		fmt.Printf("%s💡 Hint: Run 'vl %s' to look up & synthesize this word with AI into your database.%s\n", colorYellow, query, colorReset)
 		return
 	}
 
@@ -138,6 +139,14 @@ func handleLookup(query string, isJSON bool, saveObsidian bool) {
 	// 1. Check local SQLite DB
 	w, err := backend.LookupWordInDB(query)
 	isFromAI := false
+
+	if err != nil || w == nil || w.DefinitionEn == "" {
+		// Try root word if plural (e.g. "antonyms" -> "antonym")
+		if strings.HasSuffix(strings.ToLower(query), "s") && len(query) > 3 {
+			root := query[:len(query)-1]
+			w, err = backend.LookupWordInDB(root)
+		}
+	}
 
 	if err != nil || w == nil || w.DefinitionEn == "" {
 		// Word MISS in SQLite -> Try synthesising via AI
