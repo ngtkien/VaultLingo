@@ -724,7 +724,39 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
     }
   }
 
-  // 1. Built-in Handcrafted Lexicon Check (0ms Instant)
+  // 1. SQLite Database & Comprehensive Lexicon (Instant 0ms)
+  try {
+    const dailyVocab = await GetDailyVocab('all', 500);
+    if (dailyVocab && dailyVocab.length > 0) {
+      const match = dailyVocab.find(
+        (w) => w.word.toLowerCase() === query || w.raw_word?.toLowerCase() === query
+      );
+      if (match) {
+        const res: SmartWordResult = {
+          word: match,
+          isLocal: true,
+          source: 'app_vocab'
+        };
+        return ensureRichUnifiedResult(res);
+      }
+    }
+  } catch (err) {
+    console.warn('SQLite vocab check skipped:', err);
+  }
+
+  // 2. Comprehensive Lexicon Dataset Check (0ms Instant)
+  const compResult = lookupInComprehensiveLexicon(query);
+  if (compResult) {
+    return ensureRichUnifiedResult(compResult);
+  }
+
+  // 3. Persistent Local Storage Cache Check (0ms Instant)
+  const cachedResult = getCachedLexiconEntry(query);
+  if (cachedResult) {
+    return ensureRichUnifiedResult(cachedResult);
+  }
+
+  // 4. Built-in Offline Showcase Lexicon Check (0ms Instant)
   if (OFFLINE_LEXICON[query]) {
     const item = OFFLINE_LEXICON[query];
     const res: SmartWordResult = {
@@ -743,93 +775,71 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
     return ensureRichUnifiedResult(res);
   }
 
-  // 2. Comprehensive Core Lexicon Dataset Check (0ms Instant)
-  const compResult = lookupInComprehensiveLexicon(query);
-  if (compResult) {
-    return ensureRichUnifiedResult(compResult);
-  }
-
-  // 3. Persistent Local Cache Check (0ms Instant)
-  const cachedResult = getCachedLexiconEntry(query);
-  if (cachedResult) {
-    return ensureRichUnifiedResult(cachedResult);
-  }
-
-  // 4. App Preloaded Daily Vocab Check (SQLite Backend <10ms)
+  // 5. Online Dictionary + AI Template Synthesis
   try {
-    const dailyVocab = await GetDailyVocab('all', 100);
-    if (dailyVocab && dailyVocab.length > 0) {
-      const match = dailyVocab.find(
-        (w) => w.word.toLowerCase() === query
-      );
-      if (match) {
-        const res: SmartWordResult = {
-          word: match,
-          isLocal: true,
-          source: 'app_vocab'
-        };
-        return ensureRichUnifiedResult(res);
-      }
-    }
-  } catch (err) {
-    console.warn('App vocab check skipped:', err);
-  }
-
-  // 5. AI Structured Lookup for any new/custom word (Generates real, non-slop dictionary data)
-  try {
-    const aiResult = await lookupViaAI(query);
+    const onlineData = await lookupViaOnlineAPI(query);
+    const aiResult = await lookupViaAI(query, onlineData);
     if (aiResult) {
       // Persist in local storage cache for instant 0ms access next time
       saveToLexiconCache(query, aiResult);
       OFFLINE_LEXICON[query] = aiResult;
       return ensureRichUnifiedResult(aiResult);
     }
+    if (onlineData) {
+      saveToLexiconCache(query, onlineData);
+      return ensureRichUnifiedResult(onlineData);
+    }
   } catch (aiErr) {
-    console.warn('AI lookup fallback:', aiErr);
+    console.warn('Online & AI dictionary lookup fallback:', aiErr);
   }
 
-  // 6. Clean Honest Fallback Entry (No slop, clear Cambridge/Oxford links)
+  // 6. Clean Honest Fallback Entry (No slop, clear Cambridge/Oxford/Longman links)
   const synth = createSynthesizedEntry(query);
   return ensureRichUnifiedResult(synth);
 }
 
 /**
- * Uses backend AI engine to generate rich, structured JSON for the word
+ * Uses backend AI engine with Oxford lexicographer standards to generate rich, structured JSON for the word
  */
-async function lookupViaAI(word: string): Promise<SmartWordResult | null> {
-  const prompt = `You are an expert linguistic scholar and English-Vietnamese lexicographer. Provide an in-depth, structured dictionary entry for the English word "${word}".
+async function lookupViaAI(word: string, onlineContext?: SmartWordResult | null): Promise<SmartWordResult | null> {
+  const contextNote = onlineContext
+    ? `Online Phonetic: ${onlineContext.word.phonetic || ''}, Raw Definition: ${onlineContext.word.definition_en || ''}`
+    : '';
 
-Return ONLY a valid JSON object (no markdown formatting, no backticks, no outer text) with the following exact schema:
+  const prompt = `You are a distinguished Oxford lexicographer and English-Vietnamese linguist.
+Create an accurate, authentic dictionary entry for the English word "${word}".
+${contextNote}
+
+Return ONLY valid JSON (no markdown formatting, no backticks, no markdown codeblock tags) strictly matching this schema:
 {
   "word": "${word}",
   "raw_word": "${word}",
-  "pos": "Noun | Verb | Adjective | Adverb | Idiom | Phrasal Verb",
-  "phonetic": "/IPA phonetic transcription/",
-  "definition_en": "Clear, precise English definition",
-  "definition_vi": "Nghĩa tiếng Việt chuẩn xác, giải thích rõ sắc thái",
-  "example_en": "Natural primary example sentence showcasing the word in context",
-  "example_vi": "Dịch câu ví dụ chính sang tiếng Việt tự nhiên",
+  "pos": "Noun | Verb | Adjective | Adverb | Phrasal Verb | Idiom",
+  "phonetic": "/IPA transcription/",
+  "definition_en": "Accurate, clear English definition (Oxford/Cambridge standard)",
+  "definition_vi": "Nghĩa tiếng Việt chuẩn mực, tự nhiên, giải thích rõ sắc thái",
+  "example_en": "Natural authentic example sentence showcasing the word in context",
+  "example_vi": "Bản dịch tiếng Việt tự nhiên của câu ví dụ",
   "level": "A1 | A2 | B1 | B2 | C1 | C2",
   "topic": "topic_slug",
-  "topic_title": "Topic Name",
-  "topic_icon": "relevant emoji",
+  "topic_title": "Topic Title",
+  "topic_icon": "emoji",
   "dict_link": "https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(word)}",
-  "synonyms": ["synonym1", "synonym2", "synonym3", "synonym4", "synonym5"],
-  "antonyms": ["antonym1", "antonym2", "antonym3"],
-  "collocations": ["common collocation 1", "common collocation 2", "common collocation 3"],
+  "synonyms": ["real_synonym_1", "real_synonym_2", "real_synonym_3"],
+  "antonyms": ["real_antonym_1", "real_antonym_2"],
+  "collocations": ["natural collocation 1", "natural collocation 2", "natural collocation 3"],
   "word_family": [
-    { "pos": "Noun", "word": "noun_form" },
-    { "pos": "Verb", "word": "verb_form" },
-    { "pos": "Adjective", "word": "adj_form" },
-    { "pos": "Adverb", "word": "adv_form" }
+    { "pos": "Noun", "word": "real_noun_form" },
+    { "pos": "Verb", "word": "real_verb_form" },
+    { "pos": "Adjective", "word": "real_adj_form" }
   ],
-  "etymology": "Concise origin and root explanation (e.g. Latin/Greek roots)",
-  "mnemonic_hook": "A memorable association or memory hook to remember this word easily",
+  "etymology": "Concise historical root origin (e.g. Latin/Greek/Old English root)",
+  "mnemonic_hook": "A clever, memorable memory hook to remember this word easily",
   "examples": [
     { "en": "Example sentence 1 in daily or academic context.", "vi": "Dịch ví dụ 1 sang tiếng Việt." },
     { "en": "Example sentence 2 in workplace or IELTS context.", "vi": "Dịch ví dụ 2 sang tiếng Việt." }
   ],
-  "nuance_tips": "Key usage tips, register notes, or common pitfalls in IELTS Speaking/Writing"
+  "nuance_tips": "Key usage tips or common errors to avoid in IELTS Speaking/Writing"
 }`;
 
   try {
