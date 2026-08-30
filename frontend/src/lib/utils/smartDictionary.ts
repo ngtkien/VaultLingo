@@ -32,17 +32,24 @@ export interface SmartWordResult {
  * Cleans and formats genuine word results without fabricating fake data
  */
 export function ensureRichUnifiedResult(result: SmartWordResult): SmartWordResult {
-  // Clean and parse examples
+  const w = result.word as any;
+
+  // 1. Examples
   let examples: BilingualExample[] = [];
   if (result.examples && result.examples.length > 0) {
     examples = result.examples;
-  } else if (result.word.example_en) {
-    const rawEn = result.word.example_en;
-    const rawVi = result.word.example_vi || '';
+  } else if (w.examples_json && w.examples_json !== '[]') {
+    try {
+      const parsed = JSON.parse(w.examples_json);
+      if (Array.isArray(parsed) && parsed.length > 0) examples = parsed;
+    } catch {}
+  }
 
-    // Split on | if multiple sentences were bundled together, remove trailing noise
-    const enParts = rawEn.split('|').map(s => s.replace(/\s*\b\d{3,}\b\s*$/, '').trim()).filter(Boolean);
-    const viParts = rawVi.split('|').map(s => s.replace(/\s*\b\d{3,}\b\s*$/, '').trim()).filter(Boolean);
+  if (examples.length === 0 && w.example_en) {
+    const rawEn = w.example_en;
+    const rawVi = w.example_vi || '';
+    const enParts = rawEn.split('|').map((s: string) => s.replace(/\s*\b\d{3,}\b\s*$/, '').trim()).filter(Boolean);
+    const viParts = rawVi.split('|').map((s: string) => s.replace(/\s*\b\d{3,}\b\s*$/, '').trim()).filter(Boolean);
 
     for (let i = 0; i < enParts.length; i++) {
       examples.push({
@@ -52,16 +59,56 @@ export function ensureRichUnifiedResult(result: SmartWordResult): SmartWordResul
     }
   }
 
+  // 2. Word Family
+  let word_family: WordFamilyMember[] = result.word_family || [];
+  if (word_family.length === 0 && w.word_family_json && w.word_family_json !== '[]') {
+    try {
+      const parsed = JSON.parse(w.word_family_json);
+      if (Array.isArray(parsed)) word_family = parsed;
+    } catch {}
+  }
+
+  // 3. Synonyms & Antonyms
+  let synonyms: string[] = result.synonyms || [];
+  if (synonyms.length === 0 && w.synonyms_json && w.synonyms_json !== '[]') {
+    try {
+      const parsed = JSON.parse(w.synonyms_json);
+      if (Array.isArray(parsed)) synonyms = parsed;
+    } catch {}
+  }
+
+  let antonyms: string[] = result.antonyms || [];
+  if (antonyms.length === 0 && w.antonyms_json && w.antonyms_json !== '[]') {
+    try {
+      const parsed = JSON.parse(w.antonyms_json);
+      if (Array.isArray(parsed)) antonyms = parsed;
+    } catch {}
+  }
+
+  // 4. Collocations
+  let collocations: string[] = result.collocations || [];
+  if (collocations.length === 0 && w.collocations_json && w.collocations_json !== '[]') {
+    try {
+      const parsed = JSON.parse(w.collocations_json);
+      if (Array.isArray(parsed)) collocations = parsed;
+    } catch {}
+  }
+
+  // 5. Etymology, Mnemonic Hook, Nuance Tips
+  const etymology = result.etymology || w.etymology || '';
+  const mnemonic_hook = result.mnemonic_hook || w.mnemonic_hook || '';
+  const nuance_tips = result.nuance_tips || w.nuance_tips || '';
+
   return {
     ...result,
     examples,
-    word_family: result.word_family || [],
-    etymology: result.etymology || '',
-    collocations: result.collocations || [],
-    synonyms: result.synonyms || [],
-    antonyms: result.antonyms || [],
-    mnemonic_hook: result.mnemonic_hook || '',
-    nuance_tips: result.nuance_tips || '',
+    word_family,
+    etymology,
+    collocations,
+    synonyms,
+    antonyms,
+    mnemonic_hook,
+    nuance_tips,
     debugLogs: result.debugLogs || []
   };
 }
@@ -294,6 +341,17 @@ Return ONLY valid JSON (no markdown formatting, no backticks, no markdown codebl
 
     log?.(`✅ Successfully parsed AI linguistic JSON for "${word}".`);
 
+    const synonymsArr = Array.isArray(data.synonyms) ? data.synonyms : [];
+    const antonymsArr = Array.isArray(data.antonyms) ? data.antonyms : [];
+    const collocationsArr = Array.isArray(data.collocations) ? data.collocations : [];
+    const wordFamilyArr = Array.isArray(data.word_family) ? data.word_family : [];
+    const examplesArr = Array.isArray(data.examples) && data.examples.length > 0 ? data.examples : [
+      { en: data.example_en || '', vi: data.example_vi || '' }
+    ];
+    const etymologyStr = data.etymology || '';
+    const mnemonicHookStr = data.mnemonic_hook || '';
+    const nuanceTipsStr = data.nuance_tips || '';
+
     const wordObj = new backend.Word({
       id: Date.now(),
       word: data.word || word,
@@ -302,28 +360,34 @@ Return ONLY valid JSON (no markdown formatting, no backticks, no markdown codebl
       phonetic: data.phonetic || '',
       definition_en: data.definition_en || '',
       definition_vi: data.definition_vi || '',
-      example_en: data.example_en || '',
-      example_vi: data.example_vi || '',
+      example_en: data.example_en || (examplesArr[0]?.en || ''),
+      example_vi: data.example_vi || (examplesArr[0]?.vi || ''),
       level: data.level || 'B2 Upper-Intermediate',
       topic: data.topic || 'vocabulary',
       topic_title: data.topic_title || 'Smart Dictionary',
       topic_icon: data.topic_icon || '📖',
-      dict_link: data.dict_link || `https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(word)}`
+      dict_link: data.dict_link || `https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(word)}`,
+      synonyms_json: JSON.stringify(synonymsArr),
+      antonyms_json: JSON.stringify(antonymsArr),
+      collocations_json: JSON.stringify(collocationsArr),
+      word_family_json: JSON.stringify(wordFamilyArr),
+      etymology: etymologyStr,
+      mnemonic_hook: mnemonicHookStr,
+      nuance_tips: nuanceTipsStr,
+      examples_json: JSON.stringify(examplesArr)
     });
 
     return {
       word: wordObj,
       isLocal: false,
-      synonyms: Array.isArray(data.synonyms) ? data.synonyms : [],
-      antonyms: Array.isArray(data.antonyms) ? data.antonyms : [],
-      collocations: Array.isArray(data.collocations) ? data.collocations : [],
-      word_family: Array.isArray(data.word_family) ? data.word_family : [],
-      etymology: data.etymology || '',
-      mnemonic_hook: data.mnemonic_hook || '',
-      examples: Array.isArray(data.examples) && data.examples.length > 0 ? data.examples : [
-        { en: data.example_en || '', vi: data.example_vi || '' }
-      ],
-      nuance_tips: data.nuance_tips || '',
+      synonyms: synonymsArr,
+      antonyms: antonymsArr,
+      collocations: collocationsArr,
+      word_family: wordFamilyArr,
+      etymology: etymologyStr,
+      mnemonic_hook: mnemonicHookStr,
+      examples: examplesArr,
+      nuance_tips: nuanceTipsStr,
       source: 'ai'
     };
   } catch (parseErr) {

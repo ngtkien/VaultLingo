@@ -239,7 +239,7 @@ func init() {
 func LookupWordInDB(query string) (*Word, error) {
 	query = strings.TrimSpace(query)
 	if query == "" {
-		return nil, fmt.Errorf("empty word query")
+		return nil, fmt.Errorf("empty query")
 	}
 
 	var w Word
@@ -248,7 +248,15 @@ func LookupWordInDB(query string) (*Word, error) {
 		       w.example_en, w.example_vi, w.level, w.topic,
 		       COALESCE(s.interval, 1), COALESCE(s.repetitions, 0), 
 		       COALESCE(s.ease_factor, 2.5), COALESCE(s.next_review, ''), 
-		       COALESCE(s.status, 'new')
+		       COALESCE(s.status, 'new'),
+		       COALESCE(w.synonyms_json, '[]'),
+		       COALESCE(w.antonyms_json, '[]'),
+		       COALESCE(w.collocations_json, '[]'),
+		       COALESCE(w.word_family_json, '[]'),
+		       COALESCE(w.etymology, ''),
+		       COALESCE(w.mnemonic_hook, ''),
+		       COALESCE(w.nuance_tips, ''),
+		       COALESCE(w.examples_json, '[]')
 		FROM words w
 		LEFT JOIN srs_reviews s ON w.id = s.word_id
 		WHERE LOWER(w.word) = LOWER(?)
@@ -257,6 +265,8 @@ func LookupWordInDB(query string) (*Word, error) {
 		&w.ID, &w.Word, &w.POS, &w.Phonetic, &w.DefinitionEn, &w.DefinitionVi,
 		&w.ExampleEn, &w.ExampleVi, &w.Level, &w.Topic,
 		&w.Interval, &w.Repetitions, &w.EaseFactor, &w.NextReview, &w.Status,
+		&w.SynonymsJSON, &w.AntonymsJSON, &w.CollocationsJSON, &w.WordFamilyJSON,
+		&w.Etymology, &w.MnemonicHook, &w.NuanceTips, &w.ExamplesJSON,
 	)
 
 	if err != nil {
@@ -275,9 +285,30 @@ func SaveWordToDB(w Word) error {
 		return fmt.Errorf("empty word")
 	}
 
+	if w.SynonymsJSON == "" {
+		w.SynonymsJSON = "[]"
+	}
+	if w.AntonymsJSON == "" {
+		w.AntonymsJSON = "[]"
+	}
+	if w.CollocationsJSON == "" {
+		w.CollocationsJSON = "[]"
+	}
+	if w.WordFamilyJSON == "" {
+		w.WordFamilyJSON = "[]"
+	}
+	if w.ExamplesJSON == "" {
+		w.ExamplesJSON = "[]"
+	}
+
 	_, err := DB.Exec(`
-		INSERT INTO words (word, pos, phonetic, definition_en, definition_vi, example_en, example_vi, level, topic, source)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'dictionary')
+		INSERT INTO words (
+			word, pos, phonetic, definition_en, definition_vi, 
+			example_en, example_vi, level, topic, source,
+			synonyms_json, antonyms_json, collocations_json, word_family_json,
+			etymology, mnemonic_hook, nuance_tips, examples_json
+		)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'dictionary', ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(word) DO UPDATE SET
 			pos = excluded.pos,
 			phonetic = excluded.phonetic,
@@ -286,13 +317,25 @@ func SaveWordToDB(w Word) error {
 			example_en = excluded.example_en,
 			example_vi = excluded.example_vi,
 			level = excluded.level,
-			topic = excluded.topic
-	`, word, w.POS, w.Phonetic, w.DefinitionEn, w.DefinitionVi, w.ExampleEn, w.ExampleVi, w.Level, w.Topic)
+			topic = excluded.topic,
+			synonyms_json = excluded.synonyms_json,
+			antonyms_json = excluded.antonyms_json,
+			collocations_json = excluded.collocations_json,
+			word_family_json = excluded.word_family_json,
+			etymology = excluded.etymology,
+			mnemonic_hook = excluded.mnemonic_hook,
+			nuance_tips = excluded.nuance_tips,
+			examples_json = excluded.examples_json
+	`, 
+		word, w.POS, w.Phonetic, w.DefinitionEn, w.DefinitionVi, 
+		w.ExampleEn, w.ExampleVi, w.Level, w.Topic,
+		w.SynonymsJSON, w.AntonymsJSON, w.CollocationsJSON, w.WordFamilyJSON,
+		w.Etymology, w.MnemonicHook, w.NuanceTips, w.ExamplesJSON,
+	)
 
 	return err
 }
 
-// SearchWordsInDB performs fast prefix and substring search across SQLite words table
 // SearchWordsInDB performs fast prefix and substring search across SQLite words table
 func SearchWordsInDB(query string, limit int) ([]Word, error) {
 	if strings.TrimSpace(query) == "" {

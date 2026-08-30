@@ -1,27 +1,34 @@
 package backend
 
 type Word struct {
-	ID           int     `json:"id"`
-	Word         string  `json:"word"`
-	RawWord      string  `json:"raw_word"`
-	POS          string  `json:"pos"`
-	Phonetic     string  `json:"phonetic"`
-	DefinitionEn string  `json:"definition_en"`
-	DefinitionVi string  `json:"definition_vi"`
-	ExampleEn    string  `json:"example_en"`
-	ExampleVi    string  `json:"example_vi"`
-	Level        string  `json:"level"`
-	Topic        string  `json:"topic"`
-	TopicTitle   string  `json:"topic_title"`
-	TopicIcon    string  `json:"topic_icon"`
-	DictLink     string  `json:"dict_link"`
-	Interval     int     `json:"interval,omitempty"`
-	Repetitions  int     `json:"repetitions,omitempty"`
-	EaseFactor   float64 `json:"ease_factor,omitempty"`
-	NextReview   string  `json:"next_review,omitempty"`
-	Status       string  `json:"status,omitempty"`
+	ID               int     `json:"id"`
+	Word             string  `json:"word"`
+	RawWord          string  `json:"raw_word"`
+	POS              string  `json:"pos"`
+	Phonetic         string  `json:"phonetic"`
+	DefinitionEn     string  `json:"definition_en"`
+	DefinitionVi     string  `json:"definition_vi"`
+	ExampleEn        string  `json:"example_en"`
+	ExampleVi        string  `json:"example_vi"`
+	Level            string  `json:"level"`
+	Topic            string  `json:"topic"`
+	TopicTitle       string  `json:"topic_title"`
+	TopicIcon        string  `json:"topic_icon"`
+	DictLink         string  `json:"dict_link"`
+	Interval         int     `json:"interval,omitempty"`
+	Repetitions      int     `json:"repetitions,omitempty"`
+	EaseFactor       float64 `json:"ease_factor,omitempty"`
+	NextReview       string  `json:"next_review,omitempty"`
+	Status           string  `json:"status,omitempty"`
+	SynonymsJSON     string  `json:"synonyms_json,omitempty"`
+	AntonymsJSON     string  `json:"antonyms_json,omitempty"`
+	CollocationsJSON string  `json:"collocations_json,omitempty"`
+	WordFamilyJSON   string  `json:"word_family_json,omitempty"`
+	Etymology        string  `json:"etymology,omitempty"`
+	MnemonicHook     string  `json:"mnemonic_hook,omitempty"`
+	NuanceTips       string  `json:"nuance_tips,omitempty"`
+	ExamplesJSON     string  `json:"examples_json,omitempty"`
 }
-
 type Idiom struct {
 	ID        int    `json:"id"`
 	Idiom     string `json:"idiom"`

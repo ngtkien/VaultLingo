@@ -239,6 +239,14 @@ export namespace backend {
 	    ease_factor?: number;
 	    next_review?: string;
 	    status?: string;
+	    synonyms_json?: string;
+	    antonyms_json?: string;
+	    collocations_json?: string;
+	    word_family_json?: string;
+	    etymology?: string;
+	    mnemonic_hook?: string;
+	    nuance_tips?: string;
+	    examples_json?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Word(source);
@@ -265,6 +273,14 @@ export namespace backend {
 	        this.ease_factor = source["ease_factor"];
 	        this.next_review = source["next_review"];
 	        this.status = source["status"];
+	        this.synonyms_json = source["synonyms_json"];
+	        this.antonyms_json = source["antonyms_json"];
+	        this.collocations_json = source["collocations_json"];
+	        this.word_family_json = source["word_family_json"];
+	        this.etymology = source["etymology"];
+	        this.mnemonic_hook = source["mnemonic_hook"];
+	        this.nuance_tips = source["nuance_tips"];
+	        this.examples_json = source["examples_json"];
 	    }
 	}
 	export class WritingPrompt {
