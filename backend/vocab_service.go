@@ -291,3 +291,49 @@ func SaveWordToDB(w Word) error {
 
 	return err
 }
+
+// SearchWordsInDB performs fast prefix and substring search across SQLite words table
+// SearchWordsInDB performs fast prefix and substring search across SQLite words table
+func SearchWordsInDB(query string, limit int) ([]Word, error) {
+	if strings.TrimSpace(query) == "" {
+		return []Word{}, nil
+	}
+	if limit <= 0 || limit > 50 {
+		limit = 10
+	}
+
+	q := strings.ToLower(strings.TrimSpace(query))
+	sqlQuery := `
+		SELECT id, word, pos, phonetic, definition_en, definition_vi, example_en, example_vi, level, topic
+		FROM words
+		WHERE LOWER(word) LIKE ? OR LOWER(word) LIKE ?
+		ORDER BY 
+			CASE 
+				WHEN LOWER(word) = ? THEN 1
+				WHEN LOWER(word) LIKE ? THEN 2
+				ELSE 3
+			END,
+			LENGTH(word) ASC
+		LIMIT ?
+	`
+	rows, err := DB.Query(sqlQuery, q+"%", "%"+q+"%", q, q+"%", limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []Word
+	for rows.Next() {
+		var w Word
+		err := rows.Scan(
+			&w.ID, &w.Word, &w.POS, &w.Phonetic,
+			&w.DefinitionEn, &w.DefinitionVi,
+			&w.ExampleEn, &w.ExampleVi,
+			&w.Level, &w.Topic,
+		)
+		if err == nil {
+			results = append(results, w)
+		}
+	}
+	return results, nil
+}

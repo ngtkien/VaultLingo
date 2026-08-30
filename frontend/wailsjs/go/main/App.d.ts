@@ -48,6 +48,8 @@ export function SaveWordToObsidian(arg1:backend.Word):Promise<backend.ObsidianSa
 
 export function SaveWritingToObsidian(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string):Promise<backend.ObsidianSaveResult>;
 
+export function SearchWordsInDB(arg1:string,arg2:number):Promise<Array<backend.Word>>;
+
 export function StopAudio():Promise<void>;
 
 export function UpdateObsidianSrsReview(arg1:string,arg2:string,arg3:number):Promise<void>;

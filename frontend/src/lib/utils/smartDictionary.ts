@@ -302,15 +302,15 @@ Return ONLY valid JSON (no markdown formatting, no backticks, no markdown codebl
 }
 
 /**
- * Free Dictionary API with short 1.5s timeout
+ * Free Dictionary API with reliable 4.5s timeout
  */
 async function lookupViaOnlineAPI(word: string, log?: (msg: string) => void): Promise<SmartWordResult | null> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 1500);
+  const timeoutId = setTimeout(() => controller.abort(), 4500);
 
   try {
     const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
-    log?.(`🌐 Fetching ${url} (1.5s timeout)...`);
+    log?.(`🌐 Fetching ${url} (4.5s timeout)...`);
     const resp = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
 

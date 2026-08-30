@@ -25,7 +25,8 @@
     ChevronUp
   } from 'lucide-svelte';
   import { lookupSmartDictionary, type SmartWordResult } from '../utils/smartDictionary';
-  import { SaveWordToObsidian, DeleteWordFromObsidian, GetSavedObsidianVocab } from '../../../wailsjs/go/main/App.js';
+  import { SaveWordToObsidian, DeleteWordFromObsidian, GetSavedObsidianVocab, SearchWordsInDB } from '../../../wailsjs/go/main/App.js';
+  import { backend } from '../../../wailsjs/go/models';
   import { playTTS, playAudioUrl } from '../utils/audio';
 
   let { initialWord = 'serendipity' } = $props<{ initialWord?: string }>();
@@ -37,6 +38,33 @@
   let isSavedInVault = $state(false);
   let savingVault = $state(false);
   let showDebugLogs = $state(true);
+
+  // Live SQLite Autocomplete Suggestions
+  let suggestions = $state<backend.Word[]>([]);
+  let showSuggestions = $state(false);
+  let searchTimer: any = null;
+
+  function handleInputChange(e: Event) {
+    const val = (e.target as HTMLInputElement).value;
+    searchQuery = val;
+    clearTimeout(searchTimer);
+
+    if (!val || val.trim().length < 2) {
+      suggestions = [];
+      showSuggestions = false;
+      return;
+    }
+
+    searchTimer = setTimeout(async () => {
+      try {
+        const matches = await SearchWordsInDB(val.trim(), 8);
+        suggestions = matches || [];
+        showSuggestions = suggestions.length > 0;
+      } catch (err) {
+        suggestions = [];
+      }
+    }, 150);
+  }
 
   const POPULAR_WORDS = [
     { word: 'resilience', tag: 'C1 • Grit' },
@@ -178,25 +206,76 @@
       </div>
     </div>
 
-    <!-- Search Bar -->
-    <div class="mt-5 flex flex-col sm:flex-row items-stretch gap-3">
+    <!-- Search Bar with Live SQLite Search Engine Suggestions -->
+    <div class="mt-5 flex flex-col sm:flex-row items-stretch gap-3 relative">
       <div class="relative flex-1">
         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
           <Search class="w-5 h-5" />
         </div>
         <input
           type="text"
-          bind:value={searchQuery}
+          value={searchQuery}
+          oninput={handleInputChange}
           onkeydown={handleKeydown}
-          placeholder="Type any English word (e.g., work, ubiquitous, resilience, serendipity...)"
+          onfocus={() => { if (suggestions.length > 0) showSuggestions = true; }}
+          placeholder="Type any English word (e.g., architecture, environment, serendipity...)"
           class="w-full pl-11 pr-4 py-3 bg-slate-950/80 border border-slate-700 focus:border-amber-400 text-slate-100 placeholder-slate-500 rounded-xl text-base outline-none transition theme-input shadow-inner"
         />
+
+        <!-- Live SQLite Search Autocomplete Dropdown Overlay -->
+        {#if showSuggestions && suggestions.length > 0}
+          <div class="absolute left-0 right-0 top-full mt-2 bg-slate-900/95 border border-slate-700/90 rounded-xl shadow-2xl backdrop-blur-xl z-50 overflow-hidden divide-y divide-slate-800">
+            <div class="px-3.5 py-1.5 bg-slate-950/70 text-[11px] font-mono text-slate-400 flex items-center justify-between">
+              <span>⚡ SQLite Instant Matches ({suggestions.length})</span>
+              <span class="text-amber-400">0ms</span>
+            </div>
+            <div class="max-h-60 overflow-y-auto">
+              {#each suggestions as item}
+                <button
+                  type="button"
+                  onclick={() => {
+                    showSuggestions = false;
+                    handleSearch(item.word);
+                  }}
+                  class="w-full px-4 py-2.5 hover:bg-slate-800/90 text-left transition flex items-center justify-between group cursor-pointer"
+                >
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-slate-200 group-hover:text-amber-300 transition text-sm">
+                      {item.word}
+                    </span>
+                    {#if item.pos}
+                      <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 group-hover:bg-slate-700">
+                        {item.pos}
+                      </span>
+                    {/if}
+                    {#if item.definition_vi}
+                      <span class="text-xs text-slate-400 truncate max-w-[200px] sm:max-w-xs">
+                        - {item.definition_vi}
+                      </span>
+                    {/if}
+                  </div>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    {#if item.level}
+                      <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                        {item.level}
+                      </span>
+                    {/if}
+                    <ArrowRight class="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition" />
+                  </div>
+                </button>
+              {/each}
+            </div>
+          </div>
+        {/if}
       </div>
 
       <button
-        onclick={() => handleSearch()}
+        onclick={() => {
+          showSuggestions = false;
+          handleSearch();
+        }}
         disabled={loading || !searchQuery.trim()}
-        class="px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-sm sm:text-base rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        class="px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-sm sm:text-base rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
       >
         {#if loading}
           <RefreshCw class="w-4 h-4 animate-spin" />

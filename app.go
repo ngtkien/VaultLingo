@@ -140,6 +140,10 @@ func (a *App) SaveConfig(cfg backend.Config) error {
 	return backend.SaveConfig(cfg)
 }
 
+func (a *App) SearchWordsInDB(query string, limit int) ([]backend.Word, error) {
+	return backend.SearchWordsInDB(query, limit)
+}
+
 func (a *App) LookupWordInDB(query string) (*backend.Word, error) {
 	return backend.LookupWordInDB(query)
 }
