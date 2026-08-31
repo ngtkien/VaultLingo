@@ -148,16 +148,20 @@ func handleLookup(query string, isJSON bool, saveObsidian bool) {
 		}
 	}
 
-	if err != nil || w == nil || w.DefinitionEn == "" {
-		// Word MISS in SQLite -> Try synthesising via AI
-		w, err = synthesizeWordAI(query)
-		if err != nil || w == nil {
+	has6Blocks := w != nil && w.Etymology != "" && w.SynonymsJSON != "" && w.SynonymsJSON != "[]"
+
+	if err != nil || w == nil || w.DefinitionEn == "" || !has6Blocks {
+		// Word MISS or missing 6-block data -> Synthesize full 6-block via AI
+		wAI, errAI := synthesizeWordAI(query)
+		if errAI == nil && wAI != nil {
+			w = wAI
+			isFromAI = true
+			_ = backend.SaveWordToDB(*w)
+		} else if w == nil {
 			fmt.Printf("Word '%s' not found in local database and AI synthesis is unavailable.\n", query)
 			fmt.Printf("Tip: Check spelling or configure AI provider in ~/.config/VaultLingo/config.json\n")
 			return
 		}
-		isFromAI = true
-		_ = backend.SaveWordToDB(*w)
 	}
 
 	elapsedMs := time.Since(startTime).Milliseconds()

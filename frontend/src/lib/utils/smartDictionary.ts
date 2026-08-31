@@ -170,11 +170,13 @@ export async function lookupSmartDictionary(rawQuery: string, forceAI = false): 
       const hasViMeaning = dbWord.definition_vi && 
                            dbWord.definition_vi.trim().length > 0 && 
                            !dbWord.definition_vi.includes('available in details');
-      const hasViExample = dbWord.example_vi && 
-                           dbWord.example_vi.trim().length > 0;
+      const has6Blocks = dbWord.etymology && 
+                         dbWord.etymology.trim().length > 0 &&
+                         dbWord.synonyms_json && 
+                         dbWord.synonyms_json !== '[]';
       
-      // If the word already has complete, rich Vietnamese explanations & examples, return immediately (0ms)
-      if (hasViMeaning && hasViExample) {
+      // If the word already has complete 6-block data, return immediately (0ms)
+      if (has6Blocks && hasViMeaning) {
         log(`🎯 SQLite HIT! Found complete entry "${dbWord.word}" (ID: ${dbWord.id}, Topic: ${dbWord.topic || 'general'}) in SQLite DB.`);
         const res: SmartWordResult = {
           word: dbWord,
