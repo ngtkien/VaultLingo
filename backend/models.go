@@ -127,3 +127,18 @@ type DictationResult struct {
 	Passed   bool        `json:"passed"`
 	Tokens   []DiffToken `json:"tokens"`
 }
+
+type ListeningQA struct {
+	Question string `json:"q"`
+	Answer   string `json:"a"`
+}
+
+type ListeningTopic struct {
+	ID       int           `json:"id"`
+	TopicID  int           `json:"topic_id"`
+	Title    string        `json:"title"`
+	Icon     string        `json:"icon"`
+	AudioURL string        `json:"audio"`
+	WebURL   string        `json:"url"`
+	QA       []ListeningQA `json:"qa"`
+}

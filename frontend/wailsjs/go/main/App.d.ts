@@ -18,6 +18,8 @@ export function GetDailyVocab(arg1:string,arg2:number):Promise<Array<backend.Wor
 
 export function GetDictationSentence(arg1:string):Promise<backend.Dictation>;
 
+export function GetListeningTopics():Promise<Array<backend.ListeningTopic>>;
+
 export function GetQuickQuiz():Promise<backend.Quiz>;
 
 export function GetSavedObsidianVocab():Promise<Array<backend.ObsidianItem>>;

@@ -151,3 +151,7 @@ func (a *App) LookupWordInDB(query string) (*backend.Word, error) {
 func (a *App) SaveWordToDB(w backend.Word) error {
 	return backend.SaveWordToDB(w)
 }
+
+func (a *App) GetListeningTopics() ([]backend.ListeningTopic, error) {
+	return backend.GetListeningTopics()
+}

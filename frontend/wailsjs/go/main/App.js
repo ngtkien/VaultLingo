@@ -34,6 +34,10 @@ export function GetDictationSentence(arg1) {
   return window['go']['main']['App']['GetDictationSentence'](arg1);
 }
 
+export function GetListeningTopics() {
+  return window['go']['main']['App']['GetListeningTopics']();
+}
+
 export function GetQuickQuiz() {
   return window['go']['main']['App']['GetQuickQuiz']();
 }

@@ -376,3 +376,26 @@ func SearchWordsInDB(query string, limit int) ([]Word, error) {
 	}
 	return results, nil
 }
+
+func GetListeningTopics() ([]ListeningTopic, error) {
+	rows, err := DB.Query(`
+		SELECT id, topic_id, title, icon, audio_url, web_url, qa_json
+		FROM listening_topics
+		ORDER BY id ASC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var topics []ListeningTopic
+	for rows.Next() {
+		var t ListeningTopic
+		var qaJSON string
+		if err := rows.Scan(&t.ID, &t.TopicID, &t.Title, &t.Icon, &t.AudioURL, &t.WebURL, &qaJSON); err == nil {
+			_ = json.Unmarshal([]byte(qaJSON), &t.QA)
+			topics = append(topics, t)
+		}
+	}
+	return topics, nil
+}

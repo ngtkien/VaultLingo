@@ -2,32 +2,22 @@
   import { onMount } from 'svelte';
   import { playAudioUrl, stopAudio } from '../utils/audio';
   import { Volume2, Search, Eye, EyeOff, Headphones, ExternalLink, Play, Pause } from 'lucide-svelte';
+  import { GetListeningTopics } from '../../../wailsjs/go/main/App.js';
 
   interface TopicItem {
-    id: number;
+    id?: number;
+    topic_id?: number;
     title: string;
     icon: string;
     audio: string;
-    url: string;
+    url?: string;
     qa: { q: string; a: string }[];
   }
 
-  // Pre-configured 75 Listening Topics
-  const TOPICS_75: TopicItem[] = [
+  // Pre-configured fallback topics
+  const FALLBACK_TOPICS: TopicItem[] = [
     {
-      id: 58,
-      title: "Computer",
-      icon: "💻",
-      audio: "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-58.mp3",
-      url: "https://basicenglishspeaking.com/computer/",
-      qa: [
-        { q: "Do you have your own computer?", a: "Yes, I own a personal laptop which is essential for my daily work and study." },
-        { q: "What do you usually use your computer for?", a: "I use it for programming, writing documents, researching information online, and occasionally listening to music." },
-        { q: "How much time do you spend on the computer each day?", a: "On average, I spend around 6 to 8 hours daily since my career involves software engineering." }
-      ]
-    },
-    {
-      id: 1,
+      topic_id: 1,
       title: "Family",
       icon: "👨‍👩‍👧",
       audio: "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-01.mp3",
@@ -39,7 +29,7 @@
       ]
     },
     {
-      id: 2,
+      topic_id: 2,
       title: "Restaurant",
       icon: "🍽️",
       audio: "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-02.mp3",
@@ -51,49 +41,51 @@
       ]
     },
     {
-      id: 3,
-      title: "Books & Reading",
-      icon: "📖",
-      audio: "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-03.mp3",
-      url: "https://basicenglishspeaking.com/books/",
+      topic_id: 58,
+      title: "Computer",
+      icon: "💻",
+      audio: "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-58.mp3",
+      url: "https://basicenglishspeaking.com/computer/",
       qa: [
-        { q: "How often do you read books?", a: "I try to read at least 30 minutes every evening before going to bed." },
-        { q: "What kind of book do you like reading?", a: "I enjoy reading technology books, personal growth, and science fiction." }
-      ]
-    },
-    {
-      id: 4,
-      title: "Travel & Vacation",
-      icon: "✈️",
-      audio: "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-04.mp3",
-      url: "https://basicenglishspeaking.com/travel/",
-      qa: [
-        { q: "How many places have you traveled to?", a: "I have visited over ten cities across my country and two international destinations." },
-        { q: "Who do you usually go with?", a: "I usually travel with my close friends or family during summer holidays." }
-      ]
-    },
-    {
-      id: 5,
-      title: "Hobbies & Leisure",
-      icon: "🎨",
-      audio: "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-05.mp3",
-      url: "https://basicenglishspeaking.com/hobbies/",
-      qa: [
-        { q: "What is your favorite hobby?", a: "My favorite hobby is exploring open-source projects, tinkering with electronics, and jogging." },
-        { q: "When did you start that hobby?", a: "I started developing interest in computers when I was in high school." }
+        { q: "Do you have your own computer?", a: "Yes, I own a personal laptop which is essential for my daily work and study." },
+        { q: "What do you usually use your computer for?", a: "I use it for programming, writing documents, researching information online, and occasionally listening to music." },
+        { q: "How much time do you spend on the computer each day?", a: "On average, I spend around 6 to 8 hours daily since my career involves software engineering." }
       ]
     }
   ];
 
+  let topics = $state<TopicItem[]>(FALLBACK_TOPICS);
   let searchQuery = $state('');
-  let currentTopic = $state<TopicItem>(TOPICS_75[0]);
+  let currentTopic = $state<TopicItem>(FALLBACK_TOPICS[0]);
   let hideAnswers = $state(false);
   let isFullAudioPlaying = $state(false);
   let speed = $state(1.0);
 
   let filteredTopics = $derived(
-    TOPICS_75.filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    topics.filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  async function loadTopics() {
+    try {
+      const dbTopics = await GetListeningTopics();
+      if (dbTopics && dbTopics.length > 0) {
+        topics = dbTopics.map((t: any) => ({
+          id: t.id,
+          topic_id: t.topic_id,
+          title: t.title,
+          icon: t.icon || '🎧',
+          audio: t.audio,
+          url: t.url,
+          qa: t.qa || []
+        }));
+        if (topics.length > 0) {
+          currentTopic = topics[0];
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load topics from SQLite database:', e);
+    }
+  }
 
   function playFullAudio(slow = false) {
     if (!currentTopic.audio) return;
@@ -102,6 +94,10 @@
       isFullAudioPlaying = false;
     });
   }
+
+  onMount(() => {
+    loadTopics();
+  });
 </script>
 
 <div class="grid lg:grid-cols-12 gap-6">
@@ -112,7 +108,7 @@
       <Search class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
       <input
         type="text"
-        placeholder="Search 75 topics..."
+        placeholder="Search conversational topics..."
         bind:value={searchQuery}
         class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-blue-500 transition"
       />
@@ -124,7 +120,7 @@
         <button
           onclick={() => { currentTopic = t; stopAudio(); }}
           class={`w-full p-3 rounded-xl text-left transition cursor-pointer flex items-center justify-between ${
-            currentTopic.id === t.id
+            (currentTopic.topic_id || currentTopic.id) === (t.topic_id || t.id)
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
               : 'hover:bg-slate-800 text-slate-300'
           }`}
@@ -133,97 +129,144 @@
             <span class="text-xl">{t.icon}</span>
             <span class="text-sm font-semibold">{t.title}</span>
           </div>
-          <span class="text-xs font-mono opacity-60">#{t.id}</span>
+          <span class="text-xs font-mono opacity-60">#{t.topic_id || t.id}</span>
         </button>
       {/each}
     </div>
   </div>
 
-  <!-- Right Column: Active Topic Player & Q&A (8 cols) -->
+  <!-- Right Column: Interactive Player & Q&A Stream (8 cols) -->
   <div class="lg:col-span-8 space-y-6">
-    <!-- Topic Header & Audio Player -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl shadow-xl space-y-5">
-      <div class="flex items-start justify-between">
+    <!-- Header Hero Card -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div class="flex items-center gap-3">
-          <span class="text-3xl">{currentTopic.icon}</span>
+          <span class="text-3xl p-3 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-inner">
+            {currentTopic.icon}
+          </span>
           <div>
-            <h3 class="text-2xl font-bold text-slate-100">{currentTopic.title}</h3>
-            <a
-              href={currentTopic.url}
-              target="_blank"
-              class="text-xs text-blue-400 hover:underline flex items-center gap-1 mt-0.5"
-            >
-              <span>BasicEnglishSpeaking.com Source</span>
-              <ExternalLink class="w-3 h-3" />
-            </a>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">
+                Conversation Practice
+              </span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300">
+                #{currentTopic.topic_id || currentTopic.id}
+              </span>
+            </div>
+            <h3 class="text-2xl font-black text-slate-100 tracking-tight mt-0.5">
+              {currentTopic.title}
+            </h3>
           </div>
         </div>
 
-        <button
-          onclick={() => hideAnswers = !hideAnswers}
-          class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-slate-700"
-        >
-          {#if hideAnswers}
-            <Eye class="w-3.5 h-3.5" />
-            <span>Show Answers</span>
-          {:else}
-            <EyeOff class="w-3.5 h-3.5" />
-            <span>Hide Answers (Active Listening)</span>
+        <!-- Controls: Hide/Reveal Answers & External Link -->
+        <div class="flex items-center gap-2">
+          <button
+            onclick={() => hideAnswers = !hideAnswers}
+            class={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border ${
+              hideAnswers
+                ? 'bg-amber-600/20 text-amber-300 border-amber-500/30'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+            }`}
+            title="Toggle blur mode for active listening practice"
+          >
+            {#if hideAnswers}
+              <EyeOff class="w-4 h-4" />
+              <span>Answers Hidden</span>
+            {:else}
+              <Eye class="w-4 h-4" />
+              <span>Hide Answers</span>
+            {/if}
+          </button>
+
+          {#if currentTopic.url}
+            <a
+              href={currentTopic.url}
+              target="_blank"
+              class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition"
+              title="Open source transcript on basicenglishspeaking.com"
+            >
+              <ExternalLink class="w-4 h-4" />
+            </a>
           {/if}
+        </div>
+      </div>
+
+      <!-- Master Audio Player Toolbar -->
+      <div class="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
+        <div class="flex items-center gap-2">
+          <button
+            onclick={() => playFullAudio(false)}
+            class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-blue-500/25 active:scale-95 cursor-pointer"
+          >
+            <Play class="w-4 h-4" />
+            <span>Play Full Audio (1.0x)</span>
+          </button>
+
+          <button
+            onclick={() => playFullAudio(true)}
+            class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-slate-700"
+            title="Play slower for clear pronunciation listening"
+          >
+            <Headphones class="w-3.5 h-3.5 text-cyan-400" />
+            <span>Slow (0.75x)</span>
+          </button>
+        </div>
+
+        <button
+          onclick={stopAudio}
+          class="px-3 py-2 rounded-xl bg-slate-800/60 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 text-xs transition cursor-pointer border border-slate-700/60"
+        >
+          Stop Audio
         </button>
       </div>
 
-      <!-- Main Audio Playback Bar -->
-      <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <button
-            onclick={() => playFullAudio(false)}
-            class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-blue-500/25 transition cursor-pointer"
-          >
-            <Headphones class="w-4 h-4" />
-            <span>Play Full Topic Audio</span>
-          </button>
-          <button
-            onclick={() => playFullAudio(true)}
-            class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer border border-slate-700"
-          >
-            0.75x Slow
-          </button>
-        </div>
-
-        <span class="text-xs text-slate-400 italic">Topic #{currentTopic.id} Audio Stream</span>
-      </div>
-
-      <!-- Q&A Conversation Breakdown -->
+      <!-- Q&A Conversation Stream -->
       <div class="space-y-4 pt-2">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Questions & Sample Answers</h4>
-        <div class="space-y-3">
-          {#each currentTopic.qa as item, idx}
-            <div class="p-4 rounded-xl bg-slate-950/50 border border-slate-800/80 space-y-2">
-              <!-- Question -->
-              <div class="flex items-start justify-between gap-3">
-                <div class="flex items-start gap-2">
-                  <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-500/20 text-blue-300">
-                    Q{idx + 1}
-                  </span>
-                  <p class="text-sm font-semibold text-slate-100">{item.q}</p>
-                </div>
+        {#each currentTopic.qa as item, idx}
+          <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-2 hover:border-slate-700 transition">
+            <!-- Question -->
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-start gap-2.5">
+                <span class="px-2 py-0.5 rounded text-xs font-bold font-mono bg-blue-600/20 text-blue-400 border border-blue-500/30 shrink-0 mt-0.5">
+                  Q{idx + 1}
+                </span>
+                <p class="text-sm font-bold text-slate-100 leading-snug">
+                  {item.q}
+                </p>
               </div>
 
-              <!-- Answer -->
-              <div class="flex items-start justify-between gap-3 pt-1 border-t border-slate-800/40">
-                <div class="flex items-start gap-2">
-                  <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-300">
-                    A
-                  </span>
-                  <p class={`text-sm text-slate-300 transition-all ${hideAnswers ? 'blur-sm select-none' : ''}`}>
-                    {item.a}
-                  </p>
-                </div>
-              </div>
+              <!-- Play Individual Question Audio via TTS -->
+              <button
+                onclick={() => playAudioUrl(`https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=${encodeURIComponent(item.q)}`, 1.0)}
+                class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition cursor-pointer shrink-0"
+                title="Listen to question"
+              >
+                <Volume2 class="w-3.5 h-3.5" />
+              </button>
             </div>
-          {/each}
-        </div>
+
+            <!-- Answer (with blur toggle) -->
+            <div class="flex items-start justify-between gap-3 pl-8">
+              <p class={`text-sm leading-relaxed transition-all duration-200 ${
+                hideAnswers
+                  ? 'blur-sm select-none text-slate-500 hover:blur-none cursor-pointer'
+                  : 'text-slate-300'
+              }`}>
+                {item.a}
+              </p>
+
+              <!-- Play Individual Answer Audio via TTS -->
+              <button
+                onclick={() => playAudioUrl(`https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=${encodeURIComponent(item.a)}`, 1.0)}
+                class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition cursor-pointer shrink-0"
+                title="Listen to answer"
+              >
+                <Volume2 class="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        {/each}
       </div>
     </div>
   </div>

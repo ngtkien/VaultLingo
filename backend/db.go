@@ -52,6 +52,19 @@ func InitDB() (*sql.DB, error) {
 		);
 	`)
 
+	// Ensure listening_topics table exists
+	_, _ = db.Exec(`
+		CREATE TABLE IF NOT EXISTS listening_topics (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			topic_id INTEGER UNIQUE NOT NULL,
+			title TEXT NOT NULL,
+			icon TEXT DEFAULT '🎧',
+			audio_url TEXT NOT NULL,
+			web_url TEXT,
+			qa_json TEXT NOT NULL
+		);
+	`)
+
 	// Ensure rich linguistic columns exist in words table
 	_, _ = db.Exec(`ALTER TABLE words ADD COLUMN synonyms_json TEXT DEFAULT '[]';`)
 	_, _ = db.Exec(`ALTER TABLE words ADD COLUMN antonyms_json TEXT DEFAULT '[]';`)
