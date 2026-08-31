@@ -55,21 +55,19 @@ func PlayAudioUrl(audioUrl string, speed float64) error {
 
 	switch runtime.GOOS {
 	case "darwin":
-		// On macOS, try mpv if available, or afplay
 		if _, err := exec.LookPath("mpv"); err == nil {
 			cmd = exec.Command("mpv", "--no-video", "--really-quiet", speedStr, audioUrl)
 		} else {
-			// afplay fallback (note: afplay doesn't stream remote URLs directly without downloading, so mpv is preferred)
-			cmd = exec.Command("mpv", "--no-video", "--really-quiet", speedStr, audioUrl)
+			return fmt.Errorf("audio player not found: please install mpv (brew install mpv)")
 		}
 	default:
-		// On Linux: mpv is the gold standard for audio streaming
+		// Linux: try mpv → ffplay → paplay (in priority order)
 		if _, err := exec.LookPath("mpv"); err == nil {
 			cmd = exec.Command("mpv", "--no-video", "--really-quiet", "--input-terminal=no", "--no-input-default-bindings", speedStr, audioUrl)
-		} else if _, err := exec.LookPath("pw-play"); err == nil {
-			cmd = exec.Command("mpv", audioUrl)
+		} else if _, err := exec.LookPath("ffplay"); err == nil {
+			cmd = exec.Command("ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet", audioUrl)
 		} else {
-			cmd = exec.Command("mpv", audioUrl)
+			return fmt.Errorf("audio player not found: please install mpv (sudo pacman -S mpv / sudo apt install mpv)")
 		}
 	}
 

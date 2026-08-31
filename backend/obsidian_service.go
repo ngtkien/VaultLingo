@@ -262,19 +262,19 @@ tags:
 
 # ✍️ %s
 
-> **Tình huống**: %s  
+> **Scenario**: %s  
 > **Đề bài**: %s  
-> **Số từ**: %d từ  
+> **Word Count**: %d words  
 
 ---
 
-## 📝 Bài Viết Của Bạn
+## 📝 Your Essay
 
 %s
 
 ---
 
-## 🤖 Nhận Xét & Phân Tích Của AI
+## 🤖 AI Evaluation & Feedback
 
 %s
 `, title, today, title, situationVi, prompt, wordCount, essayText, aiEvaluation)

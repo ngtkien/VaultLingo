@@ -17,3 +17,6 @@ frontend/.svelte-kit/
 *.swo
 .vscode/
 .idea/
+
+# Release distribution bundles
+dist/

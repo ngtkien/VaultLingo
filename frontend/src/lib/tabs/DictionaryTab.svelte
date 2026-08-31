@@ -37,7 +37,7 @@
   let currentResult = $state<SmartWordResult | null>(null);
   let isSavedInVault = $state(false);
   let savingVault = $state(false);
-  let showDebugLogs = $state(true);
+  let showDebugLogs = $state(false);
 
   // Live SQLite Autocomplete Suggestions
   let suggestions = $state<backend.Word[]>([]);

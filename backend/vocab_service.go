@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"encoding/json"
 	"math"
-	"math/rand"
 	"strings"
 	"time"
 )
@@ -232,9 +231,6 @@ func GetAvailableTopics() []map[string]string {
 	}
 }
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 func LookupWordInDB(query string) (*Word, error) {
 	query = strings.TrimSpace(query)

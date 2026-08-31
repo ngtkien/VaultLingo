@@ -40,7 +40,7 @@
     { id: 'vocab', label: 'Vocabulary', icon: BookOpen },
     { id: 'dictionary', label: 'Dictionary', icon: BookA },
     { id: 'dictation', label: 'Dictation', icon: Headphones },
-    { id: 'listening', label: '75 Topics', icon: MessageSquare },
+    { id: 'listening', label: 'Listening', icon: MessageSquare },
     { id: 'writing', label: 'AI Writing', icon: PenTool },
     { id: 'obsidian', label: 'Obsidian Vault', icon: FolderSync },
     { id: 'settings', label: 'Settings', icon: Settings },
