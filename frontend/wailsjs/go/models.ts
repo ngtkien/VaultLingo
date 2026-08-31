@@ -129,6 +129,60 @@ export namespace backend {
 		}
 	}
 	
+	export class GrammarCategoryInfo {
+	    tense_category: string;
+	    category_icon: string;
+	    type: string;
+	    count: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new GrammarCategoryInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tense_category = source["tense_category"];
+	        this.category_icon = source["category_icon"];
+	        this.type = source["type"];
+	        this.count = source["count"];
+	    }
+	}
+	export class GrammarDrill {
+	    id: number;
+	    type: string;
+	    tense_category: string;
+	    category_icon: string;
+	    level: string;
+	    prompt_context: string;
+	    prompt_vi: string;
+	    instruction: string;
+	    target_question: string;
+	    target_vi: string;
+	    quasm_breakdown: string;
+	    grammar_tip: string;
+	    scramble_words: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new GrammarDrill(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.type = source["type"];
+	        this.tense_category = source["tense_category"];
+	        this.category_icon = source["category_icon"];
+	        this.level = source["level"];
+	        this.prompt_context = source["prompt_context"];
+	        this.prompt_vi = source["prompt_vi"];
+	        this.instruction = source["instruction"];
+	        this.target_question = source["target_question"];
+	        this.target_vi = source["target_vi"];
+	        this.quasm_breakdown = source["quasm_breakdown"];
+	        this.grammar_tip = source["grammar_tip"];
+	        this.scramble_words = source["scramble_words"];
+	    }
+	}
 	export class Idiom {
 	    id: number;
 	    idiom: string;

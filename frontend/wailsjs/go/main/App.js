@@ -6,6 +6,10 @@ export function CheckDictation(arg1, arg2) {
   return window['go']['main']['App']['CheckDictation'](arg1, arg2);
 }
 
+export function CheckGrammarAnswer(arg1, arg2) {
+  return window['go']['main']['App']['CheckGrammarAnswer'](arg1, arg2);
+}
+
 export function DeleteWordFromObsidian(arg1) {
   return window['go']['main']['App']['DeleteWordFromObsidian'](arg1);
 }
@@ -40,6 +44,14 @@ export function GetDictationSentence(arg1) {
 
 export function GetDictationSentenceWithExclude(arg1, arg2) {
   return window['go']['main']['App']['GetDictationSentenceWithExclude'](arg1, arg2);
+}
+
+export function GetGrammarCategories() {
+  return window['go']['main']['App']['GetGrammarCategories']();
+}
+
+export function GetGrammarDrill(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GetGrammarDrill'](arg1, arg2, arg3);
 }
 
 export function GetListeningTopics() {

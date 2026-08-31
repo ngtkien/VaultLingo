@@ -135,8 +135,8 @@
           <Filter class="w-4 h-4" />
         </div>
         <div>
-          <h2 class="text-sm font-bold text-slate-200">Select Topic / Chủ đề</h2>
-          <p class="text-xs text-slate-400">Lọc câu luyện nghe theo chủ đề IELTS & Giao tiếp</p>
+          <h2 class="text-sm font-bold text-slate-200">Practice Topics</h2>
+          <p class="text-xs text-slate-400">Filter listening sentences by specialized topics</p>
         </div>
       </div>
 
@@ -177,7 +177,7 @@
               >
                 <div class="flex items-center gap-2.5">
                   <span class="text-base">🌟</span>
-                  <span class="font-bold">All Topics (Tất cả chủ đề)</span>
+                  <span class="font-bold">All Topics</span>
                 </div>
                 {#if selectedCategory === 'all'}
                   <Check class="w-3.5 h-3.5 text-blue-400" />

@@ -83,6 +83,19 @@ func (a *App) CheckDictation(targetSentence, userInput string) backend.Dictation
 	return backend.CheckDictation(targetSentence, userInput)
 }
 
+// Grammar & Question Gym Methods
+func (a *App) GetGrammarCategories() ([]backend.GrammarCategoryInfo, error) {
+	return backend.GetGrammarCategories()
+}
+
+func (a *App) GetGrammarDrill(tenseCategory string, drillType string, excludeIDs []int) (backend.GrammarDrill, error) {
+	return backend.GetGrammarDrill(tenseCategory, drillType, excludeIDs)
+}
+
+func (a *App) CheckGrammarAnswer(targetQuestion, userInput string) backend.DictationResult {
+	return backend.CheckGrammarAnswer(targetQuestion, userInput)
+}
+
 // Writing Methods
 func (a *App) GetWritingPrompt(level string) (backend.WritingPrompt, error) {
 	return backend.GetWritingPrompt(level)

@@ -11,7 +11,8 @@
     Moon, 
     Palette, 
     Check, 
-    ChevronDown 
+    ChevronDown,
+    Zap
   } from 'lucide-svelte';
   import pegasusLogo from '../../assets/images/pegasus-logo.png';
   import { THEME_PALETTES, type ColorMode, type StyleMode, type ThemePalette } from '../utils/theme';
@@ -39,6 +40,7 @@
   const tabs = [
     { id: 'vocab', label: 'Vocabulary', icon: BookOpen },
     { id: 'dictionary', label: 'Dictionary', icon: BookA },
+    { id: 'grammar', label: 'Grammar', icon: Zap },
     { id: 'dictation', label: 'Dictation', icon: Headphones },
     { id: 'listening', label: 'Listening', icon: MessageSquare },
     { id: 'writing', label: 'AI Writing', icon: PenTool },

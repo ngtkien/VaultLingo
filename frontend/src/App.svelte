@@ -3,6 +3,7 @@
   import Navbar from './lib/components/Navbar.svelte';
   import VocabTab from './lib/tabs/VocabTab.svelte';
   import DictionaryTab from './lib/tabs/DictionaryTab.svelte';
+  import GrammarTab from './lib/tabs/GrammarTab.svelte';
   import DictationTab from './lib/tabs/DictationTab.svelte';
   import ListeningTab from './lib/tabs/ListeningTab.svelte';
   import WritingTab from './lib/tabs/WritingTab.svelte';
@@ -65,6 +66,8 @@
       <VocabTab onNavigateToDictionary={handleNavigateToDictionary} />
     {:else if currentTab === 'dictionary'}
       <DictionaryTab initialWord={dictionaryInitialWord} />
+    {:else if currentTab === 'grammar'}
+      <GrammarTab />
     {:else if currentTab === 'dictation'}
       <DictationTab />
     {:else if currentTab === 'listening'}

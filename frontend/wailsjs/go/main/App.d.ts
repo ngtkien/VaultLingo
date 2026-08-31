@@ -4,6 +4,8 @@ import {backend} from '../models';
 
 export function CheckDictation(arg1:string,arg2:string):Promise<backend.DictationResult>;
 
+export function CheckGrammarAnswer(arg1:string,arg2:string):Promise<backend.DictationResult>;
+
 export function DeleteWordFromObsidian(arg1:string):Promise<boolean>;
 
 export function EvaluateWriting(arg1:string,arg2:string,arg3:string):Promise<string>;
@@ -21,6 +23,10 @@ export function GetDictationCategories():Promise<Array<backend.DictationCategory
 export function GetDictationSentence(arg1:string):Promise<backend.Dictation>;
 
 export function GetDictationSentenceWithExclude(arg1:string,arg2:Array<number>):Promise<backend.Dictation>;
+
+export function GetGrammarCategories():Promise<Array<backend.GrammarCategoryInfo>>;
+
+export function GetGrammarDrill(arg1:string,arg2:string,arg3:Array<number>):Promise<backend.GrammarDrill>;
 
 export function GetListeningTopics():Promise<Array<backend.ListeningTopic>>;
 

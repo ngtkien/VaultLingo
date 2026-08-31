@@ -68,6 +68,29 @@ type DictationCategoryInfo struct {
 	Count        int    `json:"count"`
 }
 
+type GrammarDrill struct {
+	ID             int      `json:"id"`
+	Type           string   `json:"type"` // "question_form", "tense_shift", "tag_question", "indirect"
+	TenseCategory  string   `json:"tense_category"` // "Present Simple", "Past Simple", "Present Perfect", etc.
+	CategoryIcon   string   `json:"category_icon"`
+	Level          string   `json:"level"`
+	PromptContext  string   `json:"prompt_context"`
+	PromptVi       string   `json:"prompt_vi"`
+	Instruction    string   `json:"instruction"`
+	TargetQuestion string   `json:"target_question"`
+	TargetVi       string   `json:"target_vi"`
+	QuasmBreakdown string   `json:"quasm_breakdown"`
+	GrammarTip     string   `json:"grammar_tip"`
+	ScrambleWords  []string `json:"scramble_words"`
+}
+
+type GrammarCategoryInfo struct {
+	TenseCategory string `json:"tense_category"`
+	CategoryIcon  string `json:"category_icon"`
+	Type          string `json:"type"`
+	Count         int    `json:"count"`
+}
+
 type WritingPrompt struct {
 	ID               int      `json:"id"`
 	Level            string   `json:"level"`
