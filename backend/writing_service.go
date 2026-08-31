@@ -194,14 +194,40 @@ func EvaluateWritingAI(prompt, text, situationVi string, cfg Config) (string, er
 		return "Please write something before submitting for evaluation!", nil
 	}
 
-	systemInstruction := `You are an expert English writing coach. 
-Evaluate the user's short English submission for the given scenario and prompt.
-Provide structured, constructive, and friendly feedback in clear Markdown:
+	systemInstruction := `You are an expert English writing coach and IELTS examiner.
+Evaluate the user's English submission for the given scenario and prompt.
+Return your evaluation as a valid JSON object strictly matching this schema:
+{
+  "score": 7.5,
+  "score_label": "Great Effort",
+  "overall_feedback": "A concise 1-2 sentence overall summary in Vietnamese praising strong points and highlighting key areas to improve.",
+  "prompt_alignment": "Well aligned with the prompt",
+  "corrections": [
+    {
+      "original": "exact original mistake",
+      "correction": "exact corrected version",
+      "reason": "Brief grammatical explanation in Vietnamese"
+    }
+  ],
+  "alternatives": [
+    {
+      "style": "Professional",
+      "text": "A natural, polished native sentence suitable for workplace/formal communication."
+    },
+    {
+      "style": "Casual / Quick Slack",
+      "text": "A natural, concise native sentence suitable for casual messaging."
+    }
+  ],
+  "vocabulary_highlights": [
+    {
+      "term": "useful phrase / collocation",
+      "meaning": "Vietnamese explanation of how to use it"
+    }
+  ]
+}
 
-1. **Overall Rating & Score (x/10)**: Quick praise and overall impression.
-2. **Grammar & Spelling Fixes**: Point out exact errors and provide corrected versions.
-3. **Natural Phrasing (More Natural Alternatives)**: Offer 1-2 native-sounding alternatives (Professional & Casual).
-4. **Vocabulary Highlight**: Comment on word choices or suggest 2 useful idiomatic collocations.`
+If you cannot format as JSON, provide clear labeled markdown.`
 
 	userContent := fmt.Sprintf(`[Context]: %s
 [Prompt]: %s
@@ -261,11 +287,31 @@ func callOpenAICompatible(client *http.Client, endpoint, apiKey, model, systemPr
 
 func generateLocalMockEvaluation(text string) string {
 	wordCount := len(strings.Fields(text))
-	return fmt.Sprintf(`### 🌟 AI Evaluation Summary (Local Preview)
-* **Word Count**: %d words
-* **Clarity & Tone**: Clear and appropriate for the context.
-
-#### 💡 Pro Tips:
-- Maintain consistent tense usage and smooth transition connectives.
-- *(To receive deep feedback, please configure Antigravity CLI / OpenRouter / Groq / OpenCode in Settings).*`, wordCount)
+	mockJSON := map[string]interface{}{
+		"score":            8.0,
+		"score_label":      "Good Effort",
+		"overall_feedback": fmt.Sprintf("Bài viết dài %d từ, ngữ cảnh diễn đạt rõ ràng và đúng trọng tâm yêu cầu.", wordCount),
+		"prompt_alignment": "Well aligned with scenario",
+		"corrections": []map[string]string{
+			{
+				"original":   "Preview mode",
+				"correction": "Configure AI Provider in Settings",
+				"reason":     "Để nhận phân tích ngữ pháp thời gian thực từ AI.",
+			},
+		},
+		"alternatives": []map[string]string{
+			{
+				"style": "Professional",
+				"text":  text,
+			},
+		},
+		"vocabulary_highlights": []map[string]string{
+			{
+				"term":    "workplace communication",
+				"meaning": "Giao tiếp chuyên nghiệp trong môi trường công sở.",
+			},
+		},
+	}
+	bytesOut, _ := json.MarshalIndent(mockJSON, "", "  ")
+	return string(bytesOut)
 }

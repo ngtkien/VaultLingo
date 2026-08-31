@@ -1,7 +1,30 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { GetWritingPrompt, EvaluateWriting, SaveWritingToObsidian, GetConfig } from '../../../wailsjs/go/main/App.js';
-  import { Sparkles, RefreshCw, Bookmark, Check, Play, Pause, RotateCcw, PenTool, Lightbulb, Lock, KeyRound, ExternalLink, ArrowRight } from 'lucide-svelte';
+  import { 
+    Sparkles, 
+    RefreshCw, 
+    Bookmark, 
+    Check, 
+    Play, 
+    Pause, 
+    RotateCcw, 
+    PenTool, 
+    Lightbulb, 
+    Lock, 
+    KeyRound, 
+    ArrowRight, 
+    Copy, 
+    CheckCircle2, 
+    AlertCircle, 
+    FileText, 
+    LayoutGrid, 
+    BookOpen, 
+    Award,
+    Briefcase,
+    MessageSquare
+  } from 'lucide-svelte';
+  import { parseAiFeedback } from '../utils/writingFeedbackParser';
 
   let { onNavigateTab } = $props<{ onNavigateTab?: (tab: string) => void }>();
 
@@ -13,6 +36,8 @@
   let aiEvaluation = $state('');
   let savedToObsidian = $state(false);
   let config = $state<any>(null);
+  let showRawMarkdown = $state(false);
+  let copiedIndex = $state<number | null>(null);
 
   // Stopwatch state
   let timerSeconds = $state(0);
@@ -31,12 +56,15 @@
 
   let hasAiToken = $derived(() => {
     if (!config) return true;
-    if (config.ai_provider === 'agy') return true;
-    if (config.ai_provider === 'ollama') return true;
+    if (config.ai_provider === 'agy' || config.ai_provider === 'opencode' || config.ai_provider === 'ollama') return true;
     if (config.ai_provider === 'openrouter') return !!(config.openrouter_api_key && config.openrouter_api_key.trim().length > 5);
     if (config.ai_provider === 'groq') return !!(config.groq_api_key && config.groq_api_key.trim().length > 5);
     return true;
   });
+
+  let parsedFeedback = $derived(
+    aiEvaluation ? parseAiFeedback(aiEvaluation) : null
+  );
 
   function startTimer() {
     if (timerRunning) return;
@@ -112,6 +140,22 @@
     }
   }
 
+  function applyAlternative(text: string) {
+    userText = text;
+  }
+
+  async function copyText(text: string, index: number) {
+    try {
+      await navigator.clipboard.writeText(text);
+      copiedIndex = index;
+      setTimeout(() => {
+        if (copiedIndex === index) copiedIndex = null;
+      }, 2000);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   onMount(() => {
     loadPrompt();
   });
@@ -151,102 +195,132 @@
       </button>
     </div>
 
+    <!-- Reload Random Prompt -->
     <button
-      onclick={() => loadPrompt()}
-      class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
-      title="Load new scenario prompt"
+      onclick={() => loadPrompt(currentLevel)}
+      disabled={loadingPrompt}
+      class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95"
+      title="Load another random topic"
     >
       <RefreshCw class={`w-4 h-4 ${loadingPrompt ? 'animate-spin' : ''}`} />
+      <span class="hidden sm:inline">New Topic</span>
     </button>
   </div>
 
-  {#if loadingPrompt}
-    <div class="flex flex-col items-center justify-center py-20 text-slate-400 space-y-3">
-      <RefreshCw class="w-8 h-8 animate-spin text-blue-500" />
-      <p class="text-sm font-medium">Loading writing scenario...</p>
-    </div>
-  {:else if promptItem}
+  {#if promptItem}
     <div class="relative">
-      <!-- Prompt & Scenario Container -->
-      <div class={`bg-slate-900/90 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl shadow-xl space-y-5 transition-all ${
-        !hasAiToken() ? 'filter blur-[1.5px] opacity-40 pointer-events-none select-none' : ''
-      }`}>
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <span class="text-3xl">{promptItem.category_icon || '✍️'}</span>
+      <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
+        <!-- Topic Header & Stopwatch Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+          <div class="flex items-start gap-3">
+            <span class="text-3xl p-2.5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-inner">
+              {promptItem.category_icon || '✍️'}
+            </span>
             <div>
-              <h3 class="text-xl font-bold text-slate-100">{promptItem.title}</h3>
-              <span class="text-xs text-slate-400">{promptItem.category}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">
+                  {promptItem.category || 'Workplace'}
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300">
+                  {promptItem.level}
+                </span>
+              </div>
+              <h3 class="text-xl font-black text-slate-100 mt-0.5 tracking-tight">
+                {promptItem.title}
+              </h3>
             </div>
           </div>
 
-          <!-- Stopwatch Display -->
-          <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-1.5 rounded-xl border border-slate-800 font-mono text-sm">
-            <span class="text-blue-400 font-bold">{formattedTime()}</span>
+          <!-- Stopwatch Widget -->
+          <div class="flex items-center gap-2 bg-slate-950 p-2 rounded-2xl border border-slate-800 self-start sm:self-auto">
+            <span class="font-mono text-base font-bold text-slate-200 px-2 tracking-wider">
+              {formattedTime()}
+            </span>
             {#if !timerRunning}
-              <button onclick={startTimer} class="text-slate-400 hover:text-emerald-400 transition cursor-pointer" title="Start Timer">
-                <Play class="w-3.5 h-3.5" />
+              <button
+                onclick={startTimer}
+                class="p-1.5 rounded-xl bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 transition cursor-pointer"
+                title="Start Stopwatch"
+              >
+                <Play class="w-4 h-4" />
               </button>
             {:else}
-              <button onclick={pauseTimer} class="text-slate-400 hover:text-amber-400 transition cursor-pointer" title="Pause Timer">
-                <Pause class="w-3.5 h-3.5" />
+              <button
+                onclick={pauseTimer}
+                class="p-1.5 rounded-xl bg-amber-600/20 text-amber-400 hover:bg-amber-600/30 transition cursor-pointer"
+                title="Pause Stopwatch"
+              >
+                <Pause class="w-4 h-4" />
               </button>
             {/if}
-            <button onclick={resetTimer} class="text-slate-400 hover:text-red-400 transition cursor-pointer" title="Reset Timer">
-              <RotateCcw class="w-3 h-3" />
+            <button
+              onclick={resetTimer}
+              class="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:bg-slate-700 transition cursor-pointer"
+              title="Reset Stopwatch"
+            >
+              <RotateCcw class="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <!-- Situation Box (Context) -->
-        <div class="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-sm space-y-1">
-          <span class="text-xs font-bold uppercase tracking-wider text-blue-400">Scenario Context:</span>
-          <p class="text-slate-200">{promptItem.situation_vi}</p>
+        <!-- Scenario Context & Prompt -->
+        <div class="space-y-4">
+          <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-950/30 to-indigo-950/30 border border-blue-500/20 space-y-1.5">
+            <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Lightbulb class="w-3.5 h-3.5" />
+              <span>Scenario Context (Ngữ cảnh thực tế)</span>
+            </span>
+            <p class="text-sm text-slate-200 font-medium leading-relaxed">
+              {promptItem.situation_vi}
+            </p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <PenTool class="w-3.5 h-3.5 text-indigo-400" />
+              <span>Prompt Requirement (Yêu cầu bài viết)</span>
+            </span>
+            <p class="text-base text-slate-100 font-semibold leading-relaxed">
+              "{promptItem.prompt}"
+            </p>
+          </div>
         </div>
 
-        <!-- English Prompt -->
-        <div class="text-sm font-semibold text-slate-200">
-          <strong class="text-blue-400">Writing Prompt:</strong> {promptItem.prompt}
-        </div>
-
-        <!-- Sentence Starters & Suggested Vocab -->
-        <div class="grid md:grid-cols-2 gap-3 pt-1">
-          {#if promptItem.sentence_starters && promptItem.sentence_starters.length > 0}
-            <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
-              <div class="flex items-center gap-1.5 text-xs font-bold text-slate-400">
-                <Lightbulb class="w-3.5 h-3.5 text-amber-400" />
-                <span>Sentence Starters (click to insert):</span>
+        <!-- Quick Starter Chips & Suggested Vocab -->
+        {#if (promptItem.sentence_starters && promptItem.sentence_starters.length > 0) || (promptItem.suggested_vocab && promptItem.suggested_vocab.length > 0)}
+          <div class="grid sm:grid-cols-2 gap-3 pt-1">
+            {#if promptItem.sentence_starters && promptItem.sentence_starters.length > 0}
+              <div class="space-y-2">
+                <span class="text-[11px] font-bold text-slate-400 block">💡 Quick Sentence Starters (Bấm để chèn):</span>
+                <div class="flex flex-wrap gap-1.5">
+                  {#each promptItem.sentence_starters as starter}
+                    <button
+                      onclick={() => insertStarter(starter)}
+                      class="text-left text-xs bg-slate-800/80 hover:bg-blue-600/20 hover:text-blue-300 hover:border-blue-500/30 border border-slate-700/80 px-3 py-1.5 rounded-xl text-slate-300 transition cursor-pointer"
+                    >
+                      + "{starter}"
+                    </button>
+                  {/each}
+                </div>
               </div>
-              <div class="space-y-1.5">
-                {#each promptItem.sentence_starters as starter}
-                  <!-- svelte-ignore a11y_click_events_have_key_events -->
-                  <!-- svelte-ignore a11y_no_static_element_interactions -->
-                  <div
-                    onclick={() => insertStarter(starter)}
-                    class="text-xs text-slate-300 hover:text-blue-300 hover:bg-slate-900 p-1.5 rounded-lg transition cursor-pointer italic"
-                  >
-                    "{starter}"
-                  </div>
-                {/each}
-              </div>
-            </div>
-          {/if}
+            {/if}
 
-          {#if promptItem.suggested_vocab && promptItem.suggested_vocab.length > 0}
-            <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
-              <span class="text-xs font-bold text-slate-400">Suggested Vocabulary:</span>
-              <div class="flex flex-wrap gap-1.5">
-                {#each promptItem.suggested_vocab as vocab}
-                  <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                    {vocab}
-                  </span>
-                {/each}
+            {#if promptItem.suggested_vocab && promptItem.suggested_vocab.length > 0}
+              <div class="space-y-2">
+                <span class="text-[11px] font-bold text-slate-400 block">⚡ High-Yield Vocabulary (Từ vựng gợi ý):</span>
+                <div class="flex flex-wrap gap-1.5">
+                  {#each promptItem.suggested_vocab as vocab}
+                    <span class="text-xs bg-indigo-950/40 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-xl font-mono">
+                      {vocab}
+                    </span>
+                  {/each}
+                </div>
               </div>
-            </div>
-          {/if}
-        </div>
+            {/if}
+          </div>
+        {/if}
 
-        <!-- Text Editor Area -->
+        <!-- Textarea Editor Area -->
         <div class="space-y-3 pt-2">
           <textarea
             bind:value={userText}
@@ -256,7 +330,7 @@
             class="w-full bg-slate-950 border border-slate-700/80 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-2xl p-4 text-base text-slate-100 placeholder-slate-500 outline-none transition leading-relaxed"
           ></textarea>
 
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <!-- Word Counter & Range Bar -->
             <div class="flex items-center gap-3">
               <span class="text-xs font-mono text-slate-400">
@@ -305,17 +379,207 @@
           </div>
         </div>
 
-        <!-- AI Evaluation Result -->
+        <!-- AI Evaluation Result (Visual Dashboard) -->
         {#if aiEvaluation}
-          <div class="p-5 rounded-2xl bg-slate-950/90 border border-blue-500/30 space-y-3 text-sm animate-fade-in">
-            <div class="flex items-center gap-2 text-blue-400 font-bold">
-              <Sparkles class="w-4 h-4" />
-              <span>AI Coach Evaluation & Detailed Feedback</span>
+          <div class="pt-4 border-t border-slate-800 space-y-4 animate-fade-in">
+            <!-- Header & Toggle View -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                  <Sparkles class="w-4 h-4" />
+                </span>
+                <h4 class="text-base font-bold text-slate-100">AI Coach Evaluation & Analysis</h4>
+              </div>
+
+              <!-- Switch between Visual Cards and Raw Text -->
+              <button
+                onclick={() => showRawMarkdown = !showRawMarkdown}
+                class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer border border-slate-700/60"
+              >
+                {#if showRawMarkdown}
+                  <LayoutGrid class="w-3.5 h-3.5 text-blue-400" />
+                  <span>Visual Cards View</span>
+                {:else}
+                  <FileText class="w-3.5 h-3.5 text-slate-400" />
+                  <span>Raw Text View</span>
+                {/if}
+              </button>
             </div>
 
-            <div class="text-slate-300 leading-relaxed whitespace-pre-wrap font-sans text-xs bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-              {aiEvaluation}
-            </div>
+            {#if showRawMarkdown}
+              <!-- Raw Text / Markdown Mode -->
+              <div class="text-slate-300 leading-relaxed whitespace-pre-wrap font-sans text-xs bg-slate-950/80 p-5 rounded-2xl border border-slate-800">
+                {aiEvaluation}
+              </div>
+            {:else if parsedFeedback}
+              <!-- Structured Visual Cards Dashboard -->
+              <div class="space-y-4">
+                <!-- 1. Score & Overall Impression Hero Banner -->
+                <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+                  <div class="flex items-center gap-4">
+                    <!-- Circular / Pill Score Badge -->
+                    <div class={`px-4 py-3 rounded-2xl border flex flex-col items-center justify-center shrink-0 ${
+                      parsedFeedback.score >= 8.0
+                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-lg shadow-emerald-500/10'
+                        : parsedFeedback.score >= 6.5
+                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/40 shadow-lg shadow-blue-500/10'
+                        : 'bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-lg shadow-amber-500/10'
+                    }`}>
+                      <span class="text-2xl font-black tracking-tight">{parsedFeedback.score}</span>
+                      <span class="text-[10px] font-bold uppercase tracking-wider opacity-80">/ 10</span>
+                    </div>
+
+                    <div class="space-y-1">
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Assessment:</span>
+                        <span class={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                          parsedFeedback.score >= 8.0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'
+                        }`}>
+                          {parsedFeedback.scoreLabel}
+                        </span>
+                      </div>
+                      <p class="text-sm text-slate-200 font-medium leading-relaxed">
+                        {parsedFeedback.overallFeedback}
+                      </p>
+                    </div>
+                  </div>
+
+                  {#if parsedFeedback.promptAlignment}
+                    <div class="px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-[11px] text-slate-300 shrink-0 self-start sm:self-center">
+                      <span class="font-bold text-indigo-300 block">🎯 Prompt Adherence:</span>
+                      <span>{parsedFeedback.promptAlignment}</span>
+                    </div>
+                  {/if}
+                </div>
+
+                <!-- 2. Grammar & Spelling Fixes (Before ➔ After Cards) -->
+                <div class="space-y-2.5">
+                  <div class="flex items-center justify-between text-xs font-bold text-slate-300">
+                    <span class="flex items-center gap-1.5 text-rose-400">
+                      <AlertCircle class="w-4 h-4" />
+                      <span>Grammar & Spelling Corrections ({parsedFeedback.corrections.length})</span>
+                    </span>
+                    <span class="text-[11px] text-slate-500 font-normal">Spot errors & polished native forms</span>
+                  </div>
+
+                  {#if parsedFeedback.corrections.length === 0}
+                    <div class="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                      <CheckCircle2 class="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>Tuyệt vời! Không phát hiện lỗi sai ngữ pháp hoặc chính tả đáng kể nào trong đoạn văn của bạn.</span>
+                    </div>
+                  {:else}
+                    <div class="grid gap-2.5">
+                      {#each parsedFeedback.corrections as item}
+                        <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800/90 space-y-2">
+                          <div class="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
+                            <!-- Original (Mistake) -->
+                            <div class="flex items-center gap-1.5 flex-1 bg-rose-950/30 text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/30 font-medium">
+                              <span class="text-rose-400 font-bold">❌ Original:</span>
+                              <span class="line-through decoration-rose-400/70">{item.original}</span>
+                            </div>
+
+                            <ArrowRight class="w-3.5 h-3.5 text-slate-500 shrink-0 hidden sm:block" />
+
+                            <!-- Correction -->
+                            <div class="flex items-center gap-1.5 flex-1 bg-emerald-950/30 text-emerald-300 px-3 py-1.5 rounded-lg border border-emerald-500/30 font-semibold">
+                              <span class="text-emerald-400 font-bold">✅ Fix:</span>
+                              <span>{item.correction}</span>
+                            </div>
+                          </div>
+
+                          {#if item.reason}
+                            <div class="text-[11px] text-slate-400 pl-1 flex items-start gap-1">
+                              <span class="text-slate-500">💡</span>
+                              <span>{item.reason}</span>
+                            </div>
+                          {/if}
+                        </div>
+                      {/each}
+                    </div>
+                  {/if}
+                </div>
+
+                <!-- 3. Natural Phrasing & Alternatives (Professional vs Casual) -->
+                {#if parsedFeedback.alternatives.length > 0}
+                  <div class="space-y-2.5 pt-1">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-300">
+                      <span class="flex items-center gap-1.5 text-indigo-400">
+                        <Sparkles class="w-4 h-4" />
+                        <span>Native Phrasing Alternatives (Cách diễn đạt tự nhiên chuẩn bản xứ)</span>
+                      </span>
+                    </div>
+
+                    <div class="grid gap-3">
+                      {#each parsedFeedback.alternatives as alt, idx}
+                        <div class="p-4 rounded-2xl bg-gradient-to-br from-indigo-950/20 via-slate-950 to-slate-900 border border-indigo-500/20 space-y-2.5">
+                          <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-indigo-300 flex items-center gap-1.5 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20">
+                              {#if alt.style.toLowerCase().includes('prof')}
+                                <Briefcase class="w-3.5 h-3.5 text-indigo-400" />
+                              {:else}
+                                <MessageSquare class="w-3.5 h-3.5 text-cyan-400" />
+                              {/if}
+                              <span>{alt.style}</span>
+                            </span>
+
+                            <div class="flex items-center gap-1.5">
+                              <button
+                                onclick={() => copyText(alt.text, idx)}
+                                class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium flex items-center gap-1 transition cursor-pointer border border-slate-700"
+                                title="Copy sentence"
+                              >
+                                {#if copiedIndex === idx}
+                                  <Check class="w-3 h-3 text-emerald-400" />
+                                  <span class="text-emerald-400">Copied</span>
+                                {:else}
+                                  <Copy class="w-3 h-3" />
+                                  <span>Copy</span>
+                                {/if}
+                              </button>
+
+                              <button
+                                onclick={() => applyAlternative(alt.text)}
+                                class="px-2.5 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer"
+                                title="Replace your editor text with this alternative"
+                              >
+                                <span>Use in Editor</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          <p class="text-sm font-medium text-slate-100 leading-relaxed font-sans pl-1">
+                            "{alt.text}"
+                          </p>
+                        </div>
+                      {/each}
+                    </div>
+                  </div>
+                {/if}
+
+                <!-- 4. Key Vocabulary Highlights -->
+                {#if parsedFeedback.vocabularyHighlights.length > 0}
+                  <div class="space-y-2 pt-1">
+                    <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <BookOpen class="w-4 h-4 text-cyan-400" />
+                      <span>Vocabulary & Collocation Highlights:</span>
+                    </span>
+
+                    <div class="grid sm:grid-cols-2 gap-2">
+                      {#each parsedFeedback.vocabularyHighlights as v}
+                        <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 flex items-start gap-2 text-xs">
+                          <span class="font-bold text-cyan-300 font-mono shrink-0 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/30">
+                            {v.term}
+                          </span>
+                          <span class="text-slate-300 text-[11px] leading-relaxed mt-0.5">
+                            {v.meaning}
+                          </span>
+                        </div>
+                      {/each}
+                    </div>
+                  </div>
+                {/if}
+              </div>
+            {/if}
           </div>
         {/if}
       </div>
@@ -330,7 +594,7 @@
           <div class="max-w-md space-y-1.5">
             <h4 class="text-lg font-bold text-slate-100">AI Configuration Required</h4>
             <p class="text-xs text-slate-400 leading-relaxed">
-              Please choose <strong>Antigravity (agy)</strong> for zero-config evaluation, or configure <strong>OpenRouter / Groq / Ollama</strong> in Settings.
+              Please choose <strong>Antigravity (agy)</strong> or <strong>OpenCode</strong> for zero-config evaluation, or configure <strong>OpenRouter / Groq / Ollama</strong> in Settings.
             </p>
           </div>
 

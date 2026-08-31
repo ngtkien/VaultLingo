@@ -62,7 +62,7 @@
       const items = await GetSavedObsidianVocab();
       const backupData = {
         app: 'VaultLingo',
-        version: '0.1.2',
+        version: '0.1.3',
         export_date: new Date().toISOString(),
         config: {
           ai_provider: config.ai_provider,
