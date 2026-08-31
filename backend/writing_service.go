@@ -112,6 +112,11 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 		args = append(args, "-p", fullPrompt)
 		if cfg.AgyModel != "" && cfg.AgyModel != "auto" && cfg.AgyModel != "default" {
 			args = append(args, "--model", cfg.AgyModel)
+			effort := cfg.AgyEffort
+			if effort == "" {
+				effort = "low"
+			}
+			args = append(args, "--effort", effort)
 		}
 
 		cmd := exec.Command(cmdPath, args...)

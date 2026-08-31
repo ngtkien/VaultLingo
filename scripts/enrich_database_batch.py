@@ -84,7 +84,7 @@ Return ONLY a raw valid JSON ARRAY of objects (no markdown fences, no backticks)
         # Fallback to agy CLI
         try:
             proc = subprocess.run(
-                ["agy", "-p", prompt],
+                ["agy", "-p", prompt, "--model", "gemini-3.7-flash", "--effort", "low"],
                 capture_output=True,
                 text=True,
                 timeout=45

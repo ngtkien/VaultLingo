@@ -31,27 +31,29 @@ func TestGetConfigPath(t *testing.T) {
 }
 
 func TestSaveAndLoadConfig(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "vaultlingo_config_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tempDir)
+	origConfigData, _ := os.ReadFile(GetConfigPath())
+	defer func() {
+		if len(origConfigData) > 0 {
+			_ = os.WriteFile(GetConfigPath(), origConfigData, 0644)
+		}
+	}()
 
 	testCfg := Config{
-		ObsidianVaultPath: tempDir,
-		AiProvider:        "opencode",
+		ObsidianVaultPath: "~/TestVault",
+		AiProvider:        "agy",
 		AgyModel:          "gemini-3.7-flash",
+		AgyEffort:         "low",
 		AutoPlayAudio:     false,
 		DefaultAudioSpeed: 0.85,
 	}
 
-	err = SaveConfig(testCfg)
+	err := SaveConfig(testCfg)
 	if err != nil {
 		t.Errorf("SaveConfig failed: %v", err)
 	}
 
 	loaded := LoadConfig()
-	if loaded.AiProvider != "opencode" && loaded.AiProvider != "agy" {
-		t.Errorf("unexpected loaded provider: %s", loaded.AiProvider)
+	if loaded.AgyModel != "gemini-3.7-flash" {
+		t.Errorf("unexpected loaded agy model: %s", loaded.AgyModel)
 	}
 }

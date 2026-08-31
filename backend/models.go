@@ -106,6 +106,7 @@ type Config struct {
 	AiProvider        string  `json:"ai_provider"` // "agy", "openrouter", "groq", "ollama"
 	AgyModel          string  `json:"agy_model"`
 	AgyPath           string  `json:"agy_path"`
+	AgyEffort         string  `json:"agy_effort,omitempty"`
 	OpenrouterApiKey  string  `json:"openrouter_api_key"`
 	OpenrouterModel   string  `json:"openrouter_model"`
 	GroqApiKey        string  `json:"groq_api_key"`

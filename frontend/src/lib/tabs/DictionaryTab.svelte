@@ -1,19 +1,19 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { 
-    Search, 
-    Volume2, 
-    Bookmark, 
-    Check, 
-    Sparkles, 
-    ExternalLink, 
-    FolderSync, 
-    Trash2, 
-    RefreshCw, 
-    BookOpen, 
-    Lightbulb, 
-    Tag, 
-    Layers, 
+  import { onMount } from "svelte";
+  import {
+    Search,
+    Volume2,
+    Bookmark,
+    Check,
+    Sparkles,
+    ExternalLink,
+    FolderSync,
+    Trash2,
+    RefreshCw,
+    BookOpen,
+    Lightbulb,
+    Tag,
+    Layers,
     ArrowRight,
     Compass,
     History,
@@ -22,22 +22,30 @@
     BrainCircuit,
     Terminal,
     ChevronDown,
-    ChevronUp
-  } from 'lucide-svelte';
-  import { lookupSmartDictionary, type SmartWordResult } from '../utils/smartDictionary';
-  import { SaveWordToObsidian, DeleteWordFromObsidian, GetSavedObsidianVocab, SearchWordsInDB } from '../../../wailsjs/go/main/App.js';
-  import { backend } from '../../../wailsjs/go/models';
-  import { playTTS, playAudioUrl } from '../utils/audio';
+    ChevronUp,
+  } from "lucide-svelte";
+  import {
+    lookupSmartDictionary,
+    type SmartWordResult,
+  } from "../utils/smartDictionary";
+  import {
+    SaveWordToObsidian,
+    DeleteWordFromObsidian,
+    GetSavedObsidianVocab,
+    SearchWordsInDB,
+  } from "../../../wailsjs/go/main/App.js";
+  import { backend } from "../../../wailsjs/go/models";
+  import { playTTS, playAudioUrl } from "../utils/audio";
 
-  let { initialWord = 'serendipity' } = $props<{ initialWord?: string }>();
+  let { initialWord = "serendipity" } = $props<{ initialWord?: string }>();
 
-  let searchQuery = $state('');
+  let searchQuery = $state("");
   let loading = $state(false);
-  let errorMsg = $state('');
+  let errorMsg = $state("");
   let currentResult = $state<SmartWordResult | null>(null);
   let isSavedInVault = $state(false);
   let savingVault = $state(false);
-  let showDebugLogs = $state(false);
+  let showDebugLogs = $state(true);
 
   // Live SQLite Autocomplete Suggestions
   let suggestions = $state<backend.Word[]>([]);
@@ -67,13 +75,13 @@
   }
 
   const POPULAR_WORDS = [
-    { word: 'resilience', tag: 'C1 • Grit' },
-    { word: 'serendipity', tag: 'C2 • Luck' },
-    { word: 'ephemeral', tag: 'C2 • Time' },
-    { word: 'ubiquitous', tag: 'C1 • Tech' },
-    { word: 'eloquent', tag: 'B2 • Speech' },
-    { word: 'pragmatic', tag: 'C1 • Mindset' },
-    { word: 'procrastinate', tag: 'B2 • Habit' }
+    { word: "resilience", tag: "C1 • Grit" },
+    { word: "serendipity", tag: "C2 • Luck" },
+    { word: "ephemeral", tag: "C2 • Time" },
+    { word: "ubiquitous", tag: "C1 • Tech" },
+    { word: "eloquent", tag: "B2 • Speech" },
+    { word: "pragmatic", tag: "C1 • Mindset" },
+    { word: "procrastinate", tag: "B2 • Habit" },
   ];
 
   async function checkSavedStatus(wordName: string) {
@@ -81,13 +89,13 @@
       const savedItems = await GetSavedObsidianVocab();
       if (savedItems && savedItems.length > 0) {
         const found = savedItems.some(
-          (item) => item.word.toLowerCase() === wordName.toLowerCase()
+          (item) => item.word.toLowerCase() === wordName.toLowerCase(),
         );
         isSavedInVault = found;
         return;
       }
     } catch (e) {
-      console.warn('Could not verify vault status:', e);
+      console.warn("Could not verify vault status:", e);
     }
     isSavedInVault = false;
   }
@@ -98,15 +106,15 @@
 
     searchQuery = term;
     loading = true;
-    errorMsg = '';
+    errorMsg = "";
 
     try {
       const result = await lookupSmartDictionary(term);
       currentResult = result;
       await checkSavedStatus(result.word.word);
     } catch (err: any) {
-      console.error('Dictionary search error:', err);
-      errorMsg = err?.message || 'Word not found or error looking up word.';
+      console.error("Dictionary search error:", err);
+      errorMsg = err?.message || "Word not found or error looking up word.";
       currentResult = null;
     } finally {
       loading = false;
@@ -114,7 +122,7 @@
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch();
     }
   }
@@ -123,14 +131,14 @@
     if (!currentResult?.word?.word) return;
     const term = currentResult.word.word;
     loading = true;
-    errorMsg = '';
+    errorMsg = "";
     try {
       const result = await lookupSmartDictionary(term, true);
       currentResult = result;
       await checkSavedStatus(result.word.word);
     } catch (err: any) {
-      console.error('Deep enrich error:', err);
-      errorMsg = 'Could not enrich with AI: ' + (err?.message || 'AI timeout');
+      console.error("Deep enrich error:", err);
+      errorMsg = "Could not enrich with AI: " + (err?.message || "AI timeout");
     } finally {
       loading = false;
     }
@@ -149,12 +157,12 @@
         if (res.success) {
           isSavedInVault = true;
         } else {
-          errorMsg = res.error || 'Failed to save to Obsidian Vault';
+          errorMsg = res.error || "Failed to save to Obsidian Vault";
         }
       }
     } catch (err: any) {
-      console.error('Vault toggle error:', err);
-      errorMsg = err?.message || 'Error saving to Obsidian';
+      console.error("Vault toggle error:", err);
+      errorMsg = err?.message || "Error saving to Obsidian";
     } finally {
       savingVault = false;
     }
@@ -166,15 +174,19 @@
     if (currentResult.audioUrl && !slow) {
       playAudioUrl(currentResult.audioUrl, 1.0, currentResult.word.word);
     } else {
-      playTTS(currentResult.word.word, slow ? 0.75 : 1.0, currentResult.word.word);
+      playTTS(
+        currentResult.word.word,
+        slow ? 0.75 : 1.0,
+        currentResult.word.word,
+      );
     }
   }
 
-  let lastLoadedInitialWord = $state('');
+  let lastLoadedInitialWord = $state("");
 
   // React to initialWord changes ONLY when initialWord prop changes from outside
   $effect(() => {
-    const target = initialWord?.trim() || '';
+    const target = initialWord?.trim() || "";
     if (target && target !== lastLoadedInitialWord) {
       lastLoadedInitialWord = target;
       searchQuery = target;
@@ -185,22 +197,31 @@
 
 <div class="space-y-6 pb-12">
   <!-- Dictionary Search Header -->
-  <div class="relative bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-md theme-card">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div
+    class="relative bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-md theme-card"
+  >
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+    >
       <div>
         <div class="flex items-center gap-2.5">
           <span class="text-2xl">📖</span>
-          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent">
+          <h2
+            class="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent"
+          >
             Smart Dictionary & Lexicon Search
           </h2>
         </div>
         <p class="text-xs sm:text-sm text-slate-400 theme-text-muted mt-1">
-          Search any English word • In-depth linguistic insights • One-click sync to Obsidian
+          Search any English word • In-depth linguistic insights • One-click
+          sync to Obsidian
         </p>
       </div>
 
       <div class="flex items-center gap-2">
-        <span class="px-3 py-1 text-xs font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded-xl">
+        <span
+          class="px-3 py-1 text-xs font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded-xl"
+        >
           ⚡ Comprehensive Lexicon
         </span>
       </div>
@@ -209,7 +230,9 @@
     <!-- Search Bar with Live SQLite Search Engine Suggestions -->
     <div class="mt-5 flex flex-col sm:flex-row items-stretch gap-3 relative">
       <div class="relative flex-1">
-        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+        <div
+          class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400"
+        >
           <Search class="w-5 h-5" />
         </div>
         <input
@@ -217,15 +240,21 @@
           value={searchQuery}
           oninput={handleInputChange}
           onkeydown={handleKeydown}
-          onfocus={() => { if (suggestions.length > 0) showSuggestions = true; }}
+          onfocus={() => {
+            if (suggestions.length > 0) showSuggestions = true;
+          }}
           placeholder="Type any English word (e.g., architecture, environment, serendipity...)"
           class="w-full pl-11 pr-4 py-3 bg-slate-950/80 border border-slate-700 focus:border-amber-400 text-slate-100 placeholder-slate-500 rounded-xl text-base outline-none transition theme-input shadow-inner"
         />
 
         <!-- Live SQLite Search Autocomplete Dropdown Overlay -->
         {#if showSuggestions && suggestions.length > 0}
-          <div class="absolute left-0 right-0 top-full mt-2 bg-slate-900/95 border border-slate-700/90 rounded-xl shadow-2xl backdrop-blur-xl z-50 overflow-hidden divide-y divide-slate-800">
-            <div class="px-3.5 py-1.5 bg-slate-950/70 text-[11px] font-mono text-slate-400 flex items-center justify-between">
+          <div
+            class="absolute left-0 right-0 top-full mt-2 bg-slate-900/95 border border-slate-700/90 rounded-xl shadow-2xl backdrop-blur-xl z-50 overflow-hidden divide-y divide-slate-800"
+          >
+            <div
+              class="px-3.5 py-1.5 bg-slate-950/70 text-[11px] font-mono text-slate-400 flex items-center justify-between"
+            >
               <span>⚡ SQLite Instant Matches ({suggestions.length})</span>
               <span class="text-amber-400">0ms</span>
             </div>
@@ -240,27 +269,37 @@
                   class="w-full px-4 py-2.5 hover:bg-slate-800/90 text-left transition flex items-center justify-between group cursor-pointer"
                 >
                   <div class="flex items-center gap-2">
-                    <span class="font-bold text-slate-200 group-hover:text-amber-300 transition text-sm">
+                    <span
+                      class="font-bold text-slate-200 group-hover:text-amber-300 transition text-sm"
+                    >
                       {item.word}
                     </span>
                     {#if item.pos}
-                      <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 group-hover:bg-slate-700">
+                      <span
+                        class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 group-hover:bg-slate-700"
+                      >
                         {item.pos}
                       </span>
                     {/if}
                     {#if item.definition_vi}
-                      <span class="text-xs text-slate-400 truncate max-w-[200px] sm:max-w-xs">
+                      <span
+                        class="text-xs text-slate-400 truncate max-w-[200px] sm:max-w-xs"
+                      >
                         - {item.definition_vi}
                       </span>
                     {/if}
                   </div>
                   <div class="flex items-center gap-1.5 shrink-0">
                     {#if item.level}
-                      <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      <span
+                        class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                      >
                         {item.level}
                       </span>
                     {/if}
-                    <ArrowRight class="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition" />
+                    <ArrowRight
+                      class="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition"
+                    />
                   </div>
                 </button>
               {/each}
@@ -289,7 +328,9 @@
 
     <!-- Suggested Words Chips -->
     <div class="mt-4 flex flex-wrap items-center gap-2">
-      <span class="text-xs text-slate-400 theme-text-muted flex items-center gap-1 mr-1">
+      <span
+        class="text-xs text-slate-400 theme-text-muted flex items-center gap-1 mr-1"
+      >
         <Compass class="w-3.5 h-3.5 text-amber-400" />
         Suggested Words:
       </span>
@@ -307,14 +348,21 @@
 
   <!-- Loading State -->
   {#if loading}
-    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-12 text-center space-y-3 theme-card">
-      <div class="inline-flex p-3 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
+    <div
+      class="bg-slate-900/60 border border-slate-800 rounded-2xl p-12 text-center space-y-3 theme-card"
+    >
+      <div
+        class="inline-flex p-3 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse"
+      >
         <Sparkles class="w-6 h-6 animate-spin" />
       </div>
       <div>
-        <h3 class="text-lg font-bold text-slate-200">Analyzing & Formatting Word...</h3>
+        <h3 class="text-lg font-bold text-slate-200">
+          Analyzing & Formatting Word...
+        </h3>
         <p class="text-xs text-slate-400 mt-1">
-          Generating definitions, bilingual translation, CEFR level, examples, word family, and synonyms.
+          Generating definitions, bilingual translation, CEFR level, examples,
+          word family, and synonyms.
         </p>
       </div>
     </div>
@@ -322,10 +370,14 @@
 
   <!-- Error Message -->
   {#if errorMsg && !loading}
-    <div class="bg-red-950/40 border border-red-500/40 rounded-2xl p-5 text-red-300 flex items-start gap-3">
+    <div
+      class="bg-red-950/40 border border-red-500/40 rounded-2xl p-5 text-red-300 flex items-start gap-3"
+    >
       <div class="text-xl">⚠️</div>
       <div>
-        <h4 class="font-bold text-sm text-red-200">Word not found or error occurred</h4>
+        <h4 class="font-bold text-sm text-red-200">
+          Word not found or error occurred
+        </h4>
         <p class="text-xs text-red-300/90 mt-0.5">{errorMsg}</p>
       </div>
     </div>
@@ -333,50 +385,71 @@
 
   <!-- Word Result Card: Comprehensive 6-Block Content Layout -->
   {#if currentResult && !loading}
-    <div class="bg-slate-900/85 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-md theme-card">
-      
+    <div
+      class="bg-slate-900/85 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-md theme-card"
+    >
       <!-- ========================================================================= -->
       <!-- BLOCK 1: Main Word Identity, Badges, Audio & Obsidian Action -->
       <!-- ========================================================================= -->
-      <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-slate-800 pb-6">
+      <div
+        class="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-slate-800 pb-6"
+      >
         <div class="space-y-2">
           <div class="flex flex-wrap items-center gap-3">
-            <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-100">
+            <h1
+              class="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-100"
+            >
               {currentResult.word.word}
             </h1>
 
             <!-- Part of Speech Badge -->
             {#if currentResult.word.pos}
-              <span class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30">
+              <span
+                class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30"
+              >
                 {currentResult.word.pos}
               </span>
             {/if}
 
             <!-- CEFR Level Badge -->
             {#if currentResult.word.level}
-              <span class="px-2.5 py-0.5 text-xs font-bold font-mono rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              <span
+                class="px-2.5 py-0.5 text-xs font-bold font-mono rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+              >
                 {currentResult.word.level}
               </span>
             {/if}
 
             <!-- Source Origin Badge with Clear Visual Indicator -->
-            {#if currentResult.source === 'app_vocab'}
-              <span class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5" title="Loaded directly from native SQLite database file (vocab.db)">
+            {#if currentResult.source === "app_vocab"}
+              <span
+                class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5"
+                title="Loaded directly from native SQLite database file (vocab.db)"
+              >
                 <span>🗄️</span>
                 <span>SQLite DB (0ms)</span>
               </span>
-            {:else if currentResult.source === 'online_dict'}
-              <span class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5" title="Loaded from Free Dictionary Online API (~150ms) and saved to SQLite">
+            {:else if currentResult.source === "online_dict"}
+              <span
+                class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5"
+                title="Loaded from Free Dictionary Online API (~150ms) and saved to SQLite"
+              >
                 <span>🌐</span>
                 <span>Online API ➔ SQLite</span>
               </span>
-            {:else if currentResult.source === 'ai'}
-              <span class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center gap-1.5" title="Generated by AI & Saved into SQLite DB">
+            {:else if currentResult.source === "ai"}
+              <span
+                class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center gap-1.5"
+                title="Generated by AI & Saved into SQLite DB"
+              >
                 <span>✨</span>
                 <span>AI Formatted ➔ SQLite</span>
               </span>
             {:else}
-              <span class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5" title="Loaded from Lexicon">
+              <span
+                class="px-2.5 py-0.5 text-xs font-semibold rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5"
+                title="Loaded from Lexicon"
+              >
                 <span>📖</span>
                 <span>Lexicon</span>
               </span>
@@ -384,7 +457,9 @@
 
             <!-- Execution Time Badge -->
             {#if currentResult.executionTimeMs !== undefined}
-              <span class="px-2.5 py-0.5 text-xs font-mono font-bold rounded-lg bg-slate-800 text-amber-300 border border-slate-700 flex items-center gap-1">
+              <span
+                class="px-2.5 py-0.5 text-xs font-mono font-bold rounded-lg bg-slate-800 text-amber-300 border border-slate-700 flex items-center gap-1"
+              >
                 <span>⚡</span>
                 <span>{currentResult.executionTimeMs}ms</span>
               </span>
@@ -402,7 +477,7 @@
         <!-- Action Buttons (Pronounce, AI Enrich & Save to Vault) -->
         <div class="flex flex-wrap items-center gap-2">
           <!-- AI Deep Enrich Button (Available if not already AI generated) -->
-          {#if currentResult.source !== 'ai'}
+          {#if currentResult.source !== "ai"}
             <button
               onclick={handleDeepEnrich}
               class="px-3 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/40 transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold active:scale-95 shadow-sm"
@@ -438,10 +513,12 @@
             disabled={savingVault}
             class={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition cursor-pointer flex items-center gap-2 shadow-md active:scale-95 ${
               isSavedInVault
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-emerald-500/10'
-                : 'bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white border-purple-500/40'
+                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-emerald-500/10"
+                : "bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white border-purple-500/40"
             }`}
-            title={isSavedInVault ? 'Saved in Obsidian (Click to unsave)' : 'Save to Obsidian Vault'}
+            title={isSavedInVault
+              ? "Saved in Obsidian (Click to unsave)"
+              : "Save to Obsidian Vault"}
           >
             {#if isSavedInVault}
               <Check class="w-4 h-4 text-emerald-400" />
@@ -459,24 +536,37 @@
       <!-- ========================================================================= -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- English Definition Card -->
-        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-2 theme-inner">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-blue-400 uppercase tracking-wider">
+        <div
+          class="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-2 theme-inner"
+        >
+          <div
+            class="flex items-center gap-1.5 text-xs font-bold text-blue-400 uppercase tracking-wider"
+          >
             <BookOpen class="w-4 h-4" />
             <span>English Definition</span>
           </div>
-          <p class="text-sm sm:text-base text-slate-200 leading-relaxed font-sans">
+          <p
+            class="text-sm sm:text-base text-slate-200 leading-relaxed font-sans"
+          >
             {currentResult.word.definition_en}
           </p>
         </div>
 
         <!-- Vietnamese Meaning Card -->
-        <div class="bg-amber-950/15 border border-amber-500/25 rounded-xl p-5 space-y-2 theme-inner">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-wider">
+        <div
+          class="bg-amber-950/15 border border-amber-500/25 rounded-xl p-5 space-y-2 theme-inner"
+        >
+          <div
+            class="flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-wider"
+          >
             <Sparkles class="w-4 h-4" />
             <span>Vietnamese Meaning</span>
           </div>
-          <p class="text-sm sm:text-base text-amber-100 leading-relaxed font-medium">
-            {currentResult.word.definition_vi || 'Vietnamese translation available in details.'}
+          <p
+            class="text-sm sm:text-base text-amber-100 leading-relaxed font-medium"
+          >
+            {currentResult.word.definition_vi ||
+              "Vietnamese translation available in details."}
           </p>
         </div>
       </div>
@@ -488,8 +578,12 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Word Family -->
           {#if currentResult.word_family && currentResult.word_family.length > 0}
-            <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2.5 theme-inner">
-              <div class="flex items-center gap-1.5 text-xs font-bold text-cyan-400">
+            <div
+              class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2.5 theme-inner"
+            >
+              <div
+                class="flex items-center gap-1.5 text-xs font-bold text-cyan-400"
+              >
                 <Network class="w-4 h-4" />
                 <span>Word Family / Related Forms</span>
               </div>
@@ -500,7 +594,9 @@
                     class="px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-mono transition cursor-pointer flex items-center gap-1.5 active:scale-95"
                     title={`Lookup "${member.word}"`}
                   >
-                    <span class="text-[10px] text-cyan-400/70 uppercase">({member.pos}):</span>
+                    <span class="text-[10px] text-cyan-400/70 uppercase"
+                      >({member.pos}):</span
+                    >
                     <span class="font-bold">{member.word}</span>
                   </button>
                 {/each}
@@ -510,12 +606,18 @@
 
           <!-- Etymology / Linguistic Root -->
           {#if currentResult.etymology}
-            <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2 theme-inner">
-              <div class="flex items-center gap-1.5 text-xs font-bold text-purple-400">
+            <div
+              class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2 theme-inner"
+            >
+              <div
+                class="flex items-center gap-1.5 text-xs font-bold text-purple-400"
+              >
                 <History class="w-4 h-4" />
                 <span>Etymology & Root Origin</span>
               </div>
-              <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
+              <p
+                class="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans"
+              >
                 {currentResult.etymology}
               </p>
             </div>
@@ -526,8 +628,12 @@
       <!-- ========================================================================= -->
       <!-- BLOCK 4: Contextual Bilingual Examples (Multiple Sentences) -->
       <!-- ========================================================================= -->
-      <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-5 space-y-3.5 theme-inner">
-        <div class="text-xs font-bold text-purple-400 flex items-center gap-1.5 uppercase tracking-wider">
+      <div
+        class="bg-slate-950/70 border border-slate-800 rounded-xl p-5 space-y-3.5 theme-inner"
+      >
+        <div
+          class="text-xs font-bold text-purple-400 flex items-center gap-1.5 uppercase tracking-wider"
+        >
           <Quote class="w-4 h-4" />
           <span>Real-World Contextual Examples</span>
         </div>
@@ -568,8 +674,12 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <!-- Synonyms (Clickable Tags) -->
           {#if currentResult.synonyms && currentResult.synonyms.length > 0}
-            <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2.5 theme-inner">
-              <div class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+            <div
+              class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2.5 theme-inner"
+            >
+              <div
+                class="text-xs font-bold text-emerald-400 flex items-center gap-1.5"
+              >
                 <Tag class="w-3.5 h-3.5" />
                 <span>Synonyms (Click to explore):</span>
               </div>
@@ -589,8 +699,12 @@
 
           <!-- Antonyms (Clickable Tags) -->
           {#if currentResult.antonyms && currentResult.antonyms.length > 0}
-            <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2.5 theme-inner">
-              <div class="text-xs font-bold text-rose-400 flex items-center gap-1.5">
+            <div
+              class="bg-slate-950/50 border border-slate-800 rounded-xl p-4.5 space-y-2.5 theme-inner"
+            >
+              <div
+                class="text-xs font-bold text-rose-400 flex items-center gap-1.5"
+              >
                 <Tag class="w-3.5 h-3.5" />
                 <span>Antonyms (Click to explore):</span>
               </div>
@@ -612,14 +726,20 @@
 
       <!-- High-Yield Collocations -->
       {#if currentResult.collocations && currentResult.collocations.length > 0}
-        <div class="bg-indigo-950/15 border border-indigo-500/25 rounded-xl p-4.5 space-y-2.5 theme-inner">
-          <div class="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+        <div
+          class="bg-indigo-950/15 border border-indigo-500/25 rounded-xl p-4.5 space-y-2.5 theme-inner"
+        >
+          <div
+            class="text-xs font-bold text-indigo-300 flex items-center gap-1.5"
+          >
             <Lightbulb class="w-4 h-4 text-amber-400" />
             <span>High-Yield Collocations</span>
           </div>
           <div class="flex flex-wrap gap-2 text-xs font-mono text-indigo-200">
             {#each currentResult.collocations as col}
-              <span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-500/30">
+              <span
+                class="px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-500/30"
+              >
                 ⚡ {col}
               </span>
             {/each}
@@ -631,24 +751,33 @@
       <!-- BLOCK 6: Memory Hook, IELTS Nuance & Multi-Dictionary Links -->
       <!-- ========================================================================= -->
       {#if currentResult.mnemonic_hook || currentResult.nuance_tips}
-        <div class="bg-amber-950/10 border border-amber-500/20 rounded-xl p-4.5 space-y-2.5 theme-inner">
-          <div class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+        <div
+          class="bg-amber-950/10 border border-amber-500/20 rounded-xl p-4.5 space-y-2.5 theme-inner"
+        >
+          <div
+            class="text-xs font-bold text-amber-300 flex items-center gap-1.5"
+          >
             <BrainCircuit class="w-4 h-4 text-amber-400" />
             <span>Memory Hook & IELTS / Communication Nuance</span>
           </div>
 
           {#if currentResult.mnemonic_hook}
-            <div class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs sm:text-sm text-amber-200 flex items-start gap-2">
+            <div
+              class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs sm:text-sm text-amber-200 flex items-start gap-2"
+            >
               <span class="text-base">🧠</span>
               <div>
-                <strong class="text-amber-300 block mb-0.5">Memory Hook:</strong>
+                <strong class="text-amber-300 block mb-0.5">Memory Hook:</strong
+                >
                 {currentResult.mnemonic_hook}
               </div>
             </div>
           {/if}
 
           {#if currentResult.nuance_tips}
-            <p class="text-xs sm:text-sm text-slate-300 mt-1 pl-2 border-l-2 border-amber-400/50">
+            <p
+              class="text-xs sm:text-sm text-slate-300 mt-1 pl-2 border-l-2 border-amber-400/50"
+            >
               💡 {currentResult.nuance_tips}
             </p>
           {/if}
@@ -659,20 +788,27 @@
       <!-- BLOCK 7: Real-time Debug Logs & SQLite Execution Trace Drawer -->
       <!-- ========================================================================= -->
       {#if currentResult.debugLogs && currentResult.debugLogs.length > 0}
-        <div class="rounded-xl bg-slate-950/80 border border-slate-800/80 overflow-hidden font-mono text-xs shadow-inner">
+        <div
+          class="rounded-xl bg-slate-950/80 border border-slate-800/80 overflow-hidden font-mono text-xs shadow-inner"
+        >
           <button
-            onclick={() => showDebugLogs = !showDebugLogs}
+            onclick={() => (showDebugLogs = !showDebugLogs)}
             class="w-full px-4 py-2.5 bg-slate-900/90 hover:bg-slate-800/90 border-b border-slate-800 transition flex items-center justify-between cursor-pointer text-slate-300 text-left"
           >
             <div class="flex items-center gap-2">
               <Terminal class="w-4 h-4 text-cyan-400" />
-              <span class="font-bold text-cyan-300">Execution Pipeline & SQLite Trace</span>
-              <span class="px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 text-[10px] font-bold">
-                {currentResult.debugLogs.length} events • {currentResult.executionTimeMs || 0}ms
+              <span class="font-bold text-cyan-300"
+                >Execution Pipeline & SQLite Trace</span
+              >
+              <span
+                class="px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 text-[10px] font-bold"
+              >
+                {currentResult.debugLogs.length} events • {currentResult.executionTimeMs ||
+                  0}ms
               </span>
             </div>
             <div class="flex items-center gap-1 text-slate-400 text-[11px]">
-              <span>{showDebugLogs ? 'Hide Logs' : 'Show Logs'}</span>
+              <span>{showDebugLogs ? "Hide Logs" : "Show Logs"}</span>
               {#if showDebugLogs}
                 <ChevronUp class="w-3.5 h-3.5" />
               {:else}
@@ -682,17 +818,25 @@
           </button>
 
           {#if showDebugLogs}
-            <div class="p-3.5 space-y-1.5 bg-black/40 text-slate-300 text-[11px] leading-relaxed max-h-48 overflow-y-auto">
+            <div
+              class="p-3.5 space-y-1.5 bg-black/40 text-slate-300 text-[11px] leading-relaxed max-h-48 overflow-y-auto"
+            >
               {#each currentResult.debugLogs as logLine}
                 <div class="flex items-start gap-2">
                   <span class="text-cyan-500 font-bold select-none">&gt;</span>
-                  <span class={`font-mono ${logLine.includes('HIT') || logLine.includes('Successfully') ? 'text-emerald-300 font-semibold' : logLine.includes('MISS') || logLine.includes('error') ? 'text-amber-300' : 'text-slate-300'}`}>
+                  <span
+                    class={`font-mono ${logLine.includes("HIT") || logLine.includes("Successfully") ? "text-emerald-300 font-semibold" : logLine.includes("MISS") || logLine.includes("error") ? "text-amber-300" : "text-slate-300"}`}
+                  >
                     {logLine}
                   </span>
                 </div>
               {/each}
-              <div class="pt-2 border-t border-slate-800/60 text-[10px] text-slate-500 flex items-center justify-between">
-                <span>📁 SQLite Database: ~/.local/share/VaultLingo/vocab.db</span>
+              <div
+                class="pt-2 border-t border-slate-800/60 text-[10px] text-slate-500 flex items-center justify-between"
+              >
+                <span
+                  >📁 SQLite Database: ~/.local/share/VaultLingo/vocab.db</span
+                >
                 <span class="text-emerald-400">● Native Backend Connected</span>
               </div>
             </div>
@@ -701,14 +845,17 @@
       {/if}
 
       <!-- External Dictionary Quick Links -->
-      <div class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div
+        class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs"
+      >
         <span class="text-slate-400 theme-text-muted flex items-center gap-1">
           <ExternalLink class="w-3.5 h-3.5 text-amber-400" />
           Open in External Dictionaries:
         </span>
         <div class="flex flex-wrap items-center gap-2">
           <a
-            href={currentResult.word.dict_link || `https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(currentResult.word.word)}`}
+            href={currentResult.word.dict_link ||
+              `https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(currentResult.word.word)}`}
             target="_blank"
             rel="noopener noreferrer"
             class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 transition flex items-center gap-1 font-mono text-[11px]"

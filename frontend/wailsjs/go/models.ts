@@ -5,6 +5,7 @@ export namespace backend {
 	    ai_provider: string;
 	    agy_model: string;
 	    agy_path: string;
+	    agy_effort?: string;
 	    openrouter_api_key: string;
 	    openrouter_model: string;
 	    groq_api_key: string;
@@ -24,6 +25,7 @@ export namespace backend {
 	        this.ai_provider = source["ai_provider"];
 	        this.agy_model = source["agy_model"];
 	        this.agy_path = source["agy_path"];
+	        this.agy_effort = source["agy_effort"];
 	        this.openrouter_api_key = source["openrouter_api_key"];
 	        this.openrouter_model = source["openrouter_model"];
 	        this.groq_api_key = source["groq_api_key"];

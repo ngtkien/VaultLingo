@@ -18,6 +18,7 @@ func LoadConfig() Config {
 		ObsidianVaultPath: GetDefaultVaultPath(),
 		AiProvider:        "agy",
 		AgyModel:          "gemini-3.7-flash",
+		AgyEffort:         "low",
 		AgyPath:           "",
 		OpenrouterApiKey:  "",
 		OpenrouterModel:   "meta-llama/llama-3.3-70b-instruct:free",
