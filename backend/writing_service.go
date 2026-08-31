@@ -46,7 +46,7 @@ func GetWritingPrompt(level string) (WritingPrompt, error) {
 	if err != nil {
 		return WritingPrompt{
 			Level:        "scenario",
-			Title:        "Running Late Message",
+			Title:        "Running Late Notification",
 			Category:     "Workplace Slack",
 			CategoryIcon: "🚗",
 			TargetMin:    20,
@@ -196,17 +196,18 @@ func EvaluateWritingAI(prompt, text, situationVi string, cfg Config) (string, er
 
 	systemInstruction := `You are an expert English writing coach and IELTS examiner.
 Evaluate the user's English submission for the given scenario and prompt.
+Return all feedback, explanations, and advice strictly in clear English.
 Return your evaluation as a valid JSON object strictly matching this schema:
 {
   "score": 7.5,
-  "score_label": "Great Effort",
-  "overall_feedback": "A concise 1-2 sentence overall summary in Vietnamese praising strong points and highlighting key areas to improve.",
-  "prompt_alignment": "Well aligned with the prompt",
+  "score_label": "Great Effort | Excellent | Good | Needs Improvement",
+  "overall_feedback": "A concise 1-2 sentence overall summary in English praising strong points and highlighting key areas to improve.",
+  "prompt_alignment": "Well aligned with the prompt | Partial alignment | Off-topic note",
   "corrections": [
     {
       "original": "exact original mistake",
       "correction": "exact corrected version",
-      "reason": "Brief grammatical explanation in Vietnamese"
+      "reason": "Brief grammatical explanation in English"
     }
   ],
   "alternatives": [
@@ -222,12 +223,12 @@ Return your evaluation as a valid JSON object strictly matching this schema:
   "vocabulary_highlights": [
     {
       "term": "useful phrase / collocation",
-      "meaning": "Vietnamese explanation of how to use it"
+      "meaning": "English explanation and usage guidance"
     }
   ]
 }
 
-If you cannot format as JSON, provide clear labeled markdown.`
+If you cannot format as JSON, provide clear labeled markdown in English.`
 
 	userContent := fmt.Sprintf(`[Context]: %s
 [Prompt]: %s
@@ -290,13 +291,13 @@ func generateLocalMockEvaluation(text string) string {
 	mockJSON := map[string]interface{}{
 		"score":            8.0,
 		"score_label":      "Good Effort",
-		"overall_feedback": fmt.Sprintf("Bài viết dài %d từ, ngữ cảnh diễn đạt rõ ràng và đúng trọng tâm yêu cầu.", wordCount),
+		"overall_feedback": fmt.Sprintf("Your submission contains %d words. The context is clearly communicated and directly addresses the scenario.", wordCount),
 		"prompt_alignment": "Well aligned with scenario",
 		"corrections": []map[string]string{
 			{
 				"original":   "Preview mode",
 				"correction": "Configure AI Provider in Settings",
-				"reason":     "Để nhận phân tích ngữ pháp thời gian thực từ AI.",
+				"reason":     "To receive live AI grammar evaluation, configure an AI provider in Settings.",
 			},
 		},
 		"alternatives": []map[string]string{
@@ -308,7 +309,7 @@ func generateLocalMockEvaluation(text string) string {
 		"vocabulary_highlights": []map[string]string{
 			{
 				"term":    "workplace communication",
-				"meaning": "Giao tiếp chuyên nghiệp trong môi trường công sở.",
+				"meaning": "Professional interactions and concise status messaging.",
 			},
 		},
 	}

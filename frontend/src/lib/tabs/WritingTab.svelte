@@ -268,7 +268,7 @@
           <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-950/30 to-indigo-950/30 border border-blue-500/20 space-y-1.5">
             <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
               <Lightbulb class="w-3.5 h-3.5" />
-              <span>Scenario Context (Ngữ cảnh thực tế)</span>
+              <span>Scenario Context</span>
             </span>
             <p class="text-sm text-slate-200 font-medium leading-relaxed">
               {promptItem.situation_vi}
@@ -278,7 +278,7 @@
           <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2">
             <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <PenTool class="w-3.5 h-3.5 text-indigo-400" />
-              <span>Prompt Requirement (Yêu cầu bài viết)</span>
+              <span>Prompt Requirement</span>
             </span>
             <p class="text-base text-slate-100 font-semibold leading-relaxed">
               "{promptItem.prompt}"
@@ -291,7 +291,7 @@
           <div class="grid sm:grid-cols-2 gap-3 pt-1">
             {#if promptItem.sentence_starters && promptItem.sentence_starters.length > 0}
               <div class="space-y-2">
-                <span class="text-[11px] font-bold text-slate-400 block">💡 Quick Sentence Starters (Bấm để chèn):</span>
+                <span class="text-[11px] font-bold text-slate-400 block">💡 Quick Sentence Starters (Click to insert):</span>
                 <div class="flex flex-wrap gap-1.5">
                   {#each promptItem.sentence_starters as starter}
                     <button
@@ -307,7 +307,7 @@
 
             {#if promptItem.suggested_vocab && promptItem.suggested_vocab.length > 0}
               <div class="space-y-2">
-                <span class="text-[11px] font-bold text-slate-400 block">⚡ High-Yield Vocabulary (Từ vựng gợi ý):</span>
+                <span class="text-[11px] font-bold text-slate-400 block">⚡ High-Yield Vocabulary (Suggested):</span>
                 <div class="flex flex-wrap gap-1.5">
                   {#each promptItem.suggested_vocab as vocab}
                     <span class="text-xs bg-indigo-950/40 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-xl font-mono">
@@ -465,7 +465,7 @@
                   {#if parsedFeedback.corrections.length === 0}
                     <div class="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
                       <CheckCircle2 class="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>Tuyệt vời! Không phát hiện lỗi sai ngữ pháp hoặc chính tả đáng kể nào trong đoạn văn của bạn.</span>
+                      <span>Excellent work! No significant grammatical or spelling errors detected in your response.</span>
                     </div>
                   {:else}
                     <div class="grid gap-2.5">
@@ -505,7 +505,7 @@
                     <div class="flex items-center justify-between text-xs font-bold text-slate-300">
                       <span class="flex items-center gap-1.5 text-indigo-400">
                         <Sparkles class="w-4 h-4" />
-                        <span>Native Phrasing Alternatives (Cách diễn đạt tự nhiên chuẩn bản xứ)</span>
+                        <span>Native Phrasing Alternatives</span>
                       </span>
                     </div>
 

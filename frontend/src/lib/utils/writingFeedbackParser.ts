@@ -73,7 +73,7 @@ export function parseAiFeedback(rawText: string): AiFeedbackData {
         isJson: true,
         score: scoreNum,
         scoreLabel: data.score_label || getScoreLabel(scoreNum),
-        overallFeedback: data.overall_feedback || 'Phản hồi từ AI Coach cho bài viết của bạn.',
+        overallFeedback: data.overall_feedback || 'AI Coach evaluation and feedback for your response.',
         promptAlignment: data.prompt_alignment || '',
         corrections: Array.isArray(data.corrections) ? data.corrections.map((c: any) => ({
           original: cleanMarkdownPunct(c.original || ''),
