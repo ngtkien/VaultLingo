@@ -62,6 +62,12 @@ type Dictation struct {
 	Hint         string `json:"hint"`
 }
 
+type DictationCategoryInfo struct {
+	Category     string `json:"category"`
+	CategoryIcon string `json:"category_icon"`
+	Count        int    `json:"count"`
+}
+
 type WritingPrompt struct {
 	ID               int      `json:"id"`
 	Level            string   `json:"level"`

@@ -67,8 +67,16 @@ func (a *App) GetAvailableTopics() []map[string]string {
 }
 
 // Dictation Methods
+func (a *App) GetDictationCategories() ([]backend.DictationCategoryInfo, error) {
+	return backend.GetDictationCategories()
+}
+
 func (a *App) GetDictationSentence(category string) (backend.Dictation, error) {
 	return backend.GetDictationSentence(category)
+}
+
+func (a *App) GetDictationSentenceWithExclude(category string, excludeIDs []int) (backend.Dictation, error) {
+	return backend.GetDictationSentenceWithExclude(category, excludeIDs)
 }
 
 func (a *App) CheckDictation(targetSentence, userInput string) backend.DictationResult {

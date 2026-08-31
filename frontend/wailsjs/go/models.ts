@@ -62,6 +62,22 @@ export namespace backend {
 	        this.hint = source["hint"];
 	    }
 	}
+	export class DictationCategoryInfo {
+	    category: string;
+	    category_icon: string;
+	    count: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new DictationCategoryInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.category = source["category"];
+	        this.category_icon = source["category_icon"];
+	        this.count = source["count"];
+	    }
+	}
 	export class DiffToken {
 	    type: string;
 	    word: string;

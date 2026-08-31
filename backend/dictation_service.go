@@ -1,38 +1,53 @@
 package backend
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"strings"
 )
 
-func GetDictationSentence(category string) (Dictation, error) {
+func GetDictationSentenceWithExclude(category string, excludeIDs []int) (Dictation, error) {
 	var d Dictation
-	var query string
+	var conditions []string
 	var args []interface{}
 
-	if category == "" || category == "all" {
-		query = `
-			SELECT id, level, level_color, category, category_icon, sentence, sentence_vi, hint
-			FROM dictations
-			ORDER BY RANDOM()
-			LIMIT 1
-		`
-	} else {
-		query = `
-			SELECT id, level, level_color, category, category_icon, sentence, sentence_vi, hint
-			FROM dictations
-			WHERE category = ?
-			ORDER BY RANDOM()
-			LIMIT 1
-		`
+	if category != "" && category != "all" {
+		conditions = append(conditions, "category = ?")
 		args = append(args, category)
 	}
+
+	if len(excludeIDs) > 0 {
+		placeholders := make([]string, len(excludeIDs))
+		for i, id := range excludeIDs {
+			placeholders[i] = "?"
+			args = append(args, id)
+		}
+		conditions = append(conditions, fmt.Sprintf("id NOT IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	whereClause := ""
+	if len(conditions) > 0 {
+		whereClause = "WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	query := fmt.Sprintf(`
+		SELECT id, level, level_color, category, category_icon, sentence, sentence_vi, hint
+		FROM dictations
+		%s
+		ORDER BY RANDOM()
+		LIMIT 1
+	`, whereClause)
 
 	err := DB.QueryRow(query, args...).Scan(
 		&d.ID, &d.Level, &d.LevelColor, &d.Category, &d.CategoryIcon,
 		&d.Sentence, &d.SentenceVi, &d.Hint,
 	)
+
+	// If no row found due to exclusion, fallback to without exclusion (reset cycle)
+	if err != nil && len(excludeIDs) > 0 {
+		return GetDictationSentenceWithExclude(category, nil)
+	}
 
 	if err != nil {
 		return Dictation{
@@ -47,6 +62,33 @@ func GetDictationSentence(category string) (Dictation, error) {
 	}
 
 	return d, nil
+}
+
+func GetDictationSentence(category string) (Dictation, error) {
+	return GetDictationSentenceWithExclude(category, nil)
+}
+
+func GetDictationCategories() ([]DictationCategoryInfo, error) {
+	rows, err := DB.Query(`
+		SELECT category, COALESCE(category_icon, '🎧'), COUNT(*) as count 
+		FROM dictations 
+		WHERE category IS NOT NULL AND category != ''
+		GROUP BY category 
+		ORDER BY category ASC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var categories []DictationCategoryInfo
+	for rows.Next() {
+		var cat DictationCategoryInfo
+		if err := rows.Scan(&cat.Category, &cat.CategoryIcon, &cat.Count); err == nil {
+			categories = append(categories, cat)
+		}
+	}
+	return categories, nil
 }
 
 func cleanWord(w string) string {

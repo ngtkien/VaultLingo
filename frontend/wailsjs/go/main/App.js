@@ -30,8 +30,16 @@ export function GetDailyVocab(arg1, arg2) {
   return window['go']['main']['App']['GetDailyVocab'](arg1, arg2);
 }
 
+export function GetDictationCategories() {
+  return window['go']['main']['App']['GetDictationCategories']();
+}
+
 export function GetDictationSentence(arg1) {
   return window['go']['main']['App']['GetDictationSentence'](arg1);
+}
+
+export function GetDictationSentenceWithExclude(arg1, arg2) {
+  return window['go']['main']['App']['GetDictationSentenceWithExclude'](arg1, arg2);
 }
 
 export function GetListeningTopics() {

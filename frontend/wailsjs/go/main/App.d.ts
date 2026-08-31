@@ -16,7 +16,11 @@ export function GetDailyIdiom():Promise<backend.Idiom>;
 
 export function GetDailyVocab(arg1:string,arg2:number):Promise<Array<backend.Word>>;
 
+export function GetDictationCategories():Promise<Array<backend.DictationCategoryInfo>>;
+
 export function GetDictationSentence(arg1:string):Promise<backend.Dictation>;
+
+export function GetDictationSentenceWithExclude(arg1:string,arg2:Array<number>):Promise<backend.Dictation>;
 
 export function GetListeningTopics():Promise<Array<backend.ListeningTopic>>;
 
