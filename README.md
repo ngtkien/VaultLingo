@@ -1,77 +1,93 @@
 # 🦄 VaultLingo
 
-> **VaultLingo** is a lightweight, cross-platform desktop application designed specifically for **daily English vocabulary mastery and spaced repetition retention**, with direct **Obsidian Vault** synchronization.
->
-> 🤖 **Built 100% with AI:** This entire project—from system architecture, Go backend, Svelte 5 frontend, database queries, to visual assets—was conceived, designed, and developed entirely by **AI (Google Antigravity / Gemini)**.
+> **VaultLingo** is a lightweight, high-performance, cross-platform English language mastery suite and lexicon engine with direct **Obsidian Vault** synchronization.
 
 ---
 
 ## ✨ Key Features
 
-- 📚 **Vocabulary & Spaced Repetition (SRS SM-2):** Daily 5-word sets across curated topics (Destination B1/B2, Tech & Embedded, Workplace, Science/AI), 3D flipping flashcards with keyboard shortcuts, Cambridge Dictionary integration, Daily Idioms, and 10s Quick Quizzes.
-- 🎧 **Interactive Dictation Practice:** Audio playback with normal (1.0x) and slow (0.75x) speeds, keyword hints, and a real-time **LCS Visual Diff Engine** (highlighting correct, wrong, and missing words with accuracy scores).
-- 🗣️ **75 Topics Listening:** Real-world conversational Q&A streams with active listening mode (blur/reveal answers).
-- ✍️ **AI Writing Coach:** Micro-scenario writing prompts, live stopwatch & word counter, and instant grammar, tone, and vocabulary evaluation powered by **Antigravity (agy CLI)**, **OpenRouter (Free Tier)**, **Groq (Free & Fast)**, or **Local Ollama**.
+- 📚 **Vocabulary & Spaced Repetition (SRS SM-2):** Daily 5-word sets across curated topics (Destination B1/B2, Tech & Embedded, Workplace, Science/AI), 3D flipping flashcards with keyboard shortcuts, Cambridge Dictionary integration, Daily Idioms, and Quick Quizzes.
+- ⚡ **Zero-Bloat CLI Tool (`vl`):** Standalone, ultra-fast (< 5ms) terminal dictionary with 6-block Oxford linguistic analysis and automatic AI synthesis fallback.
+- 🎧 **Interactive Dictation Practice:** Audio playback with normal (1.0x) and slow (0.75x) speeds, keyword hints, and a real-time **LCS Visual Diff Engine** (highlighting correct, wrong, and missing words).
+- 🗣️ **Conversational Listening Practice:** Real-world Q&A streams loaded dynamically from SQLite with active listening mode (blur/reveal answers).
+- ✍️ **AI Writing Coach (v0.1.3 Visual Feedback):** Micro-scenario writing prompts, live stopwatch & word counter, and structured before/after grammar correction cards powered by **OpenCode**, **Antigravity (agy CLI)**, **OpenRouter**, **Groq**, or **Local Ollama**.
 - 🗄️ **Obsidian Vault 2-Way Sync:** Automatically saves vocabulary cards and essays to Markdown files with hidden SRS metadata tags (`<!-- srs: ... -->`) and updates review intervals directly in your Vault.
 - ☀️ / 🌙 **Day & Night Themes:** Instant reactive theme switcher between deep midnight glassmorphism and clean light mode.
 
 ---
 
-## 🔒 Security & API Token Privacy Disclaimer
+## ⚡ VaultLingo CLI (`vl`)
 
-VaultLingo is built with a **Local-First, Zero-Telemetry** architecture to ensure complete control over your private API keys and study data:
+VaultLingo includes a standalone command-line dictionary tool `vl` that runs in **0ms** using the embedded SQLite database:
 
-- **100% Local Storage:** All API keys and configurations are stored strictly on your local computer at `~/.config/VaultLingo/config.json`.
-- **Zero Intermediary Servers:** VaultLingo has **no** proprietary cloud backends or analytics services. API calls are sent *directly* from your local device to the official provider endpoint via encrypted HTTPS.
-- **Antigravity Native Integration:** Uses the local system-authenticated `agy` CLI with dynamic model support without requiring external API keys.
-- **Offline Mode:** If you prefer zero network exposure, you can use **Local Ollama** to run LLMs completely offline on your own hardware.
-- **Revocation & Deletion:** You can modify, delete, or revoke your tokens at any time directly through the Settings interface or by removing `~/.config/VaultLingo/config.json`.
+```bash
+# Instant 0ms dictionary lookup with full 6-block Oxford linguistic data
+vl compare
+vl collaborate
+vl serendipity
+
+# Autocomplete & search word suggestions
+vl -s arch
+vl -s comp
+
+# Output structured data as raw JSON (ideal for scripts & jq)
+vl compare --json
+
+# Lookup word and automatically sync flashcard note to Obsidian Vault
+vl compare -o
+```
 
 ---
 
-## 🛠️ Tech Stack
+## 🤖 Supported AI Providers
 
-- **Backend:** Go (Wails v2) + Pure-Go SQLite (`modernc.org/sqlite`) + Native OS Audio (`mpv` / `afplay`)
-- **Frontend:** Svelte 5 (Runes) + Vite 7 + TailwindCSS + `@lucide/svelte`
-- **AI Integrations:**
-  - 🛸 **Antigravity (agy CLI):** Native system AI integration with dynamic model support (Gemini 3.7 Flash, Gemini 3.0 Flash, auto)
-  - 🌐 **OpenRouter:** Free models (`meta-llama/llama-3.3-70b-instruct:free`, `google/gemini-2.0-flash-exp:free`, `deepseek/deepseek-chat:free`)
-  - ⚡ **Groq:** Ultra-fast free tier (`llama-3.3-70b-versatile`, `mixtral-8x7b-32768`)
-  - 🦙 **Local Ollama:** 100% private, local and offline execution
+VaultLingo supports a wide range of local and cloud AI providers with zero lock-in:
+
+1. 🤖 **OpenCode CLI:** Local, free CLI-based AI agent (`/usr/bin/opencode`).
+2. 🛸 **Antigravity CLI (`agy`):** Native system-authenticated Google Deepmind agent CLI with dynamic model support (e.g., `gemini-3.7-flash`).
+3. 🌐 **OpenRouter:** Free and open-source models (`meta-llama/llama-3.3-70b-instruct:free`, `deepseek/deepseek-chat:free`).
+4. ⚡ **Groq:** Ultra-fast free cloud tier (`llama-3.3-70b-versatile`, `mixtral-8x7b-32768`).
+5. 🦙 **Local Ollama:** 100% private, offline LLM execution on your own hardware (`http://localhost:11434`).
 
 ---
 
-## 🚀 Quick Start
+## 🔒 Security & Privacy
 
-### Prerequisites
-- [Go](https://go.dev/) (>= 1.20)
-- [Node.js](https://nodejs.org/) (>= 18)
-- [Wails CLI v2](https://wails.io/): `go install github.com/wailsapp/wails/v2/cmd/wails@latest`
-- `mpv` (for native audio streaming on Linux)
+- **100% Local Storage:** All configurations are stored locally at `~/.config/VaultLingo/config.json`.
+- **Zero Intermediary Servers:** No telemetry or third-party tracking servers.
+- **Embedded Database (`//go:embed`):** Fully functional offline out-of-the-box.
+
+---
+
+## 🛠️ Installation & Building
+
+### Quick Install (Linux / macOS Release Bundle)
+Download the latest `vaultlingo-linux-amd64.tar.gz` from GitHub Releases:
+```bash
+tar -xzvf vaultlingo-linux-amd64.tar.gz
+cd vaultlingo-linux-amd64
+sudo ./install.sh
+```
 
 ### Run in Development (Live Reload)
 ```bash
+# Start desktop app in dev mode:
 wails dev
+
+# Run Backend Go Unit Tests:
+go test -v ./backend/...
+
+# Run Frontend Vitest Suite & Diagnostics:
+cd frontend
+npm test
+npm run check
 ```
 
-### Build Production Binary
+### Build Production Binaries
 ```bash
-# Linux:
-wails build
-
-# macOS (Universal Binary):
-wails build -platform darwin/universal
+# Build desktop app + CLI binary:
+bash scripts/package_release.sh
 ```
-
-Binary output will be generated at: `build/bin/VaultLingo`
-
----
-
-## 📐 Architecture & Engineering
-
-Detailed ASCII system design diagrams and annotated source tree are available in the [architecture/](./architecture/) directory:
-- [SYSTEM_DESIGN.md](./architecture/SYSTEM_DESIGN.md)
-- [SOURCE_TREE.md](./architecture/SOURCE_TREE.md)
 
 ---
 

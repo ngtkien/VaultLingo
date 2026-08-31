@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Release Binaries
+    name: Test & Build Release Binaries
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -50,10 +50,15 @@ jobs:
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
-      - name: Build Frontend Assets
+      - name: Run Backend Go Unit Tests
+        run: go test -v ./backend/...
+
+      - name: Run Frontend Unit Tests & Build
         run: |
           cd frontend
           npm ci
+          npm run test
+          npm run check
           npm run build
           cd ..
 
