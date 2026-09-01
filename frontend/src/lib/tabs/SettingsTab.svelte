@@ -80,16 +80,27 @@
     if (isTestingVoice) return;
     isTestingVoice = true;
     try {
-      // Temporarily save config to ensure test uses current selected voice
+      // Temporarily save config to ensure test uses current selected voice & provider
       await SaveConfig(config);
-      const testSentence = "Hello! I am your AI English pronunciation assistant in VaultLingo.";
+
+      let testSentence = '';
+      if (config.tts_provider === 'piper') {
+        testSentence = "Hello! This is local offline Piper Neural TTS running directly on your computer.";
+      } else if (config.tts_provider === 'edge') {
+        const currentVoice = voices.find(v => v.id === config.tts_voice);
+        const voiceName = currentVoice ? currentVoice.name : 'Jenny';
+        testSentence = `Hello! This is ${voiceName} powered by Microsoft Edge Neural AI.`;
+      } else {
+        testSentence = "Hello! This is standard Google Translate speech fallback.";
+      }
+
       await PlayTTS(testSentence, config.default_audio_speed || 1.0);
     } catch (e) {
       console.error('Voice test error:', e);
     } finally {
       setTimeout(() => {
         isTestingVoice = false;
-      }, 2500);
+      }, 3500);
     }
   }
 

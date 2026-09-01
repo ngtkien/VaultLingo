@@ -66,3 +66,13 @@ func TestEdgeTTS_LiveSynthesis(t *testing.T) {
 	t.Logf("✔ Edge TTS successfully synthesized: %s", cacheFile)
 }
 
+func TestPiperTTS_LiveSynthesis(t *testing.T) {
+	cacheFile, err := SynthesizePiperTTS("Hello from offline Piper TTS", "", "", 1.0)
+	if err != nil {
+		t.Logf("Piper TTS note: %v", err)
+		return
+	}
+	t.Logf("✔ Piper TTS successfully synthesized: %s", cacheFile)
+}
+
+
