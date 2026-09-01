@@ -20,3 +20,7 @@ frontend/.svelte-kit/
 
 # Release distribution bundles
 dist/
+packaging/aur/**/src/
+packaging/aur/**/pkg/
+packaging/aur/**/*.pkg.tar.*
+packaging/aur/**/*.tar.gz

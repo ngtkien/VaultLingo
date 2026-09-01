@@ -1,0 +1,49 @@
+# Maintainer: Zeder <ngtkien95@gmail.com>
+pkgname=vaultlingo
+pkgver=0.1.4
+pkgrel=1
+pkgdesc="Daily AI English & Obsidian Vault Sync (Source build)"
+arch=('x86_64')
+url="https://github.com/ngtkien/VaultLingo"
+license=('MIT')
+depends=('gtk3' 'webkit2gtk-4.1')
+makedepends=('go' 'nodejs' 'npm')
+optdepends=('obsidian: For markdown vault note sync')
+provides=('vaultlingo' 'vl')
+conflicts=('vaultlingo-bin')
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/ngtkien/VaultLingo/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+    cd "${srcdir}/VaultLingo-${pkgver}"
+    export GOPATH="${srcdir}/gopath"
+    export PATH="${GOPATH}/bin:${PATH}"
+
+    # Install wails CLI if not found
+    if ! command -v wails &> /dev/null; then
+        go install github.com/wailsapp/wails/v2/cmd/wails@latest
+    fi
+
+    # Frontend build
+    cd frontend
+    npm ci
+    npm run build
+    cd ..
+
+    # Desktop GUI & CLI build
+    wails build -clean -tags webkit2_41
+    go build -ldflags="-s -w" -o build/bin/vl ./cmd/vl
+}
+
+package() {
+    cd "${srcdir}/VaultLingo-${pkgver}"
+
+    install -Dm755 build/bin/VaultLingo "${pkgdir}/usr/bin/vaultlingo"
+    install -Dm755 build/bin/vl "${pkgdir}/usr/bin/vl"
+    install -Dm644 vaultlingo.desktop "${pkgdir}/usr/share/applications/vaultlingo.desktop"
+    if [ -f "build/appicon.png" ]; then
+        install -Dm644 build/appicon.png "${pkgdir}/usr/share/icons/hicolor/512x512/apps/vaultlingo.png"
+    elif [ -f "frontend/src/assets/images/pegasus-logo.png" ]; then
+        install -Dm644 frontend/src/assets/images/pegasus-logo.png "${pkgdir}/usr/share/icons/hicolor/512x512/apps/vaultlingo.png"
+    fi
+}

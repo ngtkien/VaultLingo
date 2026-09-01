@@ -59,17 +59,70 @@ VaultLingo supports a wide range of local and cloud AI providers with zero lock-
 
 ---
 
-## 🛠️ Installation & Building
+## 🛠️ Installation & Packaging
 
-### Quick Install (Linux / macOS Release Bundle)
-Download the latest `vaultlingo-linux-amd64.tar.gz` from GitHub Releases:
+### 1. Arch Linux / Manjaro (AUR / yay)
+
+Install via **yay** or your favorite AUR helper:
 ```bash
-tar -xzvf vaultlingo-linux-amd64.tar.gz
-cd vaultlingo-linux-amd64
+# Recommended: Pre-compiled binary package
+yay -S vaultlingo-bin
+
+# Or build from source via AUR:
+yay -S vaultlingo
+```
+
+*Manual build with makepkg:*
+```bash
+git clone https://aur.archlinux.org/vaultlingo-bin.git
+cd vaultlingo-bin
+makepkg -si
+```
+
+---
+
+### 2. Debian / Ubuntu / Linux Mint (`.deb`)
+
+Download the latest `.deb` package from [GitHub Releases](https://github.com/ngtkien/VaultLingo/releases):
+```bash
+# Install with apt (automatically handles dependencies):
+sudo apt install ./vaultlingo_0.1.4_amd64.deb
+
+# Or with dpkg:
+sudo dpkg -i vaultlingo_0.1.4_amd64.deb
+sudo apt-get install -f
+```
+
+---
+
+### 3. Universal Linux Release Bundle (`.tar.gz`)
+
+Download the release archive from GitHub Releases:
+```bash
+tar -xzvf vaultlingo-v0.1.4-linux-x86_64.tar.gz
+cd vaultlingo-v0.1.4-linux-x86_64
 sudo ./install.sh
 ```
 
-### Run in Development (Live Reload)
+---
+
+### 4. Build All Packages Locally
+
+To build binaries and generate all release packages (`.tar.gz`, `.deb`, and AUR specs):
+```bash
+# Build desktop app, CLI, .deb, and AUR packages:
+bash scripts/package_release.sh
+
+# Or build only Debian package:
+bash scripts/package_deb.sh
+
+# Or update AUR PKGBUILD and .SRCINFO:
+bash scripts/package_aur.sh
+```
+
+---
+
+### 5. Run in Development (Live Reload)
 ```bash
 # Start desktop app in dev mode:
 wails dev
@@ -81,12 +134,6 @@ go test -v ./backend/...
 cd frontend
 npm test
 npm run check
-```
-
-### Build Production Binaries
-```bash
-# Build desktop app + CLI binary:
-bash scripts/package_release.sh
 ```
 
 ---

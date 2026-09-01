@@ -45,7 +45,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev pkg-config
+          sudo apt-get install -y libgtk-3-dev pkg-config libwebkit2gtk-4.1-dev || sudo apt-get install -y libgtk-3-dev pkg-config libwebkit2gtk-4.0-dev
 
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
@@ -67,7 +67,7 @@ jobs:
           wails build -platform ${{ matrix.goos }}/${{ matrix.goarch }}
           go build -ldflags="-s -w" -o build/bin/vl ./cmd/vl
 
-      - name: Package Distribution Bundle
+      - name: Package Distribution Bundle (.tar.gz & .deb)
         run: |
           mkdir -p dist/${{ matrix.pkg_name }}
           cp -r build/bin/* dist/${{ matrix.pkg_name }}/
@@ -80,9 +80,16 @@ jobs:
           tar -czvf ${{ matrix.pkg_name }}.tar.gz ${{ matrix.pkg_name }}
           cd ..
 
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            chmod +x scripts/package_deb.sh
+            ./scripts/package_deb.sh
+          fi
+
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.tar.gz
+          files: |
+            dist/*.tar.gz
+            dist/*.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

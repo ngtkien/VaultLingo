@@ -1,0 +1,20 @@
+pkgbase = vaultlingo
+	pkgdesc = Daily AI English & Obsidian Vault Sync (Source build)
+	pkgver = 0.1.4
+	pkgrel = 1
+	url = https://github.com/ngtkien/VaultLingo
+	arch = x86_64
+	license = MIT
+	makedepends = go
+	makedepends = nodejs
+	makedepends = npm
+	depends = gtk3
+	depends = webkit2gtk-4.1
+	optdepends = obsidian: For markdown vault note sync
+	provides = vaultlingo
+	provides = vl
+	conflicts = vaultlingo-bin
+	source = vaultlingo-0.1.4.tar.gz::https://github.com/ngtkien/VaultLingo/archive/refs/tags/v0.1.4.tar.gz
+	sha256sums = SKIP
+
+pkgname = vaultlingo
