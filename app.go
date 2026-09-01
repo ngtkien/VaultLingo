@@ -45,6 +45,10 @@ func (a *App) StopAudio() {
 	backend.StopAudio()
 }
 
+func (a *App) GetVoicesList() []backend.VoiceOption {
+	return backend.GetVoicesList()
+}
+
 // Vocab Methods
 func (a *App) GetDailyVocab(topic string, count int) ([]backend.Word, error) {
 	return backend.GetDailyVocab(topic, count)

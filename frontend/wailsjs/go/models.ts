@@ -14,6 +14,10 @@ export namespace backend {
 	    ollama_model: string;
 	    auto_play_audio: boolean;
 	    default_audio_speed: number;
+	    tts_provider: string;
+	    tts_voice: string;
+	    piper_path?: string;
+	    piper_model_path?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Config(source);
@@ -34,6 +38,10 @@ export namespace backend {
 	        this.ollama_model = source["ollama_model"];
 	        this.auto_play_audio = source["auto_play_audio"];
 	        this.default_audio_speed = source["default_audio_speed"];
+	        this.tts_provider = source["tts_provider"];
+	        this.tts_voice = source["tts_voice"];
+	        this.piper_path = source["piper_path"];
+	        this.piper_model_path = source["piper_model_path"];
 	    }
 	}
 	export class Dictation {
@@ -345,6 +353,30 @@ export namespace backend {
 	        this.correct_sentence = source["correct_sentence"];
 	        this.explanation = source["explanation"];
 	        this.tip = source["tip"];
+	    }
+	}
+	export class VoiceOption {
+	    id: string;
+	    name: string;
+	    locale: string;
+	    country: string;
+	    flag: string;
+	    gender: string;
+	    description: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new VoiceOption(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.locale = source["locale"];
+	        this.country = source["country"];
+	        this.flag = source["flag"];
+	        this.gender = source["gender"];
+	        this.description = source["description"];
 	    }
 	}
 	export class Word {

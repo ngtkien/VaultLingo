@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { GetConfig, SaveConfig, GetSavedObsidianVocab } from '../../../wailsjs/go/main/App.js';
-  import { Save, Check, Folder, Key, Cpu, Volume2, ShieldCheck, Sparkles, ExternalLink, Zap, Lock, Info, Bot } from 'lucide-svelte';
+  import { GetConfig, SaveConfig, GetSavedObsidianVocab, GetVoicesList, PlayTTS } from '../../../wailsjs/go/main/App.js';
+  import { Save, Check, Folder, Key, Cpu, Volume2, ShieldCheck, Sparkles, ExternalLink, Zap, Lock, Info, Bot, Play, Square, Radio, Mic } from 'lucide-svelte';
 
   let config = $state<any>({
     obsidian_vault_path: '',
@@ -15,11 +15,17 @@
     ollama_url: 'http://localhost:11434',
     ollama_model: 'llama3:latest',
     auto_play_audio: true,
-    default_audio_speed: 1.0
+    default_audio_speed: 1.0,
+    tts_provider: 'edge',
+    tts_voice: 'en-US-JennyNeural',
+    piper_path: '',
+    piper_model_path: ''
   });
 
+  let voices = $state<any[]>([]);
   let savedMessage = $state(false);
   let saving = $state(false);
+  let isTestingVoice = $state(false);
 
   const AGY_MODEL_PRESETS = [
     { id: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash (Recommended)' },
@@ -37,8 +43,21 @@
   async function loadConfig() {
     try {
       config = await GetConfig();
+      if (!config.tts_provider) config.tts_provider = 'edge';
+      if (!config.tts_voice) config.tts_voice = 'en-US-JennyNeural';
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  async function loadVoices() {
+    try {
+      const list = await GetVoicesList();
+      if (list && list.length > 0) {
+        voices = list;
+      }
+    } catch (e) {
+      console.error('Failed to load voice list:', e);
     }
   }
 
@@ -57,15 +76,34 @@
     }
   }
 
+  async function handleTestVoice() {
+    if (isTestingVoice) return;
+    isTestingVoice = true;
+    try {
+      // Temporarily save config to ensure test uses current selected voice
+      await SaveConfig(config);
+      const testSentence = "Hello! I am your AI English pronunciation assistant in VaultLingo.";
+      await PlayTTS(testSentence, config.default_audio_speed || 1.0);
+    } catch (e) {
+      console.error('Voice test error:', e);
+    } finally {
+      setTimeout(() => {
+        isTestingVoice = false;
+      }, 2500);
+    }
+  }
+
   async function handleExportBackup() {
     try {
       const items = await GetSavedObsidianVocab();
       const backupData = {
         app: 'VaultLingo',
-        version: '0.1.3',
+        version: '0.1.4',
         export_date: new Date().toISOString(),
         config: {
           ai_provider: config.ai_provider,
+          tts_provider: config.tts_provider,
+          tts_voice: config.tts_voice,
           default_audio_speed: config.default_audio_speed
         },
         saved_vocabulary: items || []
@@ -97,7 +135,11 @@
         ollama_url: 'http://localhost:11434',
         ollama_model: 'llama3:latest',
         auto_play_audio: true,
-        default_audio_speed: 1.0
+        default_audio_speed: 1.0,
+        tts_provider: 'edge',
+        tts_voice: 'en-US-JennyNeural',
+        piper_path: '',
+        piper_model_path: ''
       };
       handleSave();
       window.location.reload();
@@ -106,16 +148,17 @@
 
   onMount(() => {
     loadConfig();
+    loadVoices();
   });
 </script>
 
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="max-w-3xl mx-auto space-y-6 pb-12">
   <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl shadow-xl space-y-6">
     <!-- Header -->
     <div class="flex items-center justify-between border-b border-slate-800 pb-4">
       <div>
         <h3 class="text-xl font-bold text-slate-100">Settings & Preferences</h3>
-        <p class="text-xs text-slate-400">Configure your Obsidian Vault path, AI provider, and audio options</p>
+        <p class="text-xs text-slate-400">Configure your Obsidian Vault path, AI provider, and Neural Speech Voices</p>
       </div>
 
       <button
@@ -159,8 +202,182 @@
       </div>
     </div>
 
+    <!-- Speech & TTS Voice Engine (New Feature) -->
+    <div class="space-y-4 border-t border-slate-800 pt-5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-sm font-bold text-amber-400">
+          <Volume2 class="w-4 h-4" />
+          <span>Speech & TTS Voice Engine</span>
+        </div>
+
+        <!-- Live Voice Test Button -->
+        <button
+          onclick={handleTestVoice}
+          disabled={isTestingVoice}
+          class="px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer active:scale-95"
+        >
+          {#if isTestingVoice}
+            <span class="animate-pulse flex items-center gap-1.5">
+              <Radio class="w-3.5 h-3.5 text-amber-400 animate-spin" />
+              <span>Playing Sample...</span>
+            </span>
+          {:else}
+            <Play class="w-3.5 h-3.5" />
+            <span>Test Voice 🔊</span>
+          {/if}
+        </button>
+      </div>
+
+      <!-- TTS Provider Selector -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <!-- Edge Neural TTS -->
+        <button
+          onclick={() => config.tts_provider = 'edge'}
+          class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
+            config.tts_provider === 'edge'
+              ? 'bg-amber-600/20 border-amber-500 text-amber-300 ring-1 ring-amber-500/40'
+              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+          }`}
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold">Edge Neural AI ⭐</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300">Free AI</span>
+          </div>
+          <div class="text-xs opacity-75">Ultra-natural US/UK/AU human voices</div>
+        </button>
+
+        <!-- Piper TTS (Offline) -->
+        <button
+          onclick={() => config.tts_provider = 'piper'}
+          class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
+            config.tts_provider === 'piper'
+              ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40'
+              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+          }`}
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold">Piper TTS 🦙</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300">Offline</span>
+          </div>
+          <div class="text-xs opacity-75">100% on-device neural model</div>
+        </button>
+
+        <!-- Google Translate TTS (Legacy) -->
+        <button
+          onclick={() => config.tts_provider = 'google'}
+          class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
+            config.tts_provider === 'google'
+              ? 'bg-blue-600/20 border-blue-500 text-blue-300 ring-1 ring-blue-500/40'
+              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+          }`}
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold">Google TTS 🤖</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-300">Basic</span>
+          </div>
+          <div class="text-xs opacity-75">Standard fallback voice</div>
+        </button>
+      </div>
+
+      <!-- Edge TTS Voice Selector Grid -->
+      {#if config.tts_provider === 'edge'}
+        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-amber-300 font-bold flex items-center gap-1.5">
+              <Mic class="w-4 h-4 text-amber-400" />
+              <span>Select Neural Voice:</span>
+            </span>
+            <span class="text-[11px] text-slate-400">Zero API Key Needed • Cached Locally</span>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-2.5">
+            {#each (voices.length > 0 ? voices : [
+              { id: 'en-US-JennyNeural', name: 'Jenny (US)', flag: '🇺🇸', gender: 'Female', description: 'Warm, natural American female voice (Recommended)' },
+              { id: 'en-US-GuyNeural', name: 'Guy (US)', flag: '🇺🇸', gender: 'Male', description: 'Deep, clear & professional American male voice' },
+              { id: 'en-US-AriaNeural', name: 'Aria (US)', flag: '🇺🇸', gender: 'Female', description: 'Expressive & articulate American female voice' },
+              { id: 'en-GB-SoniaNeural', name: 'Sonia (UK)', flag: '🇬🇧', gender: 'Female', description: 'Standard British RP female voice' },
+              { id: 'en-GB-RyanNeural', name: 'Ryan (UK)', flag: '🇬🇧', gender: 'Male', description: 'Crisp & polite British RP male voice' },
+              { id: 'en-AU-NatashaNeural', name: 'Natasha (AU)', flag: '🇦🇺', gender: 'Female', description: 'Friendly Australian English female voice' }
+            ]) as v}
+              <button
+                onclick={() => config.tts_voice = v.id}
+                class={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-3 ${
+                  config.tts_voice === v.id
+                    ? 'bg-amber-500/15 border-amber-500/80 text-slate-100 ring-1 ring-amber-500/40'
+                    : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                }`}
+              >
+                <span class="text-2xl shrink-0 mt-0.5">{v.flag}</span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-200">{v.name}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-medium">{v.gender}</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-1 line-clamp-1">{v.description}</p>
+                </div>
+              </button>
+            {/each}
+          </div>
+        </div>
+
+      {:else if config.tts_provider === 'piper'}
+        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-emerald-300 font-bold flex items-center gap-1.5">
+              <Bot class="w-4 h-4 text-emerald-400" />
+              <span>Piper Offline TTS Configuration:</span>
+            </span>
+            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[11px]">100% Offline</span>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="space-y-1">
+              <span class="text-slate-300 font-semibold">Piper Binary Path (defaults to system PATH):</span>
+              <input
+                type="text"
+                bind:value={config.piper_path}
+                placeholder="/usr/bin/piper (or leave blank to auto-detect)"
+                class="w-full bg-slate-900 border border-slate-700/80 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-xs text-slate-100 font-mono"
+              />
+            </div>
+            <div class="space-y-1">
+              <span class="text-slate-300 font-semibold">Piper ONNX Voice Model Path (.onnx):</span>
+              <input
+                type="text"
+                bind:value={config.piper_model_path}
+                placeholder="~/.local/share/piper/en_US-lessac-medium.onnx"
+                class="w-full bg-slate-900 border border-slate-700/80 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-xs text-slate-100 font-mono"
+              />
+            </div>
+          </div>
+        </div>
+      {/if}
+
+      <!-- Speech Speed Selector -->
+      <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+        <div>
+          <span class="text-xs font-semibold text-slate-200 block">Default Pronunciation Speed:</span>
+          <span class="text-[11px] text-slate-400">Controls speech rate across Flashcards, Dictation & Gym</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          {#each [0.75, 0.85, 1.0, 1.15] as spd}
+            <button
+              onclick={() => config.default_audio_speed = spd}
+              class={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition cursor-pointer ${
+                config.default_audio_speed === spd
+                  ? 'bg-amber-500 text-slate-950'
+                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {spd}x
+            </button>
+          {/each}
+        </div>
+      </div>
+    </div>
+
     <!-- Obsidian Vault Settings -->
-    <div class="space-y-3">
+    <div class="space-y-3 border-t border-slate-800 pt-5">
       <div class="flex items-center gap-2 text-sm font-bold text-purple-400">
         <Folder class="w-4 h-4" />
         <span>Obsidian Vault Directory</span>
@@ -431,32 +648,6 @@
           </div>
         </div>
       {/if}
-    </div>
-
-    <!-- Audio Playback Settings -->
-    <div class="space-y-3 border-t border-slate-800 pt-5">
-      <div class="flex items-center gap-2 text-sm font-bold text-amber-400">
-        <Volume2 class="w-4 h-4" />
-        <span>Audio Playback Settings</span>
-      </div>
-
-      <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-        <span class="text-xs text-slate-300">Default Pronunciation Speed:</span>
-        <div class="flex items-center gap-1.5">
-          {#each [0.75, 0.85, 1.0] as spd}
-            <button
-              onclick={() => config.default_audio_speed = spd}
-              class={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition cursor-pointer ${
-                config.default_audio_speed === spd
-                  ? 'bg-amber-500 text-slate-950'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {spd}x
-            </button>
-          {/each}
-        </div>
-      </div>
     </div>
 
     <!-- Data Safety, Backup & Factory Reset -->

@@ -66,6 +66,10 @@ export function GetSavedObsidianVocab() {
   return window['go']['main']['App']['GetSavedObsidianVocab']();
 }
 
+export function GetVoicesList() {
+  return window['go']['main']['App']['GetVoicesList']();
+}
+
 export function GetWritingPrompt(arg1) {
   return window['go']['main']['App']['GetWritingPrompt'](arg1);
 }

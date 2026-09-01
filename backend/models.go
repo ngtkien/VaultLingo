@@ -144,6 +144,10 @@ type Config struct {
 	OllamaModel       string  `json:"ollama_model"`
 	AutoPlayAudio     bool    `json:"auto_play_audio"`
 	DefaultAudioSpeed float64 `json:"default_audio_speed"`
+	TTSProvider       string  `json:"tts_provider"` // "edge", "piper", "google"
+	TTSVoice          string  `json:"tts_voice"`    // e.g. "en-US-JennyNeural"
+	PiperPath         string  `json:"piper_path,omitempty"`
+	PiperModelPath    string  `json:"piper_model_path,omitempty"`
 }
 
 type DiffToken struct {

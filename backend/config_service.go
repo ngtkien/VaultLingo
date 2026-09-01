@@ -28,6 +28,8 @@ func LoadConfig() Config {
 		OllamaModel:       "llama3:latest",
 		AutoPlayAudio:     true,
 		DefaultAudioSpeed: 1.0,
+		TTSProvider:       "edge",
+		TTSVoice:          "en-US-JennyNeural",
 	}
 
 	configPath := GetConfigPath()
@@ -58,6 +60,12 @@ func LoadConfig() Config {
 	}
 	if cfg.OllamaUrl == "" {
 		cfg.OllamaUrl = "http://localhost:11434"
+	}
+	if cfg.TTSProvider == "" {
+		cfg.TTSProvider = "edge"
+	}
+	if cfg.TTSVoice == "" {
+		cfg.TTSVoice = "en-US-JennyNeural"
 	}
 
 	return cfg

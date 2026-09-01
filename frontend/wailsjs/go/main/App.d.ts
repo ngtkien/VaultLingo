@@ -34,6 +34,8 @@ export function GetQuickQuiz():Promise<backend.Quiz>;
 
 export function GetSavedObsidianVocab():Promise<Array<backend.ObsidianItem>>;
 
+export function GetVoicesList():Promise<Array<backend.VoiceOption>>;
+
 export function GetWritingPrompt(arg1:string):Promise<backend.WritingPrompt>;
 
 export function Greet(arg1:string):Promise<string>;
