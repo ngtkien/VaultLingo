@@ -1,6 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { GetDictationSentence, GetDictationSentenceWithExclude, CheckDictation, GetDictationCategories } from '../../../wailsjs/go/main/App.js';
+  import { 
+    GetDictationSentenceFiltered, 
+    CheckDictation, 
+    GetDictationCategories, 
+    GetDictationLevels 
+  } from '../../../wailsjs/go/main/App.js';
   import { playTTS, stopAudio } from '../utils/audio';
   import { 
     Volume2, 
@@ -15,7 +20,8 @@
     ChevronDown, 
     Check, 
     Layers,
-    FolderKanban
+    FolderKanban,
+    GraduationCap
   } from 'lucide-svelte';
 
   interface CategoryInfo {
@@ -24,8 +30,23 @@
     count: number;
   }
 
+  interface LevelInfo {
+    level: string;
+    level_color: string;
+    count: number;
+  }
+
+  const CEFR_LEVEL_GROUPS = [
+    { id: 'all', label: 'All Levels', icon: '🌟', desc: 'Any difficulty', color: 'from-blue-500/20 to-indigo-500/20 text-blue-300 border-blue-500/30' },
+    { id: 'A2', label: 'A2 Basic', icon: '🌱', desc: 'Everyday Daily English', color: 'from-emerald-500/20 to-teal-500/20 text-emerald-300 border-emerald-500/30' },
+    { id: 'B1', label: 'B1 Intermediate', icon: '🌿', desc: 'Workplace & Conversations', color: 'from-cyan-500/20 to-blue-500/20 text-cyan-300 border-cyan-500/30' },
+    { id: 'B2', label: 'B2 Advanced', icon: '🚀', desc: 'IELTS, Tech & Academic', color: 'from-purple-500/20 to-amber-500/20 text-purple-300 border-purple-500/30' }
+  ];
+
   let categories = $state<CategoryInfo[]>([]);
+  let levels = $state<LevelInfo[]>([]);
   let selectedCategory = $state<string>('all');
+  let selectedLevel = $state<string>('all');
   let dictation = $state<any>(null);
   let userInput = $state('');
   let checked = $state(false);
@@ -33,26 +54,29 @@
   let showHint = $state(false);
   let loading = $state(false);
   let isAudioPlaying = $state(false);
-  let isDropdownOpen = $state(false);
+  let isCategoryDropdownOpen = $state(false);
+  let isLevelDropdownOpen = $state(false);
   let seenIds = $state<number[]>([]);
   let topicSearch = $state('');
 
-  async function loadCategories() {
+  async function loadMetadata() {
     try {
-      const res = await GetDictationCategories();
-      if (res && res.length > 0) {
-        categories = res;
-      }
+      const [cats, lvls] = await Promise.all([
+        GetDictationCategories(),
+        GetDictationLevels()
+      ]);
+      if (cats && cats.length > 0) categories = cats;
+      if (lvls && lvls.length > 0) levels = lvls;
     } catch (e) {
-      console.error('Failed to load dictation categories:', e);
+      console.error('Failed to load dictation metadata:', e);
     }
   }
 
-  async function loadSentence(category = selectedCategory) {
+  async function loadSentence(category = selectedCategory, level = selectedLevel) {
     loading = true;
     try {
-      // Exclude recently seen IDs in this category to prevent repeating
-      const sentence = await GetDictationSentenceWithExclude(category, seenIds);
+      // Exclude recently seen IDs in this category & level to prevent repeating
+      const sentence = await GetDictationSentenceFiltered(category, level, seenIds);
       dictation = sentence;
       if (sentence?.id) {
         if (!seenIds.includes(sentence.id)) {
@@ -75,9 +99,18 @@
       selectedCategory = cat;
       seenIds = []; // reset seen queue when switching topic
     }
-    isDropdownOpen = false;
+    isCategoryDropdownOpen = false;
     topicSearch = '';
-    loadSentence(cat);
+    loadSentence(cat, selectedLevel);
+  }
+
+  function handleSelectLevel(lvl: string) {
+    if (selectedLevel !== lvl) {
+      selectedLevel = lvl;
+      seenIds = []; // reset seen queue when switching level
+    }
+    isLevelDropdownOpen = false;
+    loadSentence(selectedCategory, lvl);
   }
 
   function playAudio(slow = false) {
@@ -98,13 +131,19 @@
     }
   }
 
-  // Active category display metadata
+  // Active metadata derivations
   let activeCategoryInfo = $derived(() => {
     if (selectedCategory === 'all') {
       return { category: 'All Topics', category_icon: '🌟', count: categories.reduce((acc, c) => acc + c.count, 0) };
     }
     const found = categories.find(c => c.category === selectedCategory);
     return found || { category: selectedCategory, category_icon: '🎧', count: 0 };
+  });
+
+  let activeLevelInfo = $derived(() => {
+    const found = CEFR_LEVEL_GROUPS.find(l => l.id === selectedLevel);
+    if (found) return found;
+    return { id: selectedLevel, label: selectedLevel, icon: '🎯', desc: selectedLevel, color: 'text-slate-300' };
   });
 
   let filteredCategories = $derived(() => {
@@ -114,53 +153,95 @@
   });
 
   onMount(async () => {
-    await loadCategories();
-    loadSentence('all');
+    await loadMetadata();
+    loadSentence('all', 'all');
   });
 </script>
 
 <svelte:window onclick={(e) => {
   const target = e.target as HTMLElement;
   if (!target.closest('.category-dropdown-container')) {
-    isDropdownOpen = false;
+    isCategoryDropdownOpen = false;
+  }
+  if (!target.closest('.level-dropdown-container')) {
+    isLevelDropdownOpen = false;
   }
 }} />
 
 <div class="max-w-3xl mx-auto space-y-6">
-  <!-- Topic Selection Bar with explicit z-index -->
-  <div class="relative z-30 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg backdrop-blur-md space-y-3">
+  <!-- Top Practice Filters Bar -->
+  <div class="relative z-30 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg backdrop-blur-md space-y-4">
+    <!-- Level Selector Bar -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-xs font-bold text-slate-300">
+          <GraduationCap class="w-4 h-4 text-emerald-400" />
+          <span>Difficulty Level (CEFR):</span>
+        </div>
+        <span class="text-[11px] text-slate-400 font-mono">
+          Current: <strong class="text-emerald-400">{activeLevelInfo().label}</strong>
+        </span>
+      </div>
+
+      <!-- CEFR Level Pills Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {#each CEFR_LEVEL_GROUPS as lvl}
+          <button
+            onclick={() => handleSelectLevel(lvl.id)}
+            class={`p-2.5 rounded-xl border text-left transition cursor-pointer flex items-center gap-2.5 ${
+              selectedLevel === lvl.id
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 border-emerald-400 text-white font-bold shadow-md shadow-emerald-500/25 ring-1 ring-emerald-400/50'
+                : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+            }`}
+          >
+            <span class="text-lg shrink-0">{lvl.icon}</span>
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-bold truncate leading-tight">{lvl.label}</div>
+              <div class={`text-[10px] truncate opacity-75 ${selectedLevel === lvl.id ? 'text-white' : 'text-slate-500'}`}>
+                {lvl.desc}
+              </div>
+            </div>
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="h-px bg-slate-800/80"></div>
+
+    <!-- Practice Topic Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-          <Filter class="w-4 h-4" />
+        <div class="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+          <Filter class="w-3.5 h-3.5" />
         </div>
         <div>
-          <h2 class="text-sm font-bold text-slate-200">Practice Topics</h2>
-          <p class="text-xs text-slate-400">Filter listening sentences by specialized topics</p>
+          <span class="text-xs font-bold text-slate-300 block">Topic Domain:</span>
+          <span class="text-[11px] text-slate-400">Filter by conversational context</span>
         </div>
       </div>
 
       <!-- Dropdown Selector -->
       <div class="relative category-dropdown-container">
         <button
-          onclick={() => isDropdownOpen = !isDropdownOpen}
+          onclick={() => isCategoryDropdownOpen = !isCategoryDropdownOpen}
           class="w-full sm:w-64 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700/80 hover:border-slate-600 text-slate-200 text-xs font-semibold flex items-center justify-between transition cursor-pointer shadow-inner"
         >
           <div class="flex items-center gap-2 truncate">
             <span>{activeCategoryInfo().category_icon}</span>
             <span class="truncate">{activeCategoryInfo().category}</span>
           </div>
-          <ChevronDown class={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown class={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
         </button>
 
-        {#if isDropdownOpen}
+        {#if isCategoryDropdownOpen}
           <div class="absolute right-0 top-full mt-2 w-80 max-h-80 overflow-y-auto bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl shadow-black/90 z-50 p-2 backdrop-blur-xl space-y-1 ring-1 ring-slate-700/50">
             <!-- Search input inside dropdown -->
             <div class="px-1 pb-1">
               <input
                 type="text"
                 bind:value={topicSearch}
-                placeholder="Search topics (e.g. IELTS, Food)..."
+                placeholder="Search topics (e.g. IELTS, Tech, Food)..."
                 class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 text-xs outline-none focus:border-blue-500 transition"
               />
             </div>
@@ -221,43 +302,15 @@
         {/if}
       </div>
     </div>
-
-    <!-- Quick Pill Badges for Fast Switching -->
-    <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar text-xs">
-      <button
-        onclick={() => handleSelectCategory('all')}
-        class={`px-3 py-1.5 rounded-xl whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 font-medium text-xs ${
-          selectedCategory === 'all'
-            ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-            : 'bg-slate-950/70 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800'
-        }`}
-      >
-        <span>🌟 All Topics</span>
-      </button>
-
-      {#each categories as cat}
-        <button
-          onclick={() => handleSelectCategory(cat.category)}
-          class={`px-3 py-1.5 rounded-xl whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 font-medium text-xs ${
-            selectedCategory === cat.category
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-              : 'bg-slate-950/70 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800'
-          }`}
-        >
-          <span>{cat.category_icon}</span>
-          <span>{cat.category}</span>
-        </button>
-      {/each}
-    </div>
   </div>
 
   {#if loading}
     <div class="flex flex-col items-center justify-center py-20 text-slate-400 space-y-3">
-      <RefreshCw class="w-8 h-8 animate-spin text-blue-500" />
-      <p class="text-sm font-medium">Loading dictation sentence...</p>
+      <RefreshCw class="w-8 h-8 animate-spin text-emerald-500" />
+      <p class="text-sm font-medium">Loading {activeLevelInfo().label} dictation sentence...</p>
     </div>
   {:else if dictation}
-    <!-- Header Card -->
+    <!-- Dictation Main Practice Card -->
     <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-md shadow-xl space-y-6">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -266,16 +319,23 @@
             <div class="flex items-center gap-2">
               <h3 class="text-lg font-bold text-slate-100">{dictation.category}</h3>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              {dictation.level}
-            </span>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                {dictation.level}
+              </span>
+              {#if selectedLevel !== 'all'}
+                <span class="text-[11px] text-slate-400 font-mono">
+                  (Filtered by {selectedLevel})
+                </span>
+              {/if}
+            </div>
           </div>
         </div>
 
         <button
-          onclick={() => loadSentence(selectedCategory)}
+          onclick={() => loadSentence(selectedCategory, selectedLevel)}
           class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-sm active:scale-95"
-          title="Load next sentence in current topic"
+          title="Load next sentence with current filters"
         >
           <RefreshCw class="w-3.5 h-3.5" />
           <span>Next Sentence</span>
@@ -287,7 +347,7 @@
         <div class="flex items-center gap-4">
           <button
             onclick={() => playAudio(false)}
-            class="px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-blue-500/30 active:scale-95 transition cursor-pointer"
+            class="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-emerald-500/30 active:scale-95 transition cursor-pointer"
           >
             <Volume2 class={`w-5 h-5 ${isAudioPlaying ? 'animate-bounce' : ''}`} />
             <span>Play Audio (1.0x)</span>
@@ -302,7 +362,7 @@
         </div>
 
         <p class="text-xs text-slate-400">
-          Listen carefully to the audio and type exactly what you hear below 👇
+          Listen carefully to the neural pronunciation and transcribe what you hear below 👇
         </p>
       </div>
 
@@ -319,7 +379,7 @@
             }}
             placeholder="Type the sentence you hear..."
             rows="3"
-            class="w-full bg-slate-950 border border-slate-700/80 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-2xl p-4 text-base text-slate-100 placeholder-slate-500 outline-none transition resize-none leading-relaxed"
+            class="w-full bg-slate-950 border border-slate-700/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl p-4 text-base text-slate-100 placeholder-slate-500 outline-none transition resize-none leading-relaxed font-sans"
           ></textarea>
         </div>
 
@@ -340,7 +400,7 @@
           <button
             onclick={handleCheck}
             disabled={!userInput.trim()}
-            class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white font-bold text-sm transition shadow-lg shadow-blue-500/25 active:scale-95 cursor-pointer"
+            class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-bold text-sm transition shadow-lg shadow-emerald-500/25 active:scale-95 cursor-pointer"
           >
             Check Dictation (Enter)
           </button>

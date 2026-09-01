@@ -68,6 +68,12 @@ type DictationCategoryInfo struct {
 	Count        int    `json:"count"`
 }
 
+type DictationLevelInfo struct {
+	Level      string `json:"level"`
+	LevelColor string `json:"level_color"`
+	Count      int    `json:"count"`
+}
+
 type GrammarDrill struct {
 	ID             int      `json:"id"`
 	Type           string   `json:"type"` // "question_form", "tense_shift", "tag_question", "indirect"

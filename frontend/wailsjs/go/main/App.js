@@ -38,8 +38,16 @@ export function GetDictationCategories() {
   return window['go']['main']['App']['GetDictationCategories']();
 }
 
+export function GetDictationLevels() {
+  return window['go']['main']['App']['GetDictationLevels']();
+}
+
 export function GetDictationSentence(arg1) {
   return window['go']['main']['App']['GetDictationSentence'](arg1);
+}
+
+export function GetDictationSentenceFiltered(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GetDictationSentenceFiltered'](arg1, arg2, arg3);
 }
 
 export function GetDictationSentenceWithExclude(arg1, arg2) {

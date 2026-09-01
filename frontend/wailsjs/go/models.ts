@@ -86,6 +86,22 @@ export namespace backend {
 	        this.count = source["count"];
 	    }
 	}
+	export class DictationLevelInfo {
+	    level: string;
+	    level_color: string;
+	    count: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new DictationLevelInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.level = source["level"];
+	        this.level_color = source["level_color"];
+	        this.count = source["count"];
+	    }
+	}
 	export class DiffToken {
 	    type: string;
 	    word: string;

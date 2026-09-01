@@ -75,12 +75,20 @@ func (a *App) GetDictationCategories() ([]backend.DictationCategoryInfo, error) 
 	return backend.GetDictationCategories()
 }
 
+func (a *App) GetDictationLevels() ([]backend.DictationLevelInfo, error) {
+	return backend.GetDictationLevels()
+}
+
 func (a *App) GetDictationSentence(category string) (backend.Dictation, error) {
 	return backend.GetDictationSentence(category)
 }
 
 func (a *App) GetDictationSentenceWithExclude(category string, excludeIDs []int) (backend.Dictation, error) {
 	return backend.GetDictationSentenceWithExclude(category, excludeIDs)
+}
+
+func (a *App) GetDictationSentenceFiltered(category string, level string, excludeIDs []int) (backend.Dictation, error) {
+	return backend.GetDictationSentenceFiltered(category, level, excludeIDs)
 }
 
 func (a *App) CheckDictation(targetSentence, userInput string) backend.DictationResult {

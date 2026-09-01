@@ -7,7 +7,8 @@ import (
 	"strings"
 )
 
-func GetDictationSentenceWithExclude(category string, excludeIDs []int) (Dictation, error) {
+// GetDictationSentenceFiltered retrieves a random dictation sentence filtered by category, level, and excluded IDs
+func GetDictationSentenceFiltered(category string, level string, excludeIDs []int) (Dictation, error) {
 	var d Dictation
 	var conditions []string
 	var args []interface{}
@@ -15,6 +16,16 @@ func GetDictationSentenceWithExclude(category string, excludeIDs []int) (Dictati
 	if category != "" && category != "all" {
 		conditions = append(conditions, "category = ?")
 		args = append(args, category)
+	}
+
+	if level != "" && level != "all" {
+		if level == "A2" || level == "B1" || level == "B2" || level == "C1" {
+			conditions = append(conditions, "level LIKE ?")
+			args = append(args, level+"%")
+		} else {
+			conditions = append(conditions, "level = ?")
+			args = append(args, level)
+		}
 	}
 
 	if len(excludeIDs) > 0 {
@@ -46,7 +57,7 @@ func GetDictationSentenceWithExclude(category string, excludeIDs []int) (Dictati
 
 	// If no row found due to exclusion, fallback to without exclusion (reset cycle)
 	if err != nil && len(excludeIDs) > 0 {
-		return GetDictationSentenceWithExclude(category, nil)
+		return GetDictationSentenceFiltered(category, level, nil)
 	}
 
 	if err != nil {
@@ -64,8 +75,12 @@ func GetDictationSentenceWithExclude(category string, excludeIDs []int) (Dictati
 	return d, nil
 }
 
+func GetDictationSentenceWithExclude(category string, excludeIDs []int) (Dictation, error) {
+	return GetDictationSentenceFiltered(category, "all", excludeIDs)
+}
+
 func GetDictationSentence(category string) (Dictation, error) {
-	return GetDictationSentenceWithExclude(category, nil)
+	return GetDictationSentenceFiltered(category, "all", nil)
 }
 
 func GetDictationCategories() ([]DictationCategoryInfo, error) {
@@ -89,6 +104,29 @@ func GetDictationCategories() ([]DictationCategoryInfo, error) {
 		}
 	}
 	return categories, nil
+}
+
+func GetDictationLevels() ([]DictationLevelInfo, error) {
+	rows, err := DB.Query(`
+		SELECT level, COALESCE(level_color, '#4caf50'), COUNT(*) as count 
+		FROM dictations 
+		WHERE level IS NOT NULL AND level != ''
+		GROUP BY level 
+		ORDER BY level ASC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var levels []DictationLevelInfo
+	for rows.Next() {
+		var lvl DictationLevelInfo
+		if err := rows.Scan(&lvl.Level, &lvl.LevelColor, &lvl.Count); err == nil {
+			levels = append(levels, lvl)
+		}
+	}
+	return levels, nil
 }
 
 func cleanWord(w string) string {

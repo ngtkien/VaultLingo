@@ -79,3 +79,43 @@ func TestCheckDictation_EmptyInput(t *testing.T) {
 		t.Errorf("expected passed false for empty input")
 	}
 }
+
+func TestGetDictationLevels(t *testing.T) {
+	_, err := InitDB()
+	if err != nil {
+		t.Fatalf("InitDB failed: %v", err)
+	}
+
+	levels, err := GetDictationLevels()
+	if err != nil {
+		t.Fatalf("GetDictationLevels failed: %v", err)
+	}
+	if len(levels) == 0 {
+		t.Errorf("expected non-empty levels list")
+	}
+}
+
+func TestGetDictationSentenceFiltered(t *testing.T) {
+	_, err := InitDB()
+	if err != nil {
+		t.Fatalf("InitDB failed: %v", err)
+	}
+
+	// Test filtering by A2
+	d, err := GetDictationSentenceFiltered("all", "A2", nil)
+	if err != nil {
+		t.Fatalf("GetDictationSentenceFiltered A2 failed: %v", err)
+	}
+	if d.Sentence == "" {
+		t.Errorf("expected non-empty sentence")
+	}
+
+	// Test filtering by B2
+	d2, err := GetDictationSentenceFiltered("all", "B2", nil)
+	if err != nil {
+		t.Fatalf("GetDictationSentenceFiltered B2 failed: %v", err)
+	}
+	if d2.Sentence == "" {
+		t.Errorf("expected non-empty sentence")
+	}
+}

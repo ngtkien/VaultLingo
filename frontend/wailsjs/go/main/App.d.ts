@@ -20,7 +20,11 @@ export function GetDailyVocab(arg1:string,arg2:number):Promise<Array<backend.Wor
 
 export function GetDictationCategories():Promise<Array<backend.DictationCategoryInfo>>;
 
+export function GetDictationLevels():Promise<Array<backend.DictationLevelInfo>>;
+
 export function GetDictationSentence(arg1:string):Promise<backend.Dictation>;
+
+export function GetDictationSentenceFiltered(arg1:string,arg2:string,arg3:Array<number>):Promise<backend.Dictation>;
 
 export function GetDictationSentenceWithExclude(arg1:string,arg2:Array<number>):Promise<backend.Dictation>;
 
