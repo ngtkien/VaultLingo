@@ -295,14 +295,28 @@ cursor.execute("""
 
 LISTENING_DATA = [
     (1, "Family", "👨‍👩‍👧", "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-01.mp3", "https://basicenglishspeaking.com/family/", [
-        {"q": "How many people are there in your family?", "a": "There are four people in my family: my father, my mother, my younger sister, and me."},
-        {"q": "Does your family live in a house or an apartment?", "a": "We live in a cozy house with a small garden in the suburbs."},
-        {"q": "What does your father do?", "a": "My father is a civil engineer who designs infrastructure projects."}
+        {"q": "How many people are there in your family?", "a": "There are 5 people in my family: my father, mother, brother, sister, and me."},
+        {"q": "Does your family live in a house or an apartment?", "a": "We live in a house in the countryside."},
+        {"q": "What does your father do?", "a": "My father is a doctor. He works at the local hospital."},
+        {"q": "How old is your mother?", "a": "She is 40 years old, 1 year younger than my father."},
+        {"q": "Do you have any siblings? What’s his/her name?", "a": "Yes, I do. I have 1 elder brother, David, and 1 younger sister, Mary."},
+        {"q": "Are you the oldest amongst your brothers and sisters?", "a": "No, I’m not. I’m the second child in my family."},
+        {"q": "What does your mother/father like?", "a": "My father likes playing football and my mother likes cooking."},
+        {"q": "Do your parents let you stay out late?", "a": "Of course not. They always ask me to get home before 10 pm each night."},
+        {"q": "Do you stay with your parents?", "a": "Right now, no, but I used to."},
+        {"q": "Does your family usually have dinner together?", "a": "Yes, we do. My mom always prepares delicious meals for us."}
     ]),
     (2, "Restaurant", "🍽️", "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-02.mp3", "https://basicenglishspeaking.com/restaurant/", [
-        {"q": "How often do you eat out? Who do you go with?", "a": "I often eat out on weekends with my close friends or colleagues."},
-        {"q": "What restaurant do you usually visit?", "a": "I love visiting a local Italian restaurant known for its handmade pasta and stone-baked pizza."},
-        {"q": "Do you prefer eating at home or eating out?", "a": "I prefer home-cooked meals for health, but dining out is great for socializing."}
+        {"q": "How often do you eat out? Who do you go with?", "a": "I often eat out on weekends, when I hang out with my friends."},
+        {"q": "What restaurant do you usually visit?", "a": "Well, there are not many restaurants in my neighborhood, so my best choice is the deli in convenient stores like the Circle K, Mini-Stop, B-smart."},
+        {"q": "What type of food do you enjoy to eat? Western or Asian?", "a": "I’m interested in Asian food, Western food is not my thing."},
+        {"q": "How much do you usually pay when you eat out?", "a": "It’s not very expensive, just around $5 for each meal."},
+        {"q": "Do you enjoy spicy food?", "a": "Yes, I do, especially on cold days."},
+        {"q": "Are the servers there friendly to you?", "a": "Yes, they are. Most of them are really helpful."},
+        {"q": "Have you ever tried Italian food?", "a": "Yes, at least once, when I was in my friend’s wedding party."},
+        {"q": "Are you concerned about calories when eating out?", "a": "Yes, I am. I’m on diet now, so this really matters to me."},
+        {"q": "Are fast food restaurants like KFC or McDonald’s famous in your country?", "a": "Yes, they are. The youth in my country are big fans of fast food."},
+        {"q": "Do you often drink alcohol when eating out?", "a": "No, not often. Just when I have parties with my friends."}
     ]),
     (3, "Books", "📚", "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-03.mp3", "https://basicenglishspeaking.com/books/", [
         {"q": "How often do you read books?", "a": "I read books every evening before going to bed, usually for about 30 to 45 minutes."},
@@ -315,9 +329,13 @@ LISTENING_DATA = [
         {"q": "What do you usually pack when traveling?", "a": "I pack lightweight clothing, a camera, travel adapters, and my noise-cancelling headphones."}
     ]),
     (58, "Computer", "💻", "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-58.mp3", "https://basicenglishspeaking.com/computer/", [
-        {"q": "Do you have your own computer?", "a": "Yes, I own a personal laptop which is essential for my daily work and study."},
-        {"q": "What do you usually use your computer for?", "a": "I use it for programming, writing documents, researching information online, and occasionally listening to music."},
-        {"q": "How much time do you spend on the computer each day?", "a": "On average, I spend around 6 to 8 hours daily since my career involves software engineering."}
+        {"q": "Do you have your own computer?", "a": "Yes, I owned a personal laptop when I was in university."},
+        {"q": "How often do you use the computer?", "a": "Almost every day. I can’t work without a computer."},
+        {"q": "Have you ever joined any computer class?", "a": "Yes, years ago. I learned about Microsoft Word and Excel."},
+        {"q": "What do you use the computer for?", "a": "You know, I’m an accountant, so managing business records would be much easier for me using a computer."},
+        {"q": "What are some advantages of using the computer?", "a": "With a computer connected to the Internet, we can shop, pay bills or do bank transactions online. Listening to music, watching movies are even more convenient."},
+        {"q": "Do you use other high-tech devices besides computers?", "a": "Yes, apart from a computer, I also use a smartphone."},
+        {"q": "Should children learn how to use the computer?", "a": "Yes, I think so. Children should be given chances to approach the computer but under the control of their parents."}
     ]),
     (5, "Website", "🌐", "https://basicenglishspeaking.com/wp-content/uploads/audio/QA/QA-05.mp3", "https://basicenglishspeaking.com/website/", [
         {"q": "What is your favorite website?", "a": "My favorite website is GitHub because it allows developers worldwide to share and collaborate on open-source code."},
@@ -403,3 +421,13 @@ for table in ["idioms", "quizzes", "dictations", "writing_prompts", "listening_t
     print(f"  • {table}: {count} rows")
 
 conn.close()
+
+import shutil
+for target in [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../backend/data/vocab.db")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/vocab.db"))
+]:
+    if os.path.exists(os.path.dirname(target)):
+        shutil.copy2(DB_PATH, target)
+        print(f"  ✅ Synced updated DB to: {target}")
+
