@@ -18,19 +18,19 @@ html.dark:not(.drawing) {
 }
 
 html.light:not(.drawing) {
-  --bg-main: #f1f5f9;
-  --bg-header: rgba(255, 255, 255, 0.95);
-  --bg-card: #ffffff;
-  --bg-card-hover: #f8fafc;
-  --bg-inner: #f8fafc;
-  --border-main: rgba(0, 0, 0, 0.09);
-  --border-highlight: rgba(0, 0, 0, 0.16);
-  --text-main: #0f172a;
-  --text-muted: #475569;
-  --text-subtle: #64748b;
-  --input-bg: #ffffff;
-  --input-border: #cbd5e1;
-  --nav-bg: #e2e8f0;
+  --bg-main: #faf8f3;
+  --bg-header: rgba(255, 253, 248, 0.96);
+  --bg-card: #fffdf8;
+  --bg-card-hover: #f7f3ea;
+  --bg-inner: #f7f3ea;
+  --border-main: #e5ded1;
+  --border-highlight: #cdc2b1;
+  --text-main: #26343b;
+  --text-muted: #69736d;
+  --text-subtle: #65786c;
+  --input-bg: #fffdf8;
+  --input-border: #ded5c7;
+  --nav-bg: #f1ede4;
 }
 
 /* ==========================================================================
@@ -550,3 +550,120 @@ html.drawing select {
   border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
   opacity: 0.6;
 }
+
+/* Editorial journal shell: a quiet, paper-like reading surface for study. */
+.journal-sidebar { position: fixed; inset: 0 auto 0 0; width: 16.5rem; z-index: 40; flex-direction: column; padding: 2rem 1.25rem; background: #f3efe6; border-right: 1px solid #dfd8ca; color: #26343b; }
+.journal-sidebar::after { content:''; position:absolute; right:.4rem; bottom:4rem; width:9rem; height:7rem; background:url('./assets/images/editorial-quill-watermark.png') center / contain no-repeat; opacity:.10; pointer-events:none; }
+.journal-mobile-header { height: 3.75rem; align-items: center; justify-content: space-between; padding: 0 1rem; background: #f8f5ee; border-bottom: 1px solid #dfd8ca; color: #26343b; }
+.journal-local { display:flex; gap:.6rem; align-items:flex-start; margin:2rem 0 1.5rem; padding:.8rem; border:1px solid #ddd6c8; border-radius:.6rem; color:#47644f; background:#eeeadf; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; }
+.journal-local small { display:block; margin-top:.3rem; color:#66716a; text-transform:none; letter-spacing:0; font-size:.72rem; }
+.journal-nav-label { margin:1.25rem 0 .5rem; color:#777365; font-family:Georgia,serif; font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; }
+.journal-nav { width:100%; display:flex; align-items:center; gap:.75rem; padding:.65rem .7rem; border-radius:.45rem; color:#43515a; font-size:.9rem; text-align:left; cursor:pointer; transition:background .15s,color .15s; }
+.journal-nav:hover { background:#e9e4d9; }.journal-nav-active { background:#e4e6da; color:#234b3b; font-weight:600; }
+@media (min-width: 1024px) { .journal-app-main { margin-left:16.5rem; } }
+@media (min-width: 1024px) { .app-container { margin-left:16.5rem; min-height:100vh; } }
+html.light .app-container { background:#f8f5ee !important; color:#26343b !important; }
+html.light .journal-app-main .bg-slate-900\/60, html.light .journal-app-main .bg-slate-900\/50 { background:#fffdf8 !important; border-color:#dfd8ca !important; }
+
+/* Apply the journal language to the existing learning features without
+   changing their behaviour or data contracts. */
+html.light .app-container main { color:#26343b; }
+html.light .app-container main h1,
+html.light .app-container main h2,
+html.light .app-container main h3,
+html.light .app-container main h4 { color:#26343b; font-family: Georgia, 'Times New Roman', serif; letter-spacing:-.015em; }
+html.light .app-container main [class*='bg-slate-900'],
+html.light .app-container main [class*='bg-slate-950'] { background:#fffdf8 !important; }
+html.light .app-container main [class*='border-slate-8'],
+html.light .app-container main [class*='border-slate-7'] { border-color:#dfd8ca !important; }
+html.light .app-container main .text-cyan-300,
+html.light .app-container main .text-cyan-400 { color:#35694e !important; }
+html.light .app-container main .bg-cyan-500,
+html.light .app-container main .bg-blue-600 { background:#456d52 !important; color:#fffdf8 !important; }
+html.light .app-container main .bg-cyan-500:hover,
+html.light .app-container main .bg-blue-600:hover { background:#355940 !important; }
+html.light .app-container main [class*='rounded-2xl'] { box-shadow:0 8px 24px rgba(72,63,46,.045); }
+html.light .app-container main input,
+html.light .app-container main textarea { background:#fffdf8 !important; border-color:#d8d0c1 !important; color:#26343b !important; }
+
+/* The editorial palette is intentionally quiet: information lives on the page,
+   while colour is reserved for actions and small pieces of metadata. */
+html.light .app-container main {
+  background: #faf8f3;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+html.light .app-container main :is(button, input, textarea, select) {
+  font-family: inherit;
+}
+html.light .app-container main [class*='bg-slate-8'],
+html.light .app-container main [class*='bg-slate-7'],
+html.light .app-container main [class*='bg-slate-6'] {
+  background-color: #f7f3ea !important;
+}
+html.light .app-container main [class*='bg-slate-9'] {
+  background-color: #fffdf8 !important;
+}
+html.light .app-container main [class*='border-slate-'] {
+  border-color: #e5ded1 !important;
+}
+html.light .app-container main [class*='rounded-3xl'] {
+  border-radius: 0.9rem !important;
+}
+html.light .app-container main [class*='rounded-2xl'] {
+  border-radius: 0.75rem !important;
+  box-shadow: none !important;
+}
+html.light .app-container main [class*='rounded-xl'] {
+  border-radius: 0.6rem !important;
+}
+html.light .app-container main [class*='bg-gradient-'] {
+  background-image: none !important;
+  background-color: #f7f3ea !important;
+}
+html.light .app-container main [class*='shadow-'] {
+  box-shadow: none !important;
+}
+html.light .app-container main button:not(.journal-nav) {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+html.light .app-container main button:focus-visible,
+html.light .app-container main input:focus-visible,
+html.light .app-container main textarea:focus-visible {
+  outline: 2px solid #b97942;
+  outline-offset: 2px;
+}
+html.light .app-container main ::selection { background: #e7d69d; color: #26343b; }
+html.light .app-container main :is(button, input, textarea)::placeholder { color: #9a958b; }
+
+/* Forest is the one decisive action colour; amber is an editorial annotation. */
+html.light .app-container main .bg-blue-600,
+html.light .app-container main .bg-blue-500,
+html.light .app-container main .bg-cyan-500 {
+  background-color: #426753 !important;
+  color: #fffdf8 !important;
+}
+html.light .app-container main .bg-blue-600:hover,
+html.light .app-container main .bg-blue-500:hover,
+html.light .app-container main .bg-cyan-500:hover { background-color: #31513f !important; }
+html.light .app-container main .text-blue-400,
+html.light .app-container main .text-cyan-400,
+html.light .app-container main .text-emerald-400 { color: #4b7661 !important; }
+html.light .app-container main .text-amber-300,
+html.light .app-container main .text-amber-400 { color: #b97942 !important; }
+html.light .app-container main .text-violet-300,
+html.light .app-container main .text-violet-400,
+html.light .app-container main .text-purple-400 { color: #806baf !important; }
+html.light .app-container main .text-rose-400,
+html.light .app-container main .text-red-400 { color: #bb6654 !important; }
+html.light .app-container main [class*='bg-amber-'][class*='/'],
+html.light .app-container main [class*='bg-yellow-'][class*='/'] { background-color: #fbf1d7 !important; }
+html.light .app-container main [class*='bg-emerald-'][class*='/'] { background-color: #e8f1e9 !important; }
+html.light .app-container main [class*='bg-violet-'][class*='/'],
+html.light .app-container main [class*='bg-purple-'][class*='/'] { background-color: #f1edf8 !important; }
+html.light .app-container main [class*='bg-rose-'][class*='/'],
+html.light .app-container main [class*='bg-red-'][class*='/'] { background-color: #fbebea !important; }
+
+/* Keep the sub-navigation from reverting to the old neon-blue treatment. */
+html.light .app-container > .border-b { border-color: #e5ded1 !important; background: #fffdf8; }
+html.light .app-container > .border-b button { font-family: Georgia, 'Times New Roman', serif; }
+html.light .app-container > .border-b .border-cyan-400 { border-color: #426753 !important; }

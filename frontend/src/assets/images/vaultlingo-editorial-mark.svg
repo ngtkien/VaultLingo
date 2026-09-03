@@ -1,0 +1,18 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="paper" x1="72" y1="64" x2="440" y2="454" gradientUnits="userSpaceOnUse"><stop stop-color="#FFFDF7"/><stop offset="1" stop-color="#E9E1D2"/></linearGradient>
+    <linearGradient id="wing" x1="160" y1="104" x2="365" y2="372" gradientUnits="userSpaceOnUse"><stop stop-color="#477160"/><stop offset="1" stop-color="#244A3E"/></linearGradient>
+  </defs>
+  <rect x="24" y="24" width="464" height="464" rx="126" fill="url(#paper)"/>
+  <rect x="25" y="25" width="462" height="462" rx="125" stroke="#D9CEBC" stroke-width="2"/>
+  <!-- A restrained Pegasus crest: wing first, horse profile second. -->
+  <path d="M175 365C139 289 151 183 222 106C215 184 240 221 280 239C237 249 205 294 175 365Z" fill="url(#wing)"/>
+  <path d="M189 319C174 254 187 184 215 140M205 327C194 260 209 205 239 167M222 333C217 278 235 235 267 207" stroke="#F8F5EE" stroke-width="12" stroke-linecap="round"/>
+  <path d="M233 198C247 160 270 131 299 112L292 164C337 151 378 169 401 208L375 218C399 238 407 271 390 298C370 329 326 348 283 366L236 396L186 376L215 325C223 298 226 250 233 198Z" fill="#263D38"/>
+  <path d="M299 112L326 84L322 151" fill="#263D38"/>
+  <path d="M270 206C300 184 345 190 374 215" stroke="#F8F5EE" stroke-width="11" stroke-linecap="round"/>
+  <path d="M285 265C309 284 345 286 370 267" stroke="#B8B09F" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="339" cy="207" r="10" fill="#B85E45"/>
+  <path d="M205 380C243 388 289 385 334 361" stroke="#B85E45" stroke-width="10" stroke-linecap="round"/>
+  <path d="M170 402C224 388 292 392 350 412" stroke="#263D38" stroke-width="10" stroke-linecap="round"/>
+</svg>

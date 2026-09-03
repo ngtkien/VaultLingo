@@ -52,8 +52,8 @@ chmod 644 "${STAGE_DIR}/usr/share/applications/vaultlingo.desktop"
 
 if [ -f "build/appicon.png" ]; then
     cp "build/appicon.png" "${STAGE_DIR}/usr/share/icons/hicolor/512x512/apps/vaultlingo.png"
-elif [ -f "frontend/src/assets/images/pegasus-logo.png" ]; then
-    cp "frontend/src/assets/images/pegasus-logo.png" "${STAGE_DIR}/usr/share/icons/hicolor/512x512/apps/vaultlingo.png"
+elif [ -f "frontend/src/assets/images/vaultlingo-app-icon.png" ]; then
+    cp "frontend/src/assets/images/vaultlingo-app-icon.png" "${STAGE_DIR}/usr/share/icons/hicolor/512x512/apps/vaultlingo.png"
 fi
 chmod 644 "${STAGE_DIR}/usr/share/icons/hicolor/512x512/apps/vaultlingo.png"
 

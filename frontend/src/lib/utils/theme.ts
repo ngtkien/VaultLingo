@@ -65,7 +65,7 @@ export const THEME_PALETTES: PaletteInfo[] = [
 
 export function getInitialThemeState(): ThemeState {
   const savedPalette = (localStorage.getItem('vaultlingo_palette') as ThemePalette) || 'default';
-  const savedColor = (localStorage.getItem('vaultlingo_colormode') as ColorMode) || 'dark';
+  const savedColor = (localStorage.getItem('vaultlingo_colormode') as ColorMode) || 'light';
 
   const validPalette = THEME_PALETTES.some(p => p.id === savedPalette) ? savedPalette : 'default';
 

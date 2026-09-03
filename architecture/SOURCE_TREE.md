@@ -31,7 +31,7 @@ VaultLingo/
 │   └── vocab.db                          # Embedded SQLite database (B1, B2, Tech, Dictations)
 │
 ├── build/                                # Application icons & packaging assets
-│   ├── appicon.png                       # Cute Anime Pegasus mascot app icon
+│   ├── appicon.png                       # Editorial journal-and-quill app icon
 │   ├── darwin/                           # macOS plist templates
 │   └── windows/                          # Windows icon & NSIS installer scripts
 │
@@ -49,7 +49,7 @@ VaultLingo/
     │   │
     │   ├── assets/
     │   │   └── images/
-    │   │       └── pegasus-logo.png      # High-res Anime Pegasus mascot artwork
+    │   │       └── vaultlingo-app-icon.png # Raster icon used as a packaging fallback
     │   │
     │   ├── lib/
     │   │   ├── components/

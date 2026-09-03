@@ -53,7 +53,9 @@
   let currentResult = $state<SmartWordResult | null>(null);
   let isSavedInVault = $state(false);
   let savingVault = $state(false);
-  let showDebugLogs = $state(true);
+  // Technical traces are useful for diagnosis, but should not be the first
+  // thing a learner sees in an editorial reading experience.
+  let showDebugLogs = $state(false);
 
   // Live SQLite Autocomplete Suggestions
   let suggestions = $state<backend.Word[]>([]);
@@ -216,16 +218,15 @@
     >
       <div>
         <div class="flex items-center gap-2.5">
-          <span class="text-2xl">📖</span>
+          <BookOpen class="h-6 w-6 text-emerald-700" aria-hidden="true" />
           <h2
-            class="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent"
+            class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-100 theme-heading"
           >
-            Smart Dictionary & Lexicon Search
+            Word Journal
           </h2>
         </div>
         <p class="text-xs sm:text-sm text-slate-400 theme-text-muted mt-1">
-          Search any English word • In-depth linguistic insights • One-click
-          sync to Obsidian
+          Look up a word, understand its character, and keep what matters.
         </p>
       </div>
 
@@ -233,7 +234,7 @@
         <span
           class="px-3 py-1 text-xs font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded-xl"
         >
-          ⚡ Comprehensive Lexicon
+          Your private lexicon
         </span>
         {#if wordCount !== null}
           <span class="px-3 py-1 text-xs font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 rounded-xl">

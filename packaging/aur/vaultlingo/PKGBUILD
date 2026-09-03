@@ -43,7 +43,7 @@ package() {
     install -Dm644 vaultlingo.desktop "${pkgdir}/usr/share/applications/vaultlingo.desktop"
     if [ -f "build/appicon.png" ]; then
         install -Dm644 build/appicon.png "${pkgdir}/usr/share/icons/hicolor/512x512/apps/vaultlingo.png"
-    elif [ -f "frontend/src/assets/images/pegasus-logo.png" ]; then
-        install -Dm644 frontend/src/assets/images/pegasus-logo.png "${pkgdir}/usr/share/icons/hicolor/512x512/apps/vaultlingo.png"
+    elif [ -f "frontend/src/assets/images/vaultlingo-app-icon.png" ]; then
+        install -Dm644 frontend/src/assets/images/vaultlingo-app-icon.png "${pkgdir}/usr/share/icons/hicolor/512x512/apps/vaultlingo.png"
     fi
 }

@@ -33,8 +33,8 @@ cp build/bin/vl "$DIST_DIR/vl"
 cp vaultlingo.desktop "$DIST_DIR/vaultlingo.desktop"
 if [ -f "build/appicon.png" ]; then
     cp build/appicon.png "$DIST_DIR/vaultlingo.png"
-elif [ -f "frontend/src/assets/images/pegasus-logo.png" ]; then
-    cp frontend/src/assets/images/pegasus-logo.png "$DIST_DIR/vaultlingo.png"
+elif [ -f "frontend/src/assets/images/vaultlingo-app-icon.png" ]; then
+    cp frontend/src/assets/images/vaultlingo-app-icon.png "$DIST_DIR/vaultlingo.png"
 fi
 cp scripts/install.sh "$DIST_DIR/install.sh"
 chmod +x "$DIST_DIR/install.sh" "$DIST_DIR/vaultlingo" "$DIST_DIR/vl"
