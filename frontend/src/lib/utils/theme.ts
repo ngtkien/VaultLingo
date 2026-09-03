@@ -1,11 +1,9 @@
 export type ColorMode = 'dark' | 'light';
-export type StyleMode = 'normal' | 'drawing';
 export type ThemePalette = 'default' | 'nord' | 'everforest' | 'catppuccin' | 'tokyonight' | 'gruvbox' | 'dracula';
 
 export interface ThemeState {
   palette: ThemePalette;
   colorMode: ColorMode;
-  styleMode: StyleMode;
 }
 
 export interface PaletteInfo {
@@ -68,21 +66,18 @@ export const THEME_PALETTES: PaletteInfo[] = [
 export function getInitialThemeState(): ThemeState {
   const savedPalette = (localStorage.getItem('vaultlingo_palette') as ThemePalette) || 'default';
   const savedColor = (localStorage.getItem('vaultlingo_colormode') as ColorMode) || 'dark';
-  const savedStyle = (localStorage.getItem('vaultlingo_stylemode') as StyleMode) || 'normal';
 
   const validPalette = THEME_PALETTES.some(p => p.id === savedPalette) ? savedPalette : 'default';
 
   return {
     palette: validPalette,
-    colorMode: savedColor === 'light' ? 'light' : 'dark',
-    styleMode: savedStyle === 'drawing' ? 'drawing' : 'normal'
+    colorMode: savedColor === 'light' ? 'light' : 'dark'
   };
 }
 
 export function applyThemeState(state: ThemeState): void {
   localStorage.setItem('vaultlingo_palette', state.palette);
   localStorage.setItem('vaultlingo_colormode', state.colorMode);
-  localStorage.setItem('vaultlingo_stylemode', state.styleMode);
 
   const root = document.documentElement;
 
@@ -102,9 +97,4 @@ export function applyThemeState(state: ThemeState): void {
   root.classList.add(state.colorMode);
   document.body.classList.add(state.colorMode);
 
-  if (state.styleMode === 'drawing') {
-    root.classList.add('drawing');
-    document.body.classList.add('drawing');
-  }
 }
-
