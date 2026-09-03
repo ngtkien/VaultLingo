@@ -4,6 +4,7 @@
     GetDailyVocab, 
     GetDailyIdiom, 
     GetQuickQuiz, 
+    GetQuickQuizExcluding,
     GetAvailableTopics, 
     SaveWordToObsidian, 
     SaveAllWordsToObsidian, 
@@ -123,6 +124,7 @@
   let quiz = $state<any>(null);
   let selectedQuizOption = $state('');
   let quizAnswered = $state(false);
+  let seenQuizIds = $state<number[]>([]);
   let loading = $state(false);
   let savedWordsMap = $state<Record<string, boolean>>({});
   let activeViewMode = $state<'list' | 'flashcard'>('list');
@@ -130,14 +132,21 @@
   let cardFlipped = $state(false);
   let playingWord = $state('');
 
-  function getDayBasedIdiom() {
-    const dayNumber = Math.floor(Date.now() / 86400000);
-    return IDIOM_BANK[dayNumber % IDIOM_BANK.length];
+  async function loadDailyIdiom() {
+    idiom = await GetDailyIdiom();
   }
 
   function handleNextIdiom() {
     idiomIndex = (idiomIndex + 1) % IDIOM_BANK.length;
     idiom = IDIOM_BANK[idiomIndex];
+  }
+
+  async function loadNextQuiz() {
+    const nextQuiz = await GetQuickQuizExcluding(seenQuizIds);
+    quiz = nextQuiz;
+    seenQuizIds = nextQuiz?.id ? [...seenQuizIds, nextQuiz.id] : [];
+    selectedQuizOption = '';
+    quizAnswered = false;
   }
 
   async function loadData() {
@@ -146,14 +155,9 @@
       topics = await GetAvailableTopics();
       words = await GetDailyVocab(selectedTopic, 5);
       
-      // Auto-update daily idiom dynamically based on current calendar date
-      const dayIdiom = getDayBasedIdiom();
-      idiomIndex = IDIOM_BANK.findIndex(i => i.id === dayIdiom.id);
-      idiom = dayIdiom;
-
-      quiz = await GetQuickQuiz();
-      selectedQuizOption = '';
-      quizAnswered = false;
+      await loadDailyIdiom();
+      seenQuizIds = [];
+      await loadNextQuiz();
       currentCardIndex = 0;
       cardFlipped = false;
     } catch (e) {
@@ -274,8 +278,19 @@
   onMount(() => {
     loadData();
     window.addEventListener('keydown', handleKeydown);
+    const scheduleNextDay = () => {
+      const now = new Date();
+      const next = new Date(now);
+      next.setHours(24, 0, 2, 0);
+      return window.setTimeout(async () => {
+        await loadDailyIdiom();
+        midnightTimer = scheduleNextDay();
+      }, next.getTime() - now.getTime());
+    };
+    let midnightTimer = scheduleNextDay();
     return () => {
       window.removeEventListener('keydown', handleKeydown);
+      window.clearTimeout(midnightTimer);
     };
   });
 </script>
@@ -733,7 +748,14 @@
             <span class="text-lg">{quiz.category_icon || '🎯'}</span>
             <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400">10s Quick Quiz ({quiz.category})</h4>
           </div>
-          <HelpCircle class="w-4 h-4 text-purple-400" />
+          <button
+            onclick={loadNextQuiz}
+            class="px-2 py-1 rounded-lg bg-purple-900/40 hover:bg-purple-600 text-purple-200 text-[11px] font-medium transition cursor-pointer flex items-center gap-1 active:scale-95"
+            title="Choose another question"
+          >
+            <RefreshCw class="w-3.5 h-3.5" />
+            <span>Another</span>
+          </button>
         </div>
 
         <p class="text-sm font-medium text-slate-100">{quiz.question}</p>

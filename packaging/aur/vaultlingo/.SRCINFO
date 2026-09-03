@@ -1,6 +1,6 @@
 pkgbase = vaultlingo
 	pkgdesc = Daily AI English & Obsidian Vault Sync (Source build)
-	pkgver = 0.1.5
+	pkgver = 0.1.6
 	pkgrel = 1
 	url = https://github.com/ngtkien/VaultLingo
 	arch = x86_64
@@ -14,7 +14,7 @@ pkgbase = vaultlingo
 	provides = vaultlingo
 	provides = vl
 	conflicts = vaultlingo-bin
-	source = vaultlingo-0.1.5.tar.gz::https://github.com/ngtkien/VaultLingo/archive/refs/tags/v0.1.5.tar.gz
+	source = vaultlingo-0.1.6.tar.gz::https://github.com/ngtkien/VaultLingo/archive/refs/tags/v0.1.6.tar.gz
 	sha256sums = SKIP
 
 pkgname = vaultlingo

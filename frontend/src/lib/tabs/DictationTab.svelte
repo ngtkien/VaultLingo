@@ -168,7 +168,7 @@
   }
 }} />
 
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="w-full max-w-5xl mx-auto space-y-6">
   <!-- Top Practice Filters Bar -->
   <div class="relative z-30 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg backdrop-blur-md space-y-4">
     <!-- Level Selector Bar -->

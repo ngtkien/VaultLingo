@@ -10,12 +10,22 @@
   import ObsidianTab from './lib/tabs/ObsidianTab.svelte';
   import SettingsTab from './lib/tabs/SettingsTab.svelte';
   import { getInitialThemeState, applyThemeState, type ColorMode, type StyleMode, type ThemePalette } from './lib/utils/theme';
+  import { GetWordCount } from '../wailsjs/go/main/App.js';
 
   let currentTab = $state('vocab');
   let dictionaryInitialWord = $state('serendipity');
   let palette = $state<ThemePalette>('default');
   let colorMode = $state<ColorMode>('dark');
   let styleMode = $state<StyleMode>('normal');
+  let dictionaryWordCount = $state<number | null>(null);
+
+  async function refreshDictionaryWordCount() {
+    try {
+      dictionaryWordCount = await GetWordCount();
+    } catch (error) {
+      console.warn('Could not load dictionary word count:', error);
+    }
+  }
 
   function handleNavigateToDictionary(word: string) {
     if (word && word.trim()) {
@@ -45,6 +55,7 @@
     colorMode = initial.colorMode;
     styleMode = initial.styleMode;
     applyThemeState(initial);
+    refreshDictionaryWordCount();
   });
 </script>
 
@@ -61,11 +72,15 @@
   />
 
   <!-- Main Content Body -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+  <main class="flex-1 w-full mx-auto p-4 sm:p-6 lg:p-8 2xl:px-12">
     {#if currentTab === 'vocab'}
       <VocabTab onNavigateToDictionary={handleNavigateToDictionary} />
     {:else if currentTab === 'dictionary'}
-      <DictionaryTab initialWord={dictionaryInitialWord} />
+      <DictionaryTab
+        initialWord={dictionaryInitialWord}
+        wordCount={dictionaryWordCount}
+        onWordStored={refreshDictionaryWordCount}
+      />
     {:else if currentTab === 'grammar'}
       <GrammarTab />
     {:else if currentTab === 'dictation'}
@@ -81,4 +96,3 @@
     {/if}
   </main>
 </div>
-

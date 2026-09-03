@@ -36,9 +36,13 @@ export function GetListeningTopics():Promise<Array<backend.ListeningTopic>>;
 
 export function GetQuickQuiz():Promise<backend.Quiz>;
 
+export function GetQuickQuizExcluding(arg1:Array<number>):Promise<backend.Quiz>;
+
 export function GetSavedObsidianVocab():Promise<Array<backend.ObsidianItem>>;
 
 export function GetVoicesList():Promise<Array<backend.VoiceOption>>;
+
+export function GetWordCount():Promise<number>;
 
 export function GetWritingPrompt(arg1:string):Promise<backend.WritingPrompt>;
 

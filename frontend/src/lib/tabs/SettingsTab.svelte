@@ -163,7 +163,7 @@
   });
 </script>
 
-<div class="max-w-3xl mx-auto space-y-6 pb-12">
+<div class="w-full max-w-5xl mx-auto space-y-6 pb-12">
   <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl shadow-xl space-y-6">
     <!-- Header -->
     <div class="flex items-center justify-between border-b border-slate-800 pb-4">

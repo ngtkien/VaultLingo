@@ -165,7 +165,7 @@
   });
 </script>
 
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="w-full max-w-6xl mx-auto space-y-6">
   <!-- Level Selector Tabs -->
   <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800 backdrop-blur-md">
     <div class="flex items-center gap-1.5">

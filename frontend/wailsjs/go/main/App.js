@@ -70,12 +70,20 @@ export function GetQuickQuiz() {
   return window['go']['main']['App']['GetQuickQuiz']();
 }
 
+export function GetQuickQuizExcluding(arg1) {
+  return window['go']['main']['App']['GetQuickQuizExcluding'](arg1);
+}
+
 export function GetSavedObsidianVocab() {
   return window['go']['main']['App']['GetSavedObsidianVocab']();
 }
 
 export function GetVoicesList() {
   return window['go']['main']['App']['GetVoicesList']();
+}
+
+export function GetWordCount() {
+  return window['go']['main']['App']['GetWordCount']();
 }
 
 export function GetWritingPrompt(arg1) {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { playAudioUrl, stopAudio } from '../utils/audio';
+  import { playAudioUrl, playTTS, stopAudio } from '../utils/audio';
   import { 
     Volume2, 
     Search, 
@@ -125,7 +125,14 @@
   function playFullAudio(slow = false) {
     if (!currentTopic.audio) return;
     isFullAudioPlaying = true;
-    playAudioUrl(currentTopic.audio, slow ? 0.75 : 1.0, 'full_audio').then(() => {
+    const speed = slow ? 0.75 : 1.0;
+    // Seeded lessons use the application's TTS so the spoken material and
+    // transcript are always the same source of truth.
+    const transcript = currentTopic.qa.map(item => `${item.q} ${item.a}`).join(' ');
+    const playback = currentTopic.audio.startsWith('tts://')
+      ? playTTS(transcript, speed, 'full_audio')
+      : playAudioUrl(currentTopic.audio, speed, 'full_audio');
+    playback.then(() => {
       isFullAudioPlaying = false;
     });
   }

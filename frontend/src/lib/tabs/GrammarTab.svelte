@@ -378,7 +378,7 @@
   }
 }} />
 
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="w-full max-w-6xl mx-auto space-y-6">
   <!-- Top Navigation & View Switcher -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg backdrop-blur-md">
     <div class="flex items-center gap-3">

@@ -86,10 +86,10 @@ makepkg -si
 Download the latest `.deb` package from [GitHub Releases](https://github.com/ngtkien/VaultLingo/releases):
 ```bash
 # Install with apt (automatically handles dependencies):
-sudo apt install ./vaultlingo_0.1.5_amd64.deb
+sudo apt install ./vaultlingo_0.1.6_amd64.deb
 
 # Or with dpkg:
-sudo dpkg -i vaultlingo_0.1.5_amd64.deb
+sudo dpkg -i vaultlingo_0.1.6_amd64.deb
 sudo apt-get install -f
 ```
 
@@ -99,8 +99,8 @@ sudo apt-get install -f
 
 Download the release archive from GitHub Releases:
 ```bash
-tar -xzvf vaultlingo-v0.1.5-linux-x86_64.tar.gz
-cd vaultlingo-v0.1.5-linux-x86_64
+tar -xzvf vaultlingo-v0.1.6-linux-x86_64.tar.gz
+cd vaultlingo-v0.1.6-linux-x86_64
 sudo ./install.sh
 ```
 

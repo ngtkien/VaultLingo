@@ -1,9 +1,10 @@
 package backend
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"math"
+	"math/rand"
 	"strings"
 	"time"
 )
@@ -12,15 +13,15 @@ var TopicMap = map[string]struct {
 	Title string
 	Icon  string
 }{
-	"01_Daily_Life_and_Social":       {"Daily Life & Social", "☕"},
-	"02_Workplace_and_Business":      {"Workplace & Business", "💼"},
-	"03_Current_Events_and_Economy":  {"Current Events & Economy", "📰"},
-	"04_Science_Tech_and_AI":         {"Science, AI & Tech", "🤖"},
-	"05_Travel_and_Culture":          {"Travel & Culture", "✈️"},
-	"06_Health_and_Wellness":         {"Health & Wellness", "🏃"},
-	"07_Embedded_and_Electronics":    {"Embedded & Electronics", "⚡"},
-	"destination_b1":                 {"Destination B1", "📘"},
-	"destination_b2":                 {"Destination B2", "📕"},
+	"01_Daily_Life_and_Social":      {"Daily Life & Social", "☕"},
+	"02_Workplace_and_Business":     {"Workplace & Business", "💼"},
+	"03_Current_Events_and_Economy": {"Current Events & Economy", "📰"},
+	"04_Science_Tech_and_AI":        {"Science, AI & Tech", "🤖"},
+	"05_Travel_and_Culture":         {"Travel & Culture", "✈️"},
+	"06_Health_and_Wellness":        {"Health & Wellness", "🏃"},
+	"07_Embedded_and_Electronics":   {"Embedded & Electronics", "⚡"},
+	"destination_b1":                {"Destination B1", "📘"},
+	"destination_b2":                {"Destination B2", "📕"},
 }
 
 func GetTopicMeta(topic string) (string, string) {
@@ -166,12 +167,27 @@ func RecordSrsReview(wordID int, rating int) error {
 
 func GetDailyIdiom() (Idiom, error) {
 	var idiom Idiom
+	// Pick a stable entry for the local calendar day.  RANDOM() made the
+	// "daily" card change every time the view was refreshed.
+	var count int
+	if err := DB.QueryRow(`SELECT COUNT(*) FROM idioms`).Scan(&count); err != nil || count == 0 {
+		return Idiom{
+			Idiom:     "Think outside the box",
+			Phonetic:  "/θɪŋk ˌaʊtˈsaɪd ðə bɒks/",
+			MeaningEn: "To think in an original, creative, and unconventional way.",
+			MeaningVi: "Tư duy đột phá, sáng tạo khác biệt",
+			Example:   "To solve this problem, we must think outside the box.",
+			ExampleVi: "Để giải quyết vấn đề này, chúng ta cần tư duy sáng tạo.",
+		}, nil
+	}
+
+	dayIndex := int(time.Now().Unix() / 86400 % int64(count))
 	err := DB.QueryRow(`
 		SELECT id, idiom, phonetic, meaning_en, meaning_vi, example, example_vi
 		FROM idioms
-		ORDER BY RANDOM()
-		LIMIT 1
-	`).Scan(&idiom.ID, &idiom.Idiom, &idiom.Phonetic, &idiom.MeaningEn, &idiom.MeaningVi, &idiom.Example, &idiom.ExampleVi)
+		ORDER BY id ASC
+		LIMIT 1 OFFSET ?
+	`, dayIndex).Scan(&idiom.ID, &idiom.Idiom, &idiom.Phonetic, &idiom.MeaningEn, &idiom.MeaningVi, &idiom.Example, &idiom.ExampleVi)
 
 	if err != nil {
 		// Fallback sample idiom
@@ -187,6 +203,39 @@ func GetDailyIdiom() (Idiom, error) {
 	return idiom, nil
 }
 
+// GetQuickQuizExcluding returns a different quiz while there are unseen IDs.
+// It lets the UI offer a genuine "next question" control without client-side
+// random retries.
+func GetQuickQuizExcluding(excludeIDs []int) (Quiz, error) {
+	var q Quiz
+	var optionsJSON string
+	conditions := ""
+	args := make([]interface{}, 0, len(excludeIDs))
+	if len(excludeIDs) > 0 {
+		placeholders := make([]string, len(excludeIDs))
+		for i, id := range excludeIDs {
+			placeholders[i] = "?"
+			args = append(args, id)
+		}
+		conditions = "WHERE id NOT IN (" + strings.Join(placeholders, ",") + ")"
+	}
+
+	err := DB.QueryRow(fmt.Sprintf(`
+		SELECT id, category, category_icon, question, options_json, correct, correct_sentence, explanation, tip
+		FROM quizzes %s ORDER BY RANDOM() LIMIT 1
+	`, conditions), args...).Scan(&q.ID, &q.Category, &q.CategoryIcon, &q.Question, &optionsJSON, &q.Correct, &q.CorrectSentence, &q.Explanation, &q.Tip)
+	if err != nil && len(excludeIDs) > 0 {
+		return GetQuickQuizExcluding(nil)
+	}
+	if err != nil {
+		return GetQuickQuiz()
+	}
+	if err := json.Unmarshal([]byte(optionsJSON), &q.Options); err != nil {
+		return Quiz{}, err
+	}
+	return shuffleQuizOptions(q), nil
+}
+
 func GetQuickQuiz() (Quiz, error) {
 	var q Quiz
 	var optionsJSON string
@@ -199,7 +248,7 @@ func GetQuickQuiz() (Quiz, error) {
 	`).Scan(&q.ID, &q.Category, &q.CategoryIcon, &q.Question, &optionsJSON, &q.Correct, &q.CorrectSentence, &q.Explanation, &q.Tip)
 
 	if err != nil {
-		return Quiz{
+		return shuffleQuizOptions(Quiz{
 			Category:        "Prepositions",
 			CategoryIcon:    "🎯",
 			Question:        "Choose the correct preposition: 'She is really good ___ explaining concepts.'",
@@ -208,11 +257,44 @@ func GetQuickQuiz() (Quiz, error) {
 			CorrectSentence: "She is really good at explaining concepts.",
 			Explanation:     "We always use 'good AT doing something'.",
 			Tip:             "Remember: good AT.",
-		}, nil
+		}), nil
 	}
 
-	_ = json.Unmarshal([]byte(optionsJSON), &q.Options)
-	return q, nil
+	if err := json.Unmarshal([]byte(optionsJSON), &q.Options); err != nil {
+		return Quiz{}, err
+	}
+	return shuffleQuizOptions(q), nil
+}
+
+// shuffleQuizOptions removes the answer-position pattern from seeded data.
+// Options are stored with their display labels, so both the labels and the
+// correct key must be regenerated after every shuffle.
+func shuffleQuizOptions(q Quiz) Quiz {
+	correctText := ""
+	cleaned := make([]string, 0, len(q.Options))
+	for _, option := range q.Options {
+		text := strings.TrimSpace(option)
+		if len(text) >= 3 && text[1] == '.' && text[2] == ' ' {
+			if string(text[0]) == q.Correct {
+				correctText = text[3:]
+			}
+			text = text[3:]
+		}
+		cleaned = append(cleaned, text)
+	}
+	if correctText == "" || len(cleaned) < 2 {
+		return q
+	}
+	rand.Shuffle(len(cleaned), func(i, j int) { cleaned[i], cleaned[j] = cleaned[j], cleaned[i] })
+	q.Options = make([]string, len(cleaned))
+	for i, text := range cleaned {
+		label := string(rune('A' + i))
+		q.Options[i] = label + ". " + text
+		if text == correctText {
+			q.Correct = label
+		}
+	}
+	return q
 }
 
 func GetAvailableTopics() []map[string]string {
@@ -230,7 +312,6 @@ func GetAvailableTopics() []map[string]string {
 		{"key": "due_srs", "title": "Due Reviews (SRS)", "icon": "🔄"},
 	}
 }
-
 
 func LookupWordInDB(query string) (*Word, error) {
 	query = strings.TrimSpace(query)
@@ -322,14 +403,22 @@ func SaveWordToDB(w Word) error {
 			mnemonic_hook = excluded.mnemonic_hook,
 			nuance_tips = excluded.nuance_tips,
 			examples_json = excluded.examples_json
-	`, 
-		word, w.POS, w.Phonetic, w.DefinitionEn, w.DefinitionVi, 
+	`,
+		word, w.POS, w.Phonetic, w.DefinitionEn, w.DefinitionVi,
 		w.ExampleEn, w.ExampleVi, w.Level, w.Topic,
 		w.SynonymsJSON, w.AntonymsJSON, w.CollocationsJSON, w.WordFamilyJSON,
 		w.Etymology, w.MnemonicHook, w.NuanceTips, w.ExamplesJSON,
 	)
 
 	return err
+}
+
+// GetWordCount is intentionally a single aggregate query. The UI calls it at
+// startup and after a successful dictionary write, never while the user types.
+func GetWordCount() (int, error) {
+	var count int
+	err := DB.QueryRow(`SELECT COUNT(*) FROM words`).Scan(&count)
+	return count, err
 }
 
 // SearchWordsInDB performs fast prefix and substring search across SQLite words table

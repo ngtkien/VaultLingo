@@ -15,3 +15,7 @@ This directory contains technical specifications, architectural blueprints, and 
    - Complete Annotated ASCII Directory Tree
    - Component Responsibility Matrix
    - Build & Packaging Instructions (Linux & macOS)
+
+3. **[PRODUCT_AND_UI_REFACTOR.md](./PRODUCT_AND_UI_REFACTOR.md)**
+   - Offline-first product direction, information architecture, visual-system
+     critique, and staged refactor blueprint.

@@ -37,7 +37,15 @@
   import { backend } from "../../../wailsjs/go/models";
   import { playTTS, playAudioUrl } from "../utils/audio";
 
-  let { initialWord = "serendipity" } = $props<{ initialWord?: string }>();
+  let {
+    initialWord = "serendipity",
+    wordCount = null,
+    onWordStored,
+  } = $props<{
+    initialWord?: string;
+    wordCount?: number | null;
+    onWordStored?: () => void;
+  }>();
 
   let searchQuery = $state("");
   let loading = $state(false);
@@ -111,6 +119,9 @@
     try {
       const result = await lookupSmartDictionary(term);
       currentResult = result;
+      // A local lookup does not write. Any non-local result has gone through
+      // the persistence pipeline, so refresh the single cached count only then.
+      if (!result.isLocal && result.source !== 'vault') onWordStored?.();
       await checkSavedStatus(result.word.word);
     } catch (err: any) {
       console.error("Dictionary search error:", err);
@@ -224,6 +235,11 @@
         >
           ⚡ Comprehensive Lexicon
         </span>
+        {#if wordCount !== null}
+          <span class="px-3 py-1 text-xs font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 rounded-xl">
+            {wordCount.toLocaleString()} words
+          </span>
+        {/if}
       </div>
     </div>
 

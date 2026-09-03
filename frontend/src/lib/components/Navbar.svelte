@@ -55,7 +55,7 @@
 </script>
 
 <header class="theme-header border-b backdrop-blur-2xl sticky top-0 z-50 select-none shadow-xl transition-colors duration-200">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 2xl:px-12 h-16 flex items-center justify-between">
     <!-- Brand Logo with Cute Anime Pegasus -->
     <div class="flex items-center gap-3">
       <div class="relative group">
@@ -72,7 +72,7 @@
             VaultLingo
           </h1>
           <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold font-mono bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-400 border border-cyan-500/30">
-            v0.1.3
+            v0.1.6
           </span>
         </div>
         <p class={`text-[10px] font-medium ${colorMode === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
