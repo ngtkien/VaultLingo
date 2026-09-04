@@ -140,6 +140,9 @@ export function ensureRichUnifiedResult(result: SmartWordResult): SmartWordResul
   // 6. Nuance tips
   let nuance_tips = result.nuance_tips || w.nuance_tips || '';
 
+  // 7. Mnemonic hook
+  let mnemonic_hook = result.mnemonic_hook || w.mnemonic_hook || '';
+
   return {
     ...result,
     examples,
@@ -148,7 +151,8 @@ export function ensureRichUnifiedResult(result: SmartWordResult): SmartWordResul
     antonyms,
     collocations,
     etymology,
-    nuance_tips
+    nuance_tips,
+    mnemonic_hook
   };
 }
 
@@ -263,7 +267,8 @@ Required JSON schema:
     { "pos": "adjective", "word": "..." }
   ],
   "etymology": "Latin/Greek roots and morphological history",
-  "nuance_tips": "Practical usage notes or common learner traps"
+  "mnemonic_hook": "Vivid mnemonic hook, imagery, or associative memory aid to effortlessly remember this word",
+  "nuance_tips": "Practical usage notes, IELTS speaking/writing tips, or common learner traps"
 }`;
 
   log(`🤖 Sending payload to AI engine...`);
@@ -307,6 +312,7 @@ Required JSON schema:
     collocations_json: JSON.stringify(data.collocations || []),
     word_family_json: JSON.stringify(data.word_family || []),
     etymology: data.etymology || '',
+    mnemonic_hook: data.mnemonic_hook || '',
     nuance_tips: data.nuance_tips || ''
   };
 
@@ -327,6 +333,7 @@ Required JSON schema:
     collocations: data.collocations || [],
     word_family: data.word_family || [],
     etymology: data.etymology || '',
+    mnemonic_hook: data.mnemonic_hook || '',
     nuance_tips: data.nuance_tips || '',
     examples: data.examples || []
   };

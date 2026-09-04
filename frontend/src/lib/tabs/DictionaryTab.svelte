@@ -35,6 +35,7 @@
     SearchWordsInDB,
   } from "../../../wailsjs/go/main/App.js";
   import { backend } from "../../../wailsjs/go/models";
+  import { BrowserOpenURL } from "../../../wailsjs/runtime/runtime";
   import { playTTS, playAudioUrl } from "../utils/audio";
 
   let {
@@ -58,6 +59,19 @@
   let isSearchingSuggest = $state(false);
   let showSuggestions = $state(false);
   let isEnriching = $state(false);
+  let activeInsightTab = $state<"nuance" | "memory">("nuance");
+
+  function openDictionaryLink() {
+    const term = currentResult?.word?.word || searchTerm || "";
+    const url =
+      currentResult?.word?.dict_link ||
+      `https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(term)}`;
+    try {
+      BrowserOpenURL(url);
+    } catch {
+      window.open(url, "_blank");
+    }
+  }
 
   async function handleDeepEnrich() {
     if (!currentResult?.word?.word) return;
@@ -124,6 +138,11 @@
         await checkSavedStatus(result.word.word);
         if (result.source === "ai" && onWordStored) {
           onWordStored();
+        }
+        if (!result.nuance_tips && result.mnemonic_hook) {
+          activeInsightTab = "memory";
+        } else {
+          activeInsightTab = "nuance";
         }
       }
     } catch (err) {
@@ -373,15 +392,15 @@
           </button>
 
           <!-- External Cambridge Dictionary Link -->
-          <a
-            href={currentResult.word.dict_link}
-            target="_blank"
-            class="px-2.5 py-1.5 rounded-xl border border-[var(--border-main)] hover:border-[var(--border-highlight)] bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer flex items-center gap-1.5 text-xs font-medium shadow-sm"
-            title="Open Cambridge Dictionary in new tab"
+          <button
+            type="button"
+            onclick={openDictionaryLink}
+            class="px-2.5 py-1.5 rounded-xl border border-[var(--border-main)] hover:border-[var(--border-highlight)] bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer flex items-center gap-1.5 text-xs font-medium shadow-sm active:scale-95"
+            title="Open Cambridge Dictionary in system browser"
           >
             <ExternalLink class="w-3.5 h-3.5" />
             <span class="hidden sm:inline">Cambridge</span>
-          </a>
+          </button>
 
           <!-- Save to Obsidian Button -->
           <button
@@ -558,16 +577,82 @@
         </div>
       {/if}
 
-      <!-- Nuance Tips & Mnemonic Hook -->
+      <!-- Linguistic Insights: Usage Nuances & Memory Hook (2 Separate Tabs) -->
       {#if currentResult.nuance_tips || currentResult.mnemonic_hook}
-        <div class="p-4.5 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2">
-          <div class="text-xs font-bold text-amber-700 flex items-center gap-1.5 uppercase tracking-wider">
-            <Lightbulb class="w-4 h-4" />
-            <span>Usage Nuances & Memory Hook</span>
+        <div class="rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)] p-4 space-y-3">
+          <!-- Tab Header -->
+          <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2.5">
+            <div class="flex items-center gap-1.5">
+              <!-- Tab 1: Usage & Nuance -->
+              <button
+                type="button"
+                onclick={() => (activeInsightTab = "nuance")}
+                class={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                  activeInsightTab === "nuance"
+                    ? "bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 shadow-2xs font-bold"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)]"
+                }`}
+              >
+                <Lightbulb class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span>Usage & IELTS Nuance</span>
+                {#if currentResult.nuance_tips}
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                {/if}
+              </button>
+
+              <!-- Tab 2: Memory Hook -->
+              <button
+                type="button"
+                onclick={() => (activeInsightTab = "memory")}
+                class={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                  activeInsightTab === "memory"
+                    ? "bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 shadow-2xs font-bold"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)]"
+                }`}
+              >
+                <BrainCircuit class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span>Memory Hook (Mnemonic)</span>
+                {#if currentResult.mnemonic_hook}
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                {/if}
+              </button>
+            </div>
+
+            <span class="text-[10px] uppercase font-mono tracking-wider text-[var(--text-subtle)] font-bold hidden sm:inline">
+              Linguistic Insights
+            </span>
           </div>
-          <p class="text-xs text-[var(--text-main)] leading-relaxed font-sans">
-            {currentResult.nuance_tips || currentResult.mnemonic_hook}
-          </p>
+
+          <!-- Tab Content Body -->
+          <div class="pt-1">
+            {#if activeInsightTab === "nuance"}
+              {#if currentResult.nuance_tips}
+                <div class="text-xs text-[var(--text-main)] leading-relaxed font-sans flex items-start gap-2.5">
+                  <span class="p-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                    <Lightbulb class="w-3.5 h-3.5" />
+                  </span>
+                  <p class="leading-relaxed flex-1">{currentResult.nuance_tips}</p>
+                </div>
+              {:else}
+                <p class="text-xs text-[var(--text-muted)] italic">
+                  No specific usage nuance recorded for this word yet. Click "AI Enrich" to synthesize IELTS tips.
+                </p>
+              {/if}
+            {:else if activeInsightTab === "memory"}
+              {#if currentResult.mnemonic_hook}
+                <div class="text-xs text-[var(--text-main)] leading-relaxed font-sans flex items-start gap-2.5">
+                  <span class="p-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                    <BrainCircuit class="w-3.5 h-3.5" />
+                  </span>
+                  <p class="leading-relaxed flex-1 font-medium text-[var(--text-main)]">{currentResult.mnemonic_hook}</p>
+                </div>
+              {:else}
+                <p class="text-xs text-[var(--text-muted)] italic">
+                  No memory hook recorded yet. Click "AI Enrich" to generate a vivid mnemonic association.
+                </p>
+              {/if}
+            {/if}
+          </div>
         </div>
       {/if}
 
