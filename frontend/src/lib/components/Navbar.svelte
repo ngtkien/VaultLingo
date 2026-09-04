@@ -1,14 +1,139 @@
 <script lang="ts">
-  import { CalendarDays, BookOpen, BookA, Headphones, LibraryBig, Settings, Moon, Sun } from 'lucide-svelte';
+  import { 
+    Calendar, 
+    BookA, 
+    BookOpen, 
+    Headphones, 
+    Library, 
+    Settings, 
+    Moon, 
+    Sun,
+    Search,
+    Bell
+  } from 'lucide-svelte';
   import pegasusLogo from '../../assets/images/pegasus-logo.png';
   import type { ColorMode } from '../utils/theme';
-  let { activeArea, colorMode, onSelectArea, onToggleColorMode } = $props<{ activeArea: string; colorMode: ColorMode; onSelectArea: (area: string) => void; onToggleColorMode: () => void; }>();
-  const areas = [{ id: 'today', label: 'Today', icon: CalendarDays }, { id: 'dictionary', label: 'Dictionary', icon: BookA }, { id: 'learn', label: 'Learn', icon: BookOpen }, { id: 'practice', label: 'Practice', icon: Headphones }, { id: 'library', label: 'Library', icon: LibraryBig }];
+
+  let { 
+    activeArea, 
+    colorMode, 
+    onSelectArea, 
+    onToggleColorMode,
+    onOpenSearch
+  } = $props<{ 
+    activeArea: string; 
+    colorMode: ColorMode; 
+    dayStreak?: number;
+    onSelectArea: (area: string) => void; 
+    onToggleColorMode: () => void;
+    onOpenSearch?: () => void;
+  }>();
+
+  // Exactly matching the design tabs and icons
+  const navItems = [
+    { id: 'today', label: 'Today', icon: Calendar },
+    { id: 'dictionary', label: 'Dictionary', icon: BookA },
+    { id: 'learn', label: 'Learn', icon: BookOpen },
+    { id: 'practice', label: 'Practice', icon: Headphones },
+    { id: 'library', label: 'Library', icon: Library }
+  ];
 </script>
-<header class="theme-header sticky top-0 z-50 border-b">
-  <div class="w-full h-16 px-4 sm:px-6 lg:px-8 flex items-center gap-4">
-    <button onclick={() => onSelectArea('today')} class="flex items-center gap-2.5 shrink-0 text-left cursor-pointer"><img src={pegasusLogo} alt="VaultLingo" class="w-9 h-9 rounded-lg object-cover ring-1 ring-cyan-400/30" /><div class="hidden sm:block"><h1 class="text-base font-bold text-slate-100">VaultLingo <span class="text-[10px] font-medium text-slate-500">v0.1.7</span></h1><p class="text-[10px] text-slate-400">English, every day</p></div></button>
-    <nav class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">{#each areas as area}{@const Icon = area.icon}<button onclick={() => onSelectArea(area.id)} class={`shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 cursor-pointer ${activeArea === area.id ? 'bg-cyan-500/15 text-cyan-300' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'}`}><Icon class="w-4 h-4" /><span>{area.label}</span></button>{/each}</nav>
-    <div class="flex gap-1 shrink-0"><button onclick={() => onSelectArea('settings')} class={`p-2 rounded-lg cursor-pointer ${activeArea === 'settings' ? 'bg-cyan-500/15 text-cyan-300' : 'text-slate-400 hover:bg-slate-800'}`} title="Settings"><Settings class="w-4 h-4" /></button><button onclick={onToggleColorMode} class="p-2 rounded-lg text-slate-400 hover:bg-slate-800 cursor-pointer" title="Toggle light and dark mode">{#if colorMode === 'dark'}<Sun class="w-4 h-4" />{:else}<Moon class="w-4 h-4" />{/if}</button></div>
+
+<header class="theme-header sticky top-0 z-50 border-b border-[var(--border-main)] transition-colors duration-200 backdrop-blur-md bg-[var(--bg-main)]/95">
+  <div class="w-full max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+    
+    <!-- Brand / Title matching design -->
+    <button 
+      onclick={() => onSelectArea('today')} 
+      class="flex items-center gap-3 shrink-0 text-left cursor-pointer group"
+    >
+      <div class="w-10 h-10 flex items-center justify-center shrink-0">
+        <img src={pegasusLogo} alt="VaultLingo" class="w-full h-full object-contain filter contrast-125" />
+      </div>
+      <div>
+        <span class="font-serif text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-main)] group-hover:text-[var(--accent-primary)] transition block leading-tight">
+          VaultLingo
+        </span>
+        <p class="text-[11px] font-sans text-[var(--text-muted)] -mt-0.5">
+          English, every day.
+        </p>
+      </div>
+    </button>
+
+    <!-- Navigation Tabs with elegant design underline -->
+    <nav class="flex items-center gap-1 sm:gap-2 h-16">
+      {#each navItems as item}
+        {@const Icon = item.icon}
+        {@const isActive = activeArea === item.id}
+        <button 
+          onclick={() => onSelectArea(item.id)} 
+          class={`relative h-full px-3.5 flex items-center gap-2 text-sm transition-all cursor-pointer ${
+            isActive 
+              ? 'text-[var(--accent-primary)] font-semibold' 
+              : 'text-[var(--text-muted)] hover:text-[var(--text-main)] font-normal'
+          }`}
+        >
+          <Icon class="w-4 h-4" />
+          <span>{item.label}</span>
+          
+          {#if isActive}
+            <div class="absolute bottom-0 left-2 right-2 h-0.5 bg-[var(--accent-primary)] rounded-full"></div>
+          {/if}
+        </button>
+      {/each}
+    </nav>
+
+    <!-- Right Utility Controls matching design -->
+    <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+      <!-- Quick Search -->
+      <button 
+        onclick={onOpenSearch || (() => onSelectArea('dictionary'))}
+        class="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer" 
+        title="Search dictionary"
+      >
+        <Search class="w-4 h-4" />
+      </button>
+
+      <!-- Notification Bell -->
+      <button 
+        class="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer" 
+        title="Notifications"
+      >
+        <Bell class="w-4 h-4" />
+      </button>
+
+      <!-- Theme Switcher / Mode -->
+      <button 
+        onclick={onToggleColorMode} 
+        class="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer" 
+        title="Toggle color theme"
+      >
+        {#if colorMode === 'dark'}
+          <Sun class="w-4 h-4" />
+        {:else}
+          <Moon class="w-4 h-4" />
+        {/if}
+      </button>
+
+      <!-- Settings -->
+      <button 
+        onclick={() => onSelectArea('settings')} 
+        class={`p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer ${
+          activeArea === 'settings' ? 'text-[var(--accent-primary)] bg-[var(--accent-primary-light)]' : ''
+        }`}
+        title="Application Settings"
+      >
+        <Settings class="w-4 h-4" />
+      </button>
+
+      <!-- User Profile Avatar Pill (as in design) -->
+      <div 
+        class="w-8 h-8 rounded-full bg-[var(--bg-inner)] border border-[var(--border-main)] text-[var(--text-main)] font-semibold text-xs flex items-center justify-center ml-1 shadow-xs"
+        title="Learner Profile"
+      >
+        Z
+      </div>
+    </div>
+
   </div>
 </header>

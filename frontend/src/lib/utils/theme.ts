@@ -1,5 +1,5 @@
 export type ColorMode = 'dark' | 'light';
-export type ThemePalette = 'default' | 'nord' | 'everforest' | 'catppuccin' | 'tokyonight' | 'gruvbox' | 'dracula';
+export type ThemePalette = 'editorial' | 'default' | 'nord' | 'everforest' | 'catppuccin' | 'tokyonight' | 'gruvbox' | 'dracula';
 
 export interface ThemeState {
   palette: ThemePalette;
@@ -19,6 +19,12 @@ export interface PaletteInfo {
 }
 
 export const THEME_PALETTES: PaletteInfo[] = [
+  {
+    id: 'editorial',
+    name: 'Editorial Journal',
+    colors: { bg: '#fcf9f4', card: '#ffffff', accent: '#386848', text: '#121814' },
+    description: 'Classic journal parchment with deep pine accents'
+  },
   {
     id: 'default',
     name: 'Midnight Slate',
@@ -64,14 +70,14 @@ export const THEME_PALETTES: PaletteInfo[] = [
 ];
 
 export function getInitialThemeState(): ThemeState {
-  const savedPalette = (localStorage.getItem('vaultlingo_palette') as ThemePalette) || 'default';
-  const savedColor = (localStorage.getItem('vaultlingo_colormode') as ColorMode) || 'dark';
+  const savedPalette = (localStorage.getItem('vaultlingo_palette') as ThemePalette) || 'editorial';
+  const savedColor = (localStorage.getItem('vaultlingo_colormode') as ColorMode) || 'light';
 
-  const validPalette = THEME_PALETTES.some(p => p.id === savedPalette) ? savedPalette : 'default';
+  const validPalette = THEME_PALETTES.some(p => p.id === savedPalette) ? savedPalette : 'editorial';
 
   return {
     palette: validPalette,
-    colorMode: savedColor === 'light' ? 'light' : 'dark'
+    colorMode: savedColor === 'dark' ? 'dark' : 'light'
   };
 }
 
@@ -96,5 +102,4 @@ export function applyThemeState(state: ThemeState): void {
 
   root.classList.add(state.colorMode);
   document.body.classList.add(state.colorMode);
-
 }
