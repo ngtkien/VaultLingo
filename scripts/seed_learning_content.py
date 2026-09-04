@@ -110,22 +110,6 @@ LISTENING_TOPICS = [
     ("Project Update", "📊", "Are we still on schedule for the release?", "Yes, although we need to finish testing one more feature.", "Who is handling that task?", "Linh is leading it and will share an update tomorrow."),
 ]
 
-DICTATION_CONTEXTS = [
-    ("Daily Life", "☕", "A2 Daily", "I usually", "before I leave for work", "Tôi thường"),
-    ("Travel & Transport", "✈️", "A2 Daily", "Please check", "before you board the train", "Vui lòng kiểm tra"),
-    ("Workplace Communication", "💼", "B1 Workplace", "Could you please", "before the meeting starts", "Bạn có thể vui lòng"),
-    ("Team Collaboration", "🤝", "B1 Workplace", "Our team will", "after we review the feedback", "Nhóm của chúng tôi sẽ"),
-    ("Technology", "💻", "B1 Tech", "The application should", "when the connection is stable", "Ứng dụng nên"),
-    ("Health & Fitness", "🏃", "B1 Daily", "It is important to", "when you feel stressed", "Điều quan trọng là"),
-    ("Education", "🎓", "B1 Academic", "Students can", "by practising a little every day", "Học sinh có thể"),
-    ("Environment", "🌿", "B2 IELTS", "Communities need to", "to reduce waste in the long term", "Cộng đồng cần"),
-    ("Customer Service", "🎧", "B1 Workplace", "We will", "as soon as we confirm the details", "Chúng tôi sẽ"),
-    ("Software Engineering", "⚡", "B2 Tech", "Engineers should", "before deploying a major change", "Kỹ sư nên"),
-    ("Personal Finance", "💳", "B1 Daily", "It helps to", "before making a large purchase", "Sẽ hữu ích khi"),
-    ("Culture & Society", "🏛️", "B2 IELTS", "People often", "when they visit a new place", "Mọi người thường"),
-]
-VERBS = ["make a clear plan", "ask useful questions", "review the important details", "share updates with the group", "take regular breaks", "compare several options", "listen carefully to others", "keep their notes organized", "check the final result", "learn from small mistakes", "set realistic goals", "speak with confidence"]
-
 def seed(conn):
     cur = conn.cursor()
     # Earlier enrichment runs did not have a uniqueness constraint, so first
@@ -140,12 +124,6 @@ def seed(conn):
     for category, icon, question, options, correct, explanation, tip in QUIZZES:
         cur.execute("INSERT OR IGNORE INTO quizzes (category, category_icon, question, options_json, correct, correct_sentence, explanation, tip) VALUES (?, ?, ?, ?, ?, '', ?, ?)",
                     (category, icon, question, json.dumps(options), correct, explanation, tip))
-    for category, icon, level, starter, ending, vi_starter in DICTATION_CONTEXTS:
-        color = "#4caf50" if level.startswith(("A2", "B1")) else "#ff9800"
-        for verb in VERBS:
-            sentence = f"{starter} {verb} {ending}."
-            cur.execute("INSERT OR IGNORE INTO dictations (level, level_color, category, category_icon, sentence, sentence_vi, hint) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        (level, color, category, icon, sentence, f"{vi_starter} {verb}.", f"Keywords: {verb}, {ending}."))
     # tts:// explicitly means that the app reads qa_json.  Unlike the old
     # external MP3 mapping, this guarantees that audio and transcript match.
     for topic_id, row in enumerate(LISTENING_TOPICS, start=101):
