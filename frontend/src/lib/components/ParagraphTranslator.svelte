@@ -230,11 +230,10 @@
             <button
               type="button"
               onclick={swapLanguages}
-              class="px-2 py-1 rounded-md text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center gap-1 active:scale-95"
+              class="p-1.5 rounded-lg text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center justify-center active:scale-95 shadow-2xs"
               title="Swap source and target languages"
             >
-              <ArrowLeftRight class="w-3 h-3" />
-              <span class="text-[11px]">Đổi chiều</span>
+              <ArrowLeftRight class="w-3.5 h-3.5" />
             </button>
 
             <!-- Clear Button -->
