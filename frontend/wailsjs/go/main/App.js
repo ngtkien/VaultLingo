@@ -126,6 +126,10 @@ export function SaveConfig(arg1) {
   return window['go']['main']['App']['SaveConfig'](arg1);
 }
 
+export function SaveTranslationToObsidian(arg1, arg2, arg3, arg4, arg5, arg6) {
+  return window['go']['main']['App']['SaveTranslationToObsidian'](arg1, arg2, arg3, arg4, arg5, arg6);
+}
+
 export function SaveWordToDB(arg1) {
   return window['go']['main']['App']['SaveWordToDB'](arg1);
 }
@@ -144,6 +148,10 @@ export function SearchWordsInDB(arg1, arg2) {
 
 export function StopAudio() {
   return window['go']['main']['App']['StopAudio']();
+}
+
+export function TranslateParagraph(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['TranslateParagraph'](arg1, arg2, arg3, arg4);
 }
 
 export function UpdateObsidianSrsReview(arg1, arg2, arg3) {

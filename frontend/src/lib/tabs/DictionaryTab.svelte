@@ -37,6 +37,7 @@
   import { backend } from "../../../wailsjs/go/models";
   import { BrowserOpenURL } from "../../../wailsjs/runtime/runtime";
   import { playTTS, playAudioUrl } from "../utils/audio";
+  import ParagraphTranslator from "../components/ParagraphTranslator.svelte";
 
   let {
     initialWord = "resilience",
@@ -60,6 +61,7 @@
   let showSuggestions = $state(false);
   let isEnriching = $state(false);
   let activeInsightTab = $state<"nuance" | "memory">("nuance");
+  let activeDictionaryMode = $state<"lookup" | "translator">("lookup");
 
   function openDictionaryLink() {
     const term = currentResult?.word?.word || searchTerm || "";
@@ -212,6 +214,39 @@
 </script>
 
 <div class="w-full max-w-5xl mx-auto space-y-6 pb-12">
+  <!-- Mode Switcher: Dictionary Lookup vs AI Paragraph Translator -->
+  <div class="flex items-center gap-2 border-b border-[var(--border-main)] pb-3">
+    <button
+      type="button"
+      onclick={() => (activeDictionaryMode = "lookup")}
+      class={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
+        activeDictionaryMode === "lookup"
+          ? "btn-forest shadow-sm"
+          : "bg-[var(--bg-inner)] hover:bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-main)]"
+      }`}
+    >
+      <BookOpen class="w-4 h-4" />
+      <span>Tra từ điển & Lexicon</span>
+    </button>
+
+    <button
+      type="button"
+      onclick={() => (activeDictionaryMode = "translator")}
+      class={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
+        activeDictionaryMode === "translator"
+          ? "btn-forest shadow-sm"
+          : "bg-[var(--bg-inner)] hover:bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-main)]"
+      }`}
+    >
+      <Sparkles class="w-4 h-4" />
+      <span>AI Paragraph Translator (Anh ⇄ Việt)</span>
+      <span class="px-1.5 py-0.5 rounded-full text-[9px] uppercase font-mono bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold">Mới</span>
+    </button>
+  </div>
+
+  {#if activeDictionaryMode === "translator"}
+    <ParagraphTranslator />
+  {:else}
   <!-- Search Hero (matches 2.png) -->
   <div class="space-y-4">
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
@@ -680,5 +715,6 @@
         {/if}
       </div>
     </article>
+  {/if}
   {/if}
 </div>

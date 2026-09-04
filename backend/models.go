@@ -182,3 +182,19 @@ type ListeningTopic struct {
 	WebURL   string        `json:"url"`
 	QA       []ListeningQA `json:"qa"`
 }
+
+type ExtractedVocab struct {
+	Word     string `json:"word"`
+	POS      string `json:"pos"`
+	Phonetic string `json:"phonetic"`
+	Meaning  string `json:"meaning"`
+}
+
+type TranslationResult struct {
+	TranslatedText string           `json:"translated_text"`
+	SourceLang     string           `json:"source_lang"`
+	TargetLang     string           `json:"target_lang"`
+	Tone           string           `json:"tone"`
+	KeyVocabulary  []ExtractedVocab `json:"key_vocabulary"`
+	NuanceNotes    []string         `json:"nuance_notes"`
+}
