@@ -626,21 +626,12 @@
                   </div>
                 </div>
 
-                <div class="flex items-center gap-2 text-xs text-[var(--text-subtle)] pt-0.5">
-                  <button
-                    onclick={() => handleSaveWord(w)}
-                    class="hover:text-[var(--accent-primary)] transition cursor-pointer"
-                    title="Save to Obsidian"
-                  >
-                    <Bookmark class={`w-3.5 h-3.5 ${savedWordsMap[w.word.toLowerCase()] ? 'fill-[var(--accent-primary)] text-[var(--accent-primary)]' : ''}`} />
-                  </button>
-                  {#if w.topic_title}
-                    <span class="flex items-center gap-1 text-[11px] truncate">
-                      <span>{w.topic_icon || '📖'}</span>
-                      <span>{w.topic_title}</span>
-                    </span>
-                  {/if}
-                </div>
+                {#if w.topic_title}
+                  <div class="flex items-center gap-1.5 text-[11px] text-[var(--text-subtle)] pt-0.5 truncate">
+                    <span>{w.topic_icon || '📖'}</span>
+                    <span>{w.topic_title}</span>
+                  </div>
+                {/if}
               </div>
             </div>
 
@@ -700,8 +691,12 @@
                 </button>
                 <button
                   onclick={() => handleSaveWord(w)}
-                  class="p-1.5 rounded-lg hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer"
-                  title="Bookmark"
+                  class={`p-1.5 rounded-lg transition cursor-pointer ${
+                    savedWordsMap[w.word.toLowerCase()] 
+                      ? 'text-[var(--accent-primary)] bg-[var(--accent-primary-light)]' 
+                      : 'text-[var(--text-muted)] hover:text-[var(--accent-primary)] hover:bg-[var(--accent-primary-light)]'
+                  }`}
+                  title={savedWordsMap[w.word.toLowerCase()] ? "Saved in Obsidian Vault (Click to remove)" : "Save to Obsidian Vault"}
                 >
                   <Bookmark class={`w-4 h-4 ${savedWordsMap[w.word.toLowerCase()] ? 'fill-[var(--accent-primary)] text-[var(--accent-primary)]' : ''}`} />
                 </button>
