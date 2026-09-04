@@ -206,10 +206,11 @@
       badge: "What do you think? How to handle?",
       description: "Gather feedback on technical approaches, seek advice, or address edge cases.",
       triggers: [
-        { formula: "What do you think about [Noun / V-ing]?", use: "Ask for opinions regarding an idea", eg: "What do you think about migrating to PostgreSQL?", vi: "Bạn nghĩ sao về việc chuyển sang PostgreSQL?" },
-        { formula: "How should we handle [Issue / Edge Case]?", use: "Collaborative problem-solving opener", eg: "How should we handle this unexpected edge case?", vi: "Chúng ta nên xử lý trường hợp biên này như thế nào?" }
+        { formula: "What do you think about [Noun / V-ing]?", use: "Ask for opinions regarding an architectural or feature proposal", eg: "What do you think about migrating to PostgreSQL?", vi: "Bạn nghĩ sao về việc chuyển sang PostgreSQL?" },
+        { formula: "How should we handle [Issue / Edge Case]?", use: "Collaborative problem-solving opener for bugs or edge cases", eg: "How should we handle this unexpected edge case?", vi: "Chúng ta nên xử lý trường hợp biên này như thế nào?" },
+        { formula: "Could you provide some feedback on [Deliverable]?", use: "Polite request for review or constructive critique", eg: "Could you provide some feedback on our new system diagram?", vi: "Bạn có thể cho xin một vài nhận xét về sơ đồ hệ thống mới được không?" }
       ],
-      mindsetTrap: "💡 Mindset Shift: Be direct & professional: 'What do you think about...?'"
+      mindsetTrap: "💡 Mindset Shift: Avoid vague questions -> Anchor directly: 'What do you think about [X]?'"
     },
     {
       category: "4. Status & Confirmation",
@@ -218,9 +219,10 @@
       description: "Check progress politely and ask if someone has had time to review documents.",
       triggers: [
         { formula: "Have you had a chance to [V-inf]?", use: "Polite inquiry to check if someone reviewed a PR/email", eg: "Have you had a chance to review my pull request?", vi: "Bạn đã có dịp xem qua pull request của tôi chưa?" },
-        { formula: "Are we on track for [Deadline / Event]?", use: "Milestone status check", eg: "Are we on track for the Friday release?", vi: "Chúng ta có đang đúng tiến độ cho đợt release thứ Sáu không?" }
+        { formula: "Are we on track for [Deadline / Event]?", use: "Milestone schedule alignment check", eg: "Are we on track for the Friday release?", vi: "Chúng ta có đang đúng tiến độ cho đợt release thứ Sáu không?" },
+        { formula: "Could you confirm if [Fact / Spec] is accurate?", use: "Direct verification before proceeding with implementation", eg: "Could you confirm if the API payload schema is accurate?", vi: "Bạn có thể xác nhận lại xem schema dữ liệu API đã chính xác chưa?" }
       ],
-      mindsetTrap: "💡 Mindset Shift: Polite executive formula: 'Have you had a chance to check...?'"
+      mindsetTrap: "💡 Mindset Shift: Replace blunt 'Is it done?' with executive 'Are we on track for...?'"
     },
     {
       category: "5. Clarification & Deep Dive",
@@ -228,61 +230,123 @@
       badge: "What does it mean? Explain how?",
       description: "Clarify technical specifications, architectural flows, or deep logic.",
       triggers: [
-        { formula: "Could you clarify how [S + V]?", use: "Ask for deeper explanation of a mechanism", eg: "Could you clarify how this authentication token works?", vi: "Bạn có thể giải thích rõ hơn mã xác thực này hoạt động thế nào không?" },
-        { formula: "What do you mean by [Term / Phrase]?", use: "Ask for definition of technical jargon", eg: "What do you mean by 'asynchronous fallback'?", vi: "Ý bạn là gì khi nói 'dự phòng bất đồng bộ'?" }
+        { formula: "Could you clarify how [S + V]?", use: "Ask for deeper explanation of an internal mechanism", eg: "Could you clarify how this authentication token works?", vi: "Bạn có thể giải thích rõ hơn mã xác thực này hoạt động thế nào không?" },
+        { formula: "What do you mean by [Term / Phrase]?", use: "Ask for definition of technical jargon or ambiguous terminology", eg: "What do you mean by 'asynchronous fallback'?", vi: "Ý bạn là gì khi nói 'dự phòng bất đồng bộ'?" },
+        { formula: "Can you walk me through the logic behind [Decision]?", use: "Deep dive into reasoning or design trade-offs", eg: "Can you walk me through the logic behind caching this response?", vi: "Bạn có thể giải thích từng bước logic đằng sau việc lưu đệm phản hồi này không?" }
       ],
-      mindsetTrap: "💡 Mindset Shift: Direct & clear: 'Could you clarify how...?'"
+      mindsetTrap: "💡 Mindset Shift: Never stay silent in confusion -> Trigger: 'Can you walk me through...?'"
     }
   ];
 
   const CHEATSHEET_TENSES = [
     {
-      group: "Present Tenses",
+      group: "Present Tenses (4 Tenses)",
       items: [
         {
           name: "1. Present Simple",
           formula: "(+) S + V(s/es) | (-) S + do/does not + V | (?) Do/Does + S + V?",
           quasm: "Wh- + do/does + S + V-inf?",
-          signals: "always, usually, often, every day, rarely",
-          use: "Habits, universal truths, fixed timetables and routines.",
+          signals: "always, usually, often, every day, rarely, regularly",
+          use: "Habits, universal truths, fixed timetables, permanent states, and daily routines.",
           example: "How often do you review pull requests?"
         },
         {
           name: "2. Present Continuous",
-          formula: "(+) S + am/is/are + V-ing | (-) S + am/is/are not + V-ing",
+          formula: "(+) S + am/is/are + V-ing | (-) S + am/is/are not + V-ing | (?) Am/Is/Are + S + V-ing?",
           quasm: "Wh- + am/is/are + S + V-ing?",
-          signals: "now, right now, at the moment, currently",
-          use: "Actions happening right now or definite planned arrangements.",
-          example: "What is the team working on right now?"
+          signals: "now, right now, at the moment, currently, this week",
+          use: "Actions happening right now, temporary situations, or definite future arrangements.",
+          example: "What is the engineering team working on right now?"
         },
         {
           name: "3. Present Perfect",
-          formula: "(+) S + have/has + V3/ed | (-) S + have/has not + V3/ed",
+          formula: "(+) S + have/has + V3/ed | (-) S + have/has not + V3/ed | (?) Have/Has + S + V3/ed?",
           quasm: "Wh- + have/has + S + V3/ed?",
-          signals: "already, yet, just, ever, never, since, for, recently",
-          use: "Actions starting in past continuing to present, or life experiences.",
-          example: "How long have you lived here?"
+          signals: "already, yet, just, ever, never, since, for, recently, so far",
+          use: "Actions starting in past continuing to present, life experiences, or past actions with current relevance.",
+          example: "How long have you lived in this city?"
+        },
+        {
+          name: "4. Present Perfect Continuous",
+          formula: "(+) S + have/has been + V-ing | (-) S + have/has not been + V-ing | (?) Have/Has + S + been + V-ing?",
+          quasm: "Wh- + have/has + S + been + V-ing?",
+          signals: "for, since, all day, how long, lately, continuously",
+          use: "Actions that began in the past and continue into the present, emphasizing the duration and continuous effort.",
+          example: "How long have you been debugging this memory leak?"
         }
       ]
     },
     {
-      group: "Past Tenses",
+      group: "Past Tenses (4 Tenses)",
       items: [
         {
-          name: "4. Past Simple",
+          name: "5. Past Simple",
           formula: "(+) S + V2/ed | (-) S + did not + V-inf | (?) Did + S + V-inf?",
           quasm: "Wh- + did + S + V-inf?",
-          signals: "yesterday, ago, last week, in 2020",
-          use: "Completed actions at a definite point in the past.",
-          example: "When did you graduate?"
+          signals: "yesterday, ago, last week/month, in 2020, then",
+          use: "Completed actions at a definite, finished point in the past.",
+          example: "When did you deploy the latest release?"
         },
         {
-          name: "5. Past Continuous",
-          formula: "(+) S + was/were + V-ing | (-) S + wasn't/weren't + V-ing",
+          name: "6. Past Continuous",
+          formula: "(+) S + was/were + V-ing | (-) S + wasn't/weren't + V-ing | (?) Was/Were + S + V-ing?",
           quasm: "Wh- + was/were + S + V-ing?",
-          signals: "at 8 PM yesterday, while, when",
-          use: "Action in progress at a specific past moment.",
-          example: "What were you doing when the alarm rang?"
+          signals: "at 8 PM yesterday, while, when, all yesterday evening",
+          use: "Action in progress at a specific past moment, or an ongoing background action interrupted by another.",
+          example: "What were you doing when the production server went down?"
+        },
+        {
+          name: "7. Past Perfect",
+          formula: "(+) S + had + V3/ed | (-) S + had not + V3/ed | (?) Had + S + V3/ed?",
+          quasm: "Wh- + had + S + V3/ed?",
+          signals: "before, after, by the time, already, prior to",
+          use: "An action completed before another action or specific milestone in the past.",
+          example: "Had you tested the database migration before you merged the code?"
+        },
+        {
+          name: "8. Past Perfect Continuous",
+          formula: "(+) S + had been + V-ing | (-) S + had not been + V-ing | (?) Had + S + been + V-ing?",
+          quasm: "Wh- + had + S + been + V-ing?",
+          signals: "for, since, before, by the time, how long",
+          use: "An ongoing action in progress up until another past event, emphasizing duration and cause-and-effect.",
+          example: "How long had they been discussing the architecture before reaching consensus?"
+        }
+      ]
+    },
+    {
+      group: "Future Tenses (4 Tenses)",
+      items: [
+        {
+          name: "9. Future Simple",
+          formula: "(+) S + will + V-inf | (-) S + won't + V-inf | (?) Will + S + V-inf?",
+          quasm: "Wh- + will + S + V-inf?",
+          signals: "tomorrow, next week, soon, in the future, probably, maybe",
+          use: "Spontaneous decisions made at speaking time, promises, offers, or predictions based on opinion.",
+          example: "When will the team release the new API endpoints?"
+        },
+        {
+          name: "10. Future Continuous",
+          formula: "(+) S + will be + V-ing | (-) S + won't be + V-ing | (?) Will + S + be + V-ing?",
+          quasm: "Wh- + will + S + be + V-ing?",
+          signals: "at this time tomorrow, this time next month, during",
+          use: "An action that will be in progress at a specific moment or throughout a period in the future.",
+          example: "What will you be working on at this time next week?"
+        },
+        {
+          name: "11. Future Perfect",
+          formula: "(+) S + will have + V3/ed | (-) S + won't have + V3/ed | (?) Will + S + have + V3/ed?",
+          quasm: "Wh- + will + S + have + V3/ed?",
+          signals: "by [time], by the time, by tomorrow, by the end of next month",
+          use: "An action that will be finished before a specific deadline or future milestone.",
+          example: "Will you have finished the code review by 5 PM today?"
+        },
+        {
+          name: "12. Future Perfect Continuous",
+          formula: "(+) S + will have been + V-ing | (-) S + won't have been + V-ing | (?) Will + S + have been + V-ing?",
+          quasm: "Wh- + will + S + have been + V-ing?",
+          signals: "by... for [duration], by the time, by next year",
+          use: "Emphasizes the ongoing continuous duration of an action up to a specific future point in time.",
+          example: "By next month, how long will you have been studying English with VaultLingo?"
         }
       ]
     }
@@ -296,7 +360,7 @@
   }
 }} />
 
-<div class="w-full max-w-6xl mx-auto space-y-6 pb-12">
+<div class="w-full max-w-6xl mx-auto space-y-6 pt-3 pb-12">
   <!-- Header Title -->
   <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
     <div>
@@ -748,8 +812,8 @@
 
       {#if cheatsheetTab === 'mindsets'}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {#each QUESTION_MINDSETS as mindset}
-            <div class="journal-card p-5 border border-[var(--border-main)] bg-[var(--bg-card)] space-y-4 flex flex-col justify-between">
+          {#each QUESTION_MINDSETS as mindset, idx}
+            <div class={`journal-card p-5 border border-[var(--border-main)] bg-[var(--bg-card)] space-y-4 flex flex-col justify-between ${idx === 4 ? "md:col-span-2" : ""}`}>
               <div class="space-y-3">
                 <div class="flex items-start justify-between gap-2">
                   <div class="flex items-center gap-2">
@@ -763,20 +827,32 @@
 
                 <p class="text-xs text-[var(--text-muted)] leading-relaxed">{mindset.description}</p>
 
-                <div class="space-y-2 pt-1">
+                <div class={`space-y-2 pt-1 ${idx === 4 ? "grid grid-cols-1 md:grid-cols-3 gap-3 space-y-0" : ""}`}>
                   {#each mindset.triggers as trig}
-                    <div class="p-3 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)] space-y-1 text-xs">
-                      <div class="font-mono font-bold text-[var(--accent-primary)]">
-                        {trig.formula}
+                    <div class="p-3 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)] space-y-1 text-xs flex flex-col justify-between hover:border-[var(--accent-primary-border)] transition">
+                      <div class="space-y-1">
+                        <div class="font-mono font-bold text-[var(--accent-primary)]">
+                          {trig.formula}
+                        </div>
+                        <div class="text-[var(--text-muted)] italic text-[11px]">
+                          👉 {trig.use}
+                        </div>
+                        <div class="pt-1 font-serif italic text-[var(--text-main)]">
+                          “{trig.eg}”
+                        </div>
+                        <div class="text-[11px] text-[var(--text-subtle)]">
+                          ({trig.vi})
+                        </div>
                       </div>
-                      <div class="text-[var(--text-muted)] italic text-[11px]">
-                        👉 {trig.use}
-                      </div>
-                      <div class="pt-1 font-serif italic text-[var(--text-main)]">
-                        “{trig.eg}”
-                      </div>
-                      <div class="text-[11px] text-[var(--text-subtle)]">
-                        ({trig.vi})
+                      <div class="pt-1.5 flex justify-end">
+                        <button
+                          type="button"
+                          onclick={() => playTTS(trig.eg, 1.0, "grammar")}
+                          class="p-1 rounded hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer"
+                          title="Listen to trigger pronunciation"
+                        >
+                          <Volume2 class="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   {/each}
@@ -800,12 +876,43 @@
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {#each section.items as item}
-                  <div class="p-4 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)] space-y-2">
-                    <h3 class="font-bold text-xs text-[var(--accent-primary)]">{item.name}</h3>
-                    <p class="text-xs font-mono text-[var(--text-main)]">{item.formula}</p>
-                    <p class="text-xs text-[var(--text-muted)] leading-relaxed">{item.use}</p>
-                    <div class="text-xs font-serif italic text-[var(--text-main)] pt-1 border-t border-[var(--border-main)]">
-                      “{item.example}”
+                  <div class="p-4.5 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)] space-y-2.5 hover:border-[var(--accent-primary-border)] transition flex flex-col justify-between">
+                    <div class="space-y-2">
+                      <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-xs text-[var(--accent-primary)] font-mono">{item.name}</h3>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-[var(--bg-card)] text-[var(--text-subtle)] border border-[var(--border-main)]">Structure</span>
+                      </div>
+                      
+                      <div class="p-2.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-main)] font-mono text-xs text-[var(--text-main)] leading-relaxed select-text">
+                        {item.formula}
+                      </div>
+
+                      {#if item.quasm}
+                        <div class="text-[11px] font-mono text-[var(--text-muted)] flex items-center gap-1.5">
+                          <span class="text-[var(--accent-primary)] font-bold">QUASM:</span>
+                          <span>{item.quasm}</span>
+                        </div>
+                      {/if}
+
+                      <p class="text-xs text-[var(--text-muted)] leading-relaxed">{item.use}</p>
+
+                      {#if item.signals}
+                        <div class="text-[11px] text-[var(--text-subtle)] font-sans">
+                          <span class="font-semibold text-[var(--text-muted)]">Signals:</span> {item.signals}
+                        </div>
+                      {/if}
+                    </div>
+
+                    <div class="text-xs font-serif italic text-[var(--text-main)] pt-2 border-t border-[var(--border-main)] flex items-center justify-between gap-2">
+                      <span>“{item.example}”</span>
+                      <button
+                        type="button"
+                        onclick={() => playTTS(item.example, 1.0, "grammar")}
+                        class="p-1 rounded hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer"
+                        title="Listen to pronunciation"
+                      >
+                        <Volume2 class="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 {/each}
