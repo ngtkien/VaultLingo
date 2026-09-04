@@ -85,7 +85,7 @@ func InitDB() (*sql.DB, error) {
 	return db, nil
 }
 
-const bundledContentVersion = 2
+const bundledContentVersion = 3
 
 func migrateBundledContent(db *sql.DB, appDataDir string) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS content_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`)
@@ -114,27 +114,32 @@ func migrateBundledContent(db *sql.DB, appDataDir string) error {
 		return err
 	}
 	defer db.Exec(`DETACH DATABASE bundled`)
-	// Do not overwrite a user's own words or study state. Content tables are
-	// additive and use their natural unique keys from the bundled database.
+
+	// Clean any duplicate dictations before syncing
+	_, _ = db.Exec(`DELETE FROM dictations WHERE id NOT IN (SELECT MIN(id) FROM dictations GROUP BY sentence)`)
+	_, _ = db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_dictations_sentence_unique ON dictations(sentence)`)
+
+	// Quizzes deduplication
+	_, _ = db.Exec(`DELETE FROM quizzes WHERE id NOT IN (SELECT MIN(id) FROM quizzes GROUP BY question)`)
+	_, _ = db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_quizzes_question_unique ON quizzes(question)`)
+
+	// Refresh system words and bundled learning corpus with clean content
+	// Preserves user's dictionary lookups (source = 'dictionary') and srs_reviews
 	queries := []string{
-		`INSERT OR IGNORE INTO words SELECT * FROM bundled.words`,
-		`INSERT OR IGNORE INTO idioms SELECT * FROM bundled.idioms`,
-		`INSERT OR IGNORE INTO dictations SELECT * FROM bundled.dictations`,
+		`INSERT OR REPLACE INTO words SELECT * FROM bundled.words WHERE source != 'dictionary'`,
+		`INSERT OR REPLACE INTO idioms SELECT * FROM bundled.idioms`,
+		`INSERT OR REPLACE INTO dictations SELECT * FROM bundled.dictations`,
 		`INSERT OR REPLACE INTO listening_topics SELECT * FROM bundled.listening_topics`,
-		`INSERT OR IGNORE INTO grammar_drills SELECT * FROM bundled.grammar_drills`,
-		`INSERT OR IGNORE INTO writing_prompts SELECT * FROM bundled.writing_prompts`,
+		`INSERT OR REPLACE INTO grammar_drills SELECT * FROM bundled.grammar_drills`,
+		`INSERT OR REPLACE INTO writing_prompts SELECT * FROM bundled.writing_prompts`,
+		`INSERT OR REPLACE INTO quizzes SELECT * FROM bundled.quizzes`,
 	}
 	for _, query := range queries {
 		if _, err = db.Exec(query); err != nil {
 			return err
 		}
 	}
-	// quizzes in old databases did not have a unique constraint.
-	_, _ = db.Exec(`DELETE FROM quizzes WHERE id NOT IN (SELECT MIN(id) FROM quizzes GROUP BY question)`)
-	_, _ = db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_quizzes_question_unique ON quizzes(question)`)
-	if _, err = db.Exec(`INSERT OR IGNORE INTO quizzes SELECT * FROM bundled.quizzes`); err != nil {
-		return err
-	}
+
 	_, err = db.Exec(`INSERT INTO content_meta(key, value) VALUES('bundled_content_version', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value`, bundledContentVersion)
 	return err
 }
