@@ -226,7 +226,7 @@
       }`}
     >
       <BookOpen class="w-4 h-4" />
-      <span>Tra từ điển & Lexicon</span>
+      <span>Dictionary Lookup</span>
     </button>
 
     <button
@@ -239,8 +239,8 @@
       }`}
     >
       <Sparkles class="w-4 h-4" />
-      <span>AI Paragraph Translator (Anh ⇄ Việt)</span>
-      <span class="px-1.5 py-0.5 rounded-full text-[9px] uppercase font-mono bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold">Mới</span>
+      <span>AI Paragraph Translator</span>
+      <span class="px-1.5 py-0.5 rounded-full text-[9px] uppercase font-mono bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold">New</span>
     </button>
   </div>
 
@@ -477,7 +477,7 @@
             <span class="journal-badge text-[var(--text-subtle)] font-bold">Vietnamese Translation</span>
           </div>
           <p class="text-sm font-serif italic text-[var(--text-main)] leading-relaxed">
-            {currentResult.word.definition_vi || "Chưa có định nghĩa tiếng Việt."}
+            {currentResult.word.definition_vi || "No Vietnamese definition available."}
           </p>
         </div>
       </div>

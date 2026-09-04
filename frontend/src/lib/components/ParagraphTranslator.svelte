@@ -36,10 +36,10 @@
   let savedWords = $state<Record<string, boolean>>({});
 
   const toneOptions = [
-    { label: "Editorial & Journalistic", desc: "Sắc sảo, phong cách báo chí chuẩn mực" },
-    { label: "Natural & Conversational", desc: "Tự nhiên, giao tiếp đời thường" },
-    { label: "Academic & Formal (IELTS)", desc: "Trang trọng, học thuật, từ vựng nâng cao" },
-    { label: "Literal & Faithful", desc: "Bám sát nghĩa đen từng cấu trúc" }
+    { label: "Editorial & Journalistic", desc: "Sharp, journalistic publication style" },
+    { label: "Natural & Conversational", desc: "Everyday authentic spoken English" },
+    { label: "Academic & Formal (IELTS)", desc: "Advanced lexicon, formal syntax" },
+    { label: "Literal & Faithful", desc: "Direct structural alignment" }
   ];
 
   const sampleSnippets = [
@@ -50,7 +50,7 @@
       text: "Resilience is not merely passive endurance under adversity, but an active adaptation process that allows individuals and communities to bounce back to health and equilibrium."
     },
     {
-      title: "Tầm quan trọng của kỷ luật",
+      title: "The Power of Self-Discipline",
       lang: "Vietnamese" as const,
       target: "English" as const,
       text: "Kỷ luật bản thân không phải là sự gò bó hay trừng phạt, mà là cây cầu nối vững chắc nhất giữa ước mơ trừu tượng và thành tựu thực tế."
@@ -95,7 +95,7 @@
       const res = await TranslateParagraph(sourceText.trim(), sourceLang, targetLang, tone);
       translationResult = res;
     } catch (err: any) {
-      errorMsg = err?.toString() || "Quá trình dịch AI gặp sự cố. Vui lòng thử lại.";
+      errorMsg = err?.toString() || "AI translation encountered an issue. Please try again.";
     } finally {
       isTranslating = false;
     }
@@ -178,7 +178,7 @@
           <span class="journal-badge text-xs font-mono">Bilingual Engine</span>
         </div>
         <p class="text-xs text-[var(--text-muted)] mt-1 font-sans">
-          Dịch đoạn văn chuyên sâu Anh ⇄ Việt, nắm bắt cấu trúc ngữ pháp học thuật và trích xuất từ vựng vào Obsidian.
+          Deep contextual translation with grammatical breakdowns and Obsidian vocabulary extraction.
         </p>
       </div>
 
@@ -198,7 +198,7 @@
 
     <!-- Quick Sample Snippets -->
     <div class="flex flex-wrap items-center gap-2 pt-1">
-      <span class="text-[11px] font-mono text-[var(--text-subtle)] uppercase tracking-wider">Mẫu thử:</span>
+      <span class="text-[11px] font-mono text-[var(--text-subtle)] uppercase tracking-wider">Samples:</span>
       {#each sampleSnippets as snip}
         <button
           type="button"
@@ -221,7 +221,7 @@
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-[var(--accent-primary)]"></span>
             <span class="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider font-mono">
-              Văn bản nguồn ({sourceLang})
+              Source Text ({sourceLang})
             </span>
           </div>
 
@@ -231,7 +231,7 @@
               type="button"
               onclick={swapLanguages}
               class="px-2 py-1 rounded-md text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center gap-1 active:scale-95"
-              title="Đổi chiều dịch (Swap source & target)"
+              title="Swap source and target languages"
             >
               <ArrowLeftRight class="w-3 h-3" />
               <span class="text-[11px]">Đổi chiều</span>
@@ -243,7 +243,7 @@
                 type="button"
                 onclick={() => { sourceText = ""; translationResult = null; errorMsg = ""; }}
                 class="px-1.5 py-1 rounded-md text-xs text-[var(--text-muted)] hover:text-red-600 hover:bg-red-500/10 transition cursor-pointer"
-                title="Xóa nội dung"
+                title="Clear text"
               >
                 <Trash2 class="w-3.5 h-3.5" />
               </button>
@@ -257,14 +257,14 @@
           rows="7"
           placeholder={sourceLang === "English" 
             ? "Enter or paste English text/paragraph here..." 
-            : "Nhập hoặc dán đoạn văn tiếng Việt cần dịch vào đây..."}
+            : "Enter or paste Vietnamese text/paragraph here..."}
           class="w-full bg-transparent border-0 focus:outline-none resize-none text-sm text-[var(--text-main)] font-sans leading-relaxed placeholder:text-[var(--text-muted)] placeholder:italic"
         ></textarea>
       </div>
 
       <!-- Source Footer -->
       <div class="pt-3 border-t border-[var(--border-main)] flex items-center justify-between text-xs text-[var(--text-subtle)]">
-        <span class="font-mono">{sourceText.length} ký tự</span>
+        <span class="font-mono">{sourceText.length} characters</span>
 
         <!-- Action Button -->
         <button
@@ -275,10 +275,10 @@
         >
           {#if isTranslating}
             <RefreshCw class="w-3.5 h-3.5 animate-spin" />
-            <span>Đang dịch AI...</span>
+            <span>Translating...</span>
           {:else}
             <Sparkles class="w-3.5 h-3.5" />
-            <span>Dịch đoạn văn ✨</span>
+            <span>Translate Paragraph ✨</span>
           {/if}
         </button>
       </div>
@@ -292,7 +292,7 @@
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-amber-500"></span>
             <span class="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider font-mono">
-              Bản dịch ({targetLang})
+              Target Translation ({targetLang})
             </span>
           </div>
 
@@ -304,10 +304,10 @@
                 type="button"
                 onclick={handlePlayAudio}
                 class="px-2 py-1 rounded-md text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center gap-1"
-                title="Nghe phát âm tiếng Anh chuẩn"
+                title="Listen to authentic English pronunciation"
               >
                 <Volume2 class="w-3 h-3" />
-                <span class="text-[11px] hidden sm:inline">Phát âm</span>
+                <span class="text-[11px] hidden sm:inline">Listen</span>
               </button>
             {/if}
 
@@ -317,14 +317,14 @@
                 type="button"
                 onclick={handleCopy}
                 class="px-2 py-1 rounded-md text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center gap-1"
-                title="Sao chép bản dịch"
+                title="Copy translation"
               >
                 {#if isCopied}
                   <Check class="w-3 h-3 text-emerald-600" />
-                  <span class="text-[11px] text-emerald-600">Đã chép</span>
+                  <span class="text-[11px] text-emerald-600">Copied</span>
                 {:else}
                   <Copy class="w-3 h-3" />
-                  <span class="text-[11px]">Sao chép</span>
+                  <span class="text-[11px]">Copy</span>
                 {/if}
               </button>
 
@@ -338,14 +338,14 @@
                     ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/40"
                     : "bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border-[var(--border-main)]"
                 }`}
-                title="Lưu bản dịch & từ vựng vào Obsidian"
+                title="Save translation & vocabulary to Obsidian"
               >
                 {#if isSavedToObsidian}
                   <CheckCircle2 class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                  <span class="text-[11px]">Đã lưu Vault</span>
+                  <span class="text-[11px]">Saved to Vault</span>
                 {:else}
                   <Bookmark class="w-3 h-3" />
-                  <span class="text-[11px]">Lưu Vault</span>
+                  <span class="text-[11px]">Save to Vault</span>
                 {/if}
               </button>
             {/if}
@@ -356,7 +356,7 @@
         {#if isTranslating}
           <div class="py-10 flex flex-col items-center justify-center space-y-3 text-[var(--text-muted)]">
             <RefreshCw class="w-6 h-6 animate-spin text-[var(--accent-primary)]" />
-            <p class="text-xs font-serif italic">AI đang phân tích ngữ cảnh và kiến tạo bản dịch tối ưu...</p>
+            <p class="text-xs font-serif italic">AI is analyzing linguistic context and composing translation...</p>
           </div>
         {:else if errorMsg}
           <div class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-600 dark:text-red-400">
@@ -369,7 +369,7 @@
         {:else}
           <div class="py-12 flex flex-col items-center justify-center space-y-2 text-[var(--text-muted)] opacity-60">
             <FileText class="w-8 h-8 stroke-[1.25]" />
-            <p class="text-xs font-serif italic">Kết quả bản dịch và phân tích ngữ pháp sẽ hiển thị tại đây.</p>
+            <p class="text-xs font-serif italic">Translation output and linguistic analysis will appear here.</p>
           </div>
         {/if}
       </div>
@@ -377,7 +377,7 @@
       <!-- Target Footer -->
       <div class="pt-3 border-t border-[var(--border-main)] flex items-center justify-between text-xs text-[var(--text-subtle)]">
         <span class="font-mono">
-          {translationResult?.translated_text ? `${translationResult.translated_text.length} ký tự` : "Sẵn sàng"}
+          {translationResult?.translated_text ? `${translationResult.translated_text.length} characters` : "Ready"}
         </span>
         <span class="font-mono text-[11px] italic text-[var(--text-muted)]">{tone}</span>
       </div>
@@ -402,7 +402,7 @@
         <div class="space-y-2">
           <div class="flex items-center gap-1.5 text-xs font-bold text-[var(--text-subtle)] uppercase tracking-wider font-mono">
             <BookOpen class="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-            <span>Từ vựng & Collocations đắt giá trích xuất:</span>
+            <span>Key Extracted Lexicon & Collocations:</span>
           </div>
 
           <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1">
@@ -436,10 +436,10 @@
                   >
                     {#if savedWords[vocab.word]}
                       <Check class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                      <span>Đã lưu</span>
+                      <span>Saved</span>
                     {:else}
                       <Plus class="w-3 h-3" />
-                      <span>Lưu từ</span>
+                      <span>Save Word</span>
                     {/if}
                   </button>
                 </div>
@@ -454,7 +454,7 @@
         <div class="space-y-2 pt-2 border-t border-[var(--border-main)]">
           <div class="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider font-mono flex items-center gap-1.5">
             <Lightbulb class="w-3.5 h-3.5" />
-            <span>Ghi chú ngữ pháp & sắc thái ngữ nghĩa:</span>
+            <span>Grammar Notes & Semantic Nuances:</span>
           </div>
           <ul class="space-y-1.5 text-xs text-[var(--text-main)] font-sans leading-relaxed list-disc list-inside">
             {#each translationResult.nuance_notes as note}
