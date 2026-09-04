@@ -8,7 +8,7 @@ cd "${ROOT_DIR}"
 
 VERSION=$(grep -o '"version": *"[^"]*"' wails.json | head -1 | cut -d'"' -f4)
 if [ -z "$VERSION" ]; then
-    VERSION="0.3.0"
+    VERSION="0.1.8"
 fi
 
 ARCH="amd64"
