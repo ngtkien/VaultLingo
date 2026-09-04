@@ -27,7 +27,9 @@
     BookA,
     Dices,
     PenTool,
-    Zap
+    Zap,
+    Lock,
+    Unlock
   } from 'lucide-svelte';
 
   let { onNavigateToDictionary } = $props<{ onNavigateToDictionary?: (word: string) => void }>();
@@ -133,6 +135,47 @@
   let practiceWord = $state<any>(null);
   let isPracticeModalOpen = $state(false);
 
+  // Session persistence and topic scroll state
+  const CACHE_KEY_WORDS = 'vaultlingo_learn_words';
+  const CACHE_KEY_TOPIC = 'vaultlingo_learn_topic';
+  const CACHE_KEY_LOCKED = 'vaultlingo_learn_locked';
+
+  let topicScrollRef = $state<HTMLElement | null>(null);
+  let canScrollLeft = $state(false);
+  let canScrollRight = $state(false);
+  let isLocked = $state(true);
+
+  function updateScrollIndicators() {
+    if (!topicScrollRef) return;
+    canScrollLeft = topicScrollRef.scrollLeft > 10;
+    canScrollRight = topicScrollRef.scrollLeft < topicScrollRef.scrollWidth - topicScrollRef.clientWidth - 10;
+  }
+
+  function scrollTopics(direction: 'left' | 'right') {
+    if (topicScrollRef) {
+      const offset = direction === 'left' ? -240 : 240;
+      topicScrollRef.scrollBy({ left: offset, behavior: 'smooth' });
+      setTimeout(updateScrollIndicators, 250);
+    }
+  }
+
+  function handleTopicWheel(e: WheelEvent) {
+    if (topicScrollRef && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      topicScrollRef.scrollLeft += e.deltaY;
+      updateScrollIndicators();
+    }
+  }
+
+  function toggleLock() {
+    isLocked = !isLocked;
+    try {
+      localStorage.setItem(CACHE_KEY_LOCKED, String(isLocked));
+    } catch (e) {
+      console.warn('Failed to save lock state', e);
+    }
+  }
+
   function openPracticeModal(w: any) {
     practiceWord = w;
     isPracticeModalOpen = true;
@@ -218,17 +261,19 @@
     quizAnswered = false;
   }
 
-  async function loadData() {
+  async function fetchWords(topicKey: string) {
     loading = true;
     try {
-      topics = await GetAvailableTopics();
-      words = await GetDailyVocab(selectedTopic, 5);
-      await loadDailyIdiom();
-      seenQuizIds = [];
-      await loadNextQuiz();
+      words = await GetDailyVocab(topicKey, 5);
       currentCardIndex = 0;
       cardFlipped = false;
       openSrsWordId = null;
+      try {
+        localStorage.setItem(CACHE_KEY_WORDS, JSON.stringify(words));
+        localStorage.setItem(CACHE_KEY_TOPIC, topicKey);
+      } catch (err) {
+        console.warn('Failed to save words to cache', err);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -236,19 +281,14 @@
     }
   }
 
+  async function handleRefresh() {
+    await fetchWords(selectedTopic);
+    await loadNextQuiz();
+  }
+
   async function handleTopicChange(topicKey: string) {
     selectedTopic = topicKey;
-    loading = true;
-    try {
-      words = await GetDailyVocab(selectedTopic, 5);
-      currentCardIndex = 0;
-      cardFlipped = false;
-      openSrsWordId = null;
-    } catch (e) {
-      console.error(e);
-    } finally {
-      loading = false;
-    }
+    await fetchWords(topicKey);
   }
 
   async function handleSaveWord(word: any) {
@@ -339,10 +379,54 @@
   }
 
   onMount(() => {
-    loadData();
+    async function init() {
+      try {
+        const savedLocked = localStorage.getItem(CACHE_KEY_LOCKED);
+        isLocked = savedLocked !== null ? savedLocked === 'true' : true;
+      } catch (e) {
+        isLocked = true;
+      }
+
+      try {
+        topics = await GetAvailableTopics();
+        setTimeout(updateScrollIndicators, 150);
+      } catch (e) {
+        console.error('Failed to load topics', e);
+      }
+
+      let hasRestored = false;
+      try {
+        const cachedWordsRaw = localStorage.getItem(CACHE_KEY_WORDS);
+        const cachedTopic = localStorage.getItem(CACHE_KEY_TOPIC);
+        if (cachedWordsRaw) {
+          const parsed = JSON.parse(cachedWordsRaw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            words = parsed;
+            if (cachedTopic) {
+              selectedTopic = cachedTopic;
+            }
+            hasRestored = true;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to restore cached words', e);
+      }
+
+      if (!hasRestored || !isLocked) {
+        await fetchWords(selectedTopic);
+      }
+
+      await loadDailyIdiom();
+      seenQuizIds = [];
+      await loadNextQuiz();
+    }
+
+    init();
+
     window.addEventListener('keydown', handleKeydown);
     const closeDropdownOnOutside = () => { openSrsWordId = null; };
     window.addEventListener('click', closeDropdownOnOutside);
+    window.addEventListener('resize', updateScrollIndicators);
 
     const scheduleNextDay = () => {
       const now = new Date();
@@ -358,6 +442,7 @@
     return () => {
       window.removeEventListener('keydown', handleKeydown);
       window.removeEventListener('click', closeDropdownOnOutside);
+      window.removeEventListener('resize', updateScrollIndicators);
       window.clearTimeout(midnightTimer);
     };
   });
@@ -379,28 +464,57 @@
     </div>
   </div>
 
-  <!-- Topic Filters Row -->
-  <div class="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
-    <button
-      onclick={() => handleTopicChange('all')}
-      class={`pill-filter ${selectedTopic === 'all' ? 'active' : ''}`}
-    >
-      <span class="mr-1">🏷️</span>
-      <span>All Topics</span>
-    </button>
-    {#each topics as t}
+  <!-- Topic Filters Row: Deduplicated, smooth scrolling, navigation chevrons -->
+  <div class="relative flex items-center max-w-full">
+    {#if canScrollLeft}
       <button
-        onclick={() => handleTopicChange(t.key)}
-        class={`pill-filter ${selectedTopic === t.key ? 'active' : ''}`}
+        onclick={() => scrollTopics('left')}
+        class="absolute left-0 z-20 p-1.5 rounded-full bg-[var(--bg-card)]/90 backdrop-blur-xs border border-[var(--border-main)] shadow-sm text-[var(--text-muted)] hover:text-[var(--accent-primary)] hover:border-[var(--accent-primary-border)] transition cursor-pointer"
+        aria-label="Scroll topics left"
+        title="Scroll left"
       >
-        <span class="mr-1">{t.icon}</span>
-        <span>{t.title}</span>
+        <ChevronLeft class="w-3.5 h-3.5" />
       </button>
-    {/each}
+    {/if}
+
+    <div
+      bind:this={topicScrollRef}
+      onwheel={handleTopicWheel}
+      onscroll={updateScrollIndicators}
+      class="flex items-center gap-1.5 overflow-x-auto py-1 px-1 max-w-full no-scrollbar scroll-smooth"
+    >
+      <button
+        onclick={() => handleTopicChange('all')}
+        class={`pill-filter ${selectedTopic === 'all' ? 'active' : ''}`}
+      >
+        <span>🏷️</span>
+        <span>All Topics</span>
+      </button>
+      {#each topics.filter(t => t.key !== 'all') as t}
+        <button
+          onclick={() => handleTopicChange(t.key)}
+          class={`pill-filter ${selectedTopic === t.key ? 'active' : ''}`}
+        >
+          <span>{t.icon}</span>
+          <span>{t.title}</span>
+        </button>
+      {/each}
+    </div>
+
+    {#if canScrollRight}
+      <button
+        onclick={() => scrollTopics('right')}
+        class="absolute right-0 z-20 p-1.5 rounded-full bg-[var(--bg-card)]/90 backdrop-blur-xs border border-[var(--border-main)] shadow-sm text-[var(--text-muted)] hover:text-[var(--accent-primary)] hover:border-[var(--accent-primary-border)] transition cursor-pointer"
+        aria-label="Scroll topics right"
+        title="Scroll right"
+      >
+        <ChevronRight class="w-3.5 h-3.5" />
+      </button>
+    {/if}
   </div>
 
-  <!-- Controls Bar: List/Flashcard segmented toggle + Save All + Refresh -->
-  <div class="flex items-center justify-between gap-4">
+  <!-- Controls Bar: List/Flashcard segmented toggle + Save All + Lock + Refresh -->
+  <div class="flex items-center justify-between gap-3 flex-wrap">
     <div class="flex items-center gap-2">
       <!-- Toggle List / Flashcard -->
       <div class="p-1 rounded-xl bg-[var(--bg-card)] border border-[var(--border-main)] flex items-center gap-1 shadow-xs">
@@ -435,18 +549,44 @@
         title="Save all 5 words to Obsidian Vault"
       >
         <Bookmark class="w-3.5 h-3.5" />
-        <span>Save All to Obsidian</span>
+        <span class="hidden sm:inline">Save All to Obsidian</span>
+        <span class="sm:hidden">Save All</span>
       </button>
     </div>
 
-    <!-- Refresh word set -->
-    <button
-      onclick={loadData}
-      class="p-2 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer border border-[var(--border-main)] shadow-xs"
-      title="Load new word set"
-    >
-      <RefreshCw class={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-    </button>
+    <!-- Right Controls: Lock Status Toggle + Refresh Word Set -->
+    <div class="flex items-center gap-2">
+      <!-- Lock Toggle -->
+      <button
+        onclick={toggleLock}
+        class={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 shadow-xs ${
+          isLocked 
+            ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary-border)] text-[var(--accent-primary)] font-bold' 
+            : 'bg-[var(--bg-card)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
+        }`}
+        title={isLocked 
+          ? "Session is locked: words remain pinned when navigating between tabs. Only refresh or topic change will load new words." 
+          : "Session is unlocked: words will randomize when navigating between tabs."}
+      >
+        {#if isLocked}
+          <Lock class="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+          <span>Locked</span>
+        {:else}
+          <Unlock class="w-3.5 h-3.5" />
+          <span>Unlocked</span>
+        {/if}
+      </button>
+
+      <!-- Refresh word set -->
+      <button
+        onclick={handleRefresh}
+        class="px-3 py-1.5 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer border border-[var(--border-main)] hover:border-[var(--accent-primary-border)] shadow-xs flex items-center gap-1.5"
+        title="Shuffle and load a new set of 5 words for this topic"
+      >
+        <RefreshCw class={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[var(--accent-primary)]' : ''}`} />
+        <span class="text-xs font-semibold">Refresh</span>
+      </button>
+    </div>
   </div>
 
   {#if loading}
