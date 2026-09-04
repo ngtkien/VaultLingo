@@ -15,7 +15,8 @@
     Copy,
     Check,
     AlignLeft,
-    ListFilter
+    ListFilter,
+    Sparkles
   } from 'lucide-svelte';
   import { GetListeningTopics } from '../../../wailsjs/go/main/App.js';
 
@@ -29,7 +30,6 @@
     qa: { q: string; a: string }[];
   }
 
-  // Pre-configured fallback topics matching exact audio recordings
   const FALLBACK_TOPICS: TopicItem[] = [
     {
       topic_id: 1,
@@ -126,8 +126,6 @@
     if (!currentTopic.audio) return;
     isFullAudioPlaying = true;
     const speed = slow ? 0.75 : 1.0;
-    // Seeded lessons use the application's TTS so the spoken material and
-    // transcript are always the same source of truth.
     const transcript = currentTopic.qa.map(item => `${item.q} ${item.a}`).join(' ');
     const playback = currentTopic.audio.startsWith('tts://')
       ? playTTS(transcript, speed, 'full_audio')
@@ -150,293 +148,301 @@
   });
 </script>
 
-<div class="grid lg:grid-cols-12 gap-6">
-  <!-- Left Column: Topic List & Search (4 cols) -->
-  <div class="lg:col-span-4 space-y-4">
-    <!-- Search Box -->
-    <div class="relative">
-      <Search class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-      <input
-        type="text"
-        placeholder="Search conversational topics..."
-        bind:value={searchQuery}
-        class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-blue-500 transition"
-      />
-    </div>
-
-    <!-- Topics Scroll Area -->
-    <div class="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-2 max-h-[600px] overflow-y-auto space-y-1.5 backdrop-blur-md">
-      {#each filteredTopics as t}
-        <button
-          onclick={() => { currentTopic = t; stopAudio(); }}
-          class={`w-full p-3 rounded-xl text-left transition cursor-pointer flex items-center justify-between ${
-            (currentTopic.topic_id || currentTopic.id) === (t.topic_id || t.id)
-              ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
-              : 'hover:bg-slate-800 text-slate-300'
-          }`}
-        >
-          <div class="flex items-center gap-2.5">
-            <span class="text-xl">{t.icon}</span>
-            <span class="text-sm font-semibold">{t.title}</span>
-          </div>
-          <span class="text-xs font-mono opacity-60">#{t.topic_id || t.id}</span>
-        </button>
-      {/each}
+<div class="w-full max-w-6xl mx-auto space-y-6 pb-12">
+  <!-- Header Title -->
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="journal-badge text-[var(--accent-primary)] bg-[var(--accent-primary-light)] px-2.5 py-0.5 rounded text-[10px]">
+          Listening Lab
+        </span>
+      </div>
+      <h1 class="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text-main)] mt-1">
+        Conversational Listening
+      </h1>
+      <p class="text-sm font-serif italic text-[var(--text-muted)] mt-1">
+        Improve comprehension with real-world topics, native audio recordings, and transcripts.
+      </p>
     </div>
   </div>
 
-  <!-- Right Column: Interactive Player & Audio Transcript (8 cols) -->
-  <div class="lg:col-span-8 space-y-6">
-    <!-- Header Hero Card -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-5">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
-        <div class="flex items-center gap-3">
-          <span class="text-3xl p-3 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-inner">
-            {currentTopic.icon}
-          </span>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">
-                Audio Listening Practice
-              </span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300">
-                #{currentTopic.topic_id || currentTopic.id}
-              </span>
+  <div class="grid lg:grid-cols-12 gap-6">
+    <!-- Left Column: Topic List & Search (4 cols) -->
+    <div class="lg:col-span-4 space-y-4">
+      <!-- Search Box -->
+      <div class="relative">
+        <Search class="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-3.5" />
+        <input
+          type="text"
+          placeholder="Search conversational topics..."
+          bind:value={searchQuery}
+          class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl pl-10 pr-4 py-2.5 text-xs text-[var(--text-main)] placeholder-[var(--text-subtle)] outline-none focus:border-[var(--accent-primary)] transition"
+        />
+      </div>
+
+      <!-- Topics Scroll Area -->
+      <div class="journal-card p-2 max-h-[600px] overflow-y-auto space-y-1.5 border border-[var(--border-main)] bg-[var(--bg-card)]">
+        {#each filteredTopics as t}
+          {@const isCurrent = (currentTopic.topic_id || currentTopic.id) === (t.topic_id || t.id)}
+          <button
+            onclick={() => { currentTopic = t; stopAudio(); }}
+            class={`w-full p-3 rounded-xl text-left transition cursor-pointer flex items-center justify-between ${
+              isCurrent
+                ? 'bg-[var(--accent-primary)] text-white shadow-sm font-bold'
+                : 'hover:bg-[var(--bg-inner)] text-[var(--text-main)]'
+            }`}
+          >
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl">{t.icon}</span>
+              <span class="text-sm font-semibold">{t.title}</span>
             </div>
-            <h3 class="text-2xl font-black text-slate-100 tracking-tight mt-0.5">
-              {currentTopic.title}
-            </h3>
+            <span class={`text-xs font-mono ${isCurrent ? 'text-white/80' : 'text-[var(--text-subtle)]'}`}>
+              #{t.topic_id || t.id}
+            </span>
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <!-- Right Column: Interactive Player & Audio Transcript (8 cols) -->
+    <div class="lg:col-span-8 space-y-6">
+      <!-- Header Hero Card (matches 6.png) -->
+      <section class="journal-card p-6 sm:p-7 border border-[var(--border-main)] bg-[var(--bg-card)] space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-main)] pb-5">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl p-3 rounded-2xl bg-[var(--bg-inner)] border border-[var(--border-main)]">
+              {currentTopic.icon}
+            </span>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="journal-badge text-[var(--accent-primary)] bg-[var(--accent-primary-light)] px-2 py-0.5 rounded text-[10px]">
+                  Audio Practice
+                </span>
+                <span class="text-xs font-mono text-[var(--text-subtle)]">
+                  #{currentTopic.topic_id || currentTopic.id}
+                </span>
+              </div>
+              <h2 class="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-main)] mt-0.5">
+                {currentTopic.title}
+              </h2>
+            </div>
+          </div>
+
+          <!-- Header Controls: Show/Hide Transcript & Source Link -->
+          <div class="flex items-center gap-2">
+            <button
+              onclick={() => showTranscript = !showTranscript}
+              class={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border ${
+                showTranscript
+                  ? 'bg-[var(--bg-inner)] text-[var(--text-main)] border-[var(--border-main)]'
+                  : 'btn-forest'
+              }`}
+            >
+              {#if showTranscript}
+                <EyeOff class="w-4 h-4" />
+                <span>Hide Transcript</span>
+              {:else}
+                <FileText class="w-4 h-4" />
+                <span>Show Transcript</span>
+              {/if}
+            </button>
+
+            {#if currentTopic.url}
+              <a
+                href={currentTopic.url}
+                target="_blank"
+                class="p-2.5 rounded-xl bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition border border-[var(--border-main)]"
+                title="Open source transcript"
+              >
+                <ExternalLink class="w-4 h-4" />
+              </a>
+            {/if}
           </div>
         </div>
 
-        <!-- Header Controls: Show/Hide Audio Transcript & External Link -->
-        <div class="flex items-center flex-wrap gap-2">
-          <button
-            onclick={() => showTranscript = !showTranscript}
-            class={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border ${
-              showTranscript
-                ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
-                : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/25'
-            }`}
-            title={showTranscript ? "Hide audio transcript" : "Show full audio transcript"}
-          >
-            {#if showTranscript}
-              <EyeOff class="w-4 h-4" />
-              <span>Hide Audio Transcript</span>
-            {:else}
-              <FileText class="w-4 h-4 text-white" />
-              <span>Show Audio Transcript</span>
-            {/if}
-          </button>
-
-          {#if currentTopic.url}
-            <a
-              href={currentTopic.url}
-              target="_blank"
-              class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition"
-              title="Open source transcript on basicenglishspeaking.com"
+        <!-- Master Audio Player Toolbar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-[var(--bg-inner)] border border-[var(--border-main)]">
+          <div class="flex items-center gap-2">
+            <button
+              onclick={() => playFullAudio(false)}
+              class="px-4 py-2.5 rounded-xl btn-forest font-bold text-xs flex items-center gap-2 transition shadow-sm cursor-pointer"
             >
-              <ExternalLink class="w-4 h-4" />
-            </a>
-          {/if}
-        </div>
-      </div>
+              <Play class="w-4 h-4" />
+              <span>Play Audio (1.0x)</span>
+            </button>
 
-      <!-- Master Audio Player Toolbar -->
-      <div class="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-        <div class="flex items-center gap-2">
-          <button
-            onclick={() => playFullAudio(false)}
-            class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-blue-500/25 active:scale-95 cursor-pointer"
-          >
-            <Play class="w-4 h-4" />
-            <span>Play Audio (1.0x)</span>
-          </button>
+            <button
+              onclick={() => playFullAudio(true)}
+              class="px-3.5 py-2.5 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--accent-primary-light)] text-[var(--text-main)] hover:text-[var(--accent-primary)] text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-[var(--border-main)]"
+              title="Play slower for clear pronunciation listening"
+            >
+              <Headphones class="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+              <span>Slow (0.75x)</span>
+            </button>
+          </div>
 
-          <button
-            onclick={() => playFullAudio(true)}
-            class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-slate-700"
-            title="Play slower for clear pronunciation listening"
-          >
-            <Headphones class="w-3.5 h-3.5 text-cyan-400" />
-            <span>Slow (0.75x)</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              onclick={stopAudio}
+              class="px-3 py-2 rounded-xl bg-[var(--bg-card)] hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-600 text-xs transition cursor-pointer border border-[var(--border-main)]"
+            >
+              Stop
+            </button>
+          </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <button
-            onclick={() => showTranscript = !showTranscript}
-            class="px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-blue-400 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer border border-slate-700/80"
-          >
-            <FileText class="w-3.5 h-3.5" />
-            <span>{showTranscript ? 'Hide Transcript' : 'Show Transcript'}</span>
-          </button>
-
-          <button
-            onclick={stopAudio}
-            class="px-3 py-2 rounded-xl bg-slate-800/60 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 text-xs transition cursor-pointer border border-slate-700/60"
-          >
-            Stop
-          </button>
-        </div>
-      </div>
-
-      <!-- Main Content Area: Audio Transcript or Listening Comprehension Mode -->
-      {#if showTranscript}
-        <!-- Audio Transcript Container -->
-        <div class="space-y-4 pt-2">
-          <!-- Transcript Top Toolbar -->
-          <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
-            <div class="flex items-center gap-2">
-              <span class="flex items-center gap-1.5 text-xs font-bold text-slate-200">
-                <MessageSquareQuote class="w-4 h-4 text-blue-400" />
-                Audio Transcript
-              </span>
-              <span class="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 text-slate-400">
-                {currentTopic.qa.length} dialogue turns
-              </span>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <!-- Switch Format: Dialogue vs Continuous Text -->
-              <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5">
-                <button
-                  onclick={() => transcriptFormat = 'dialogue'}
-                  class={`px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer flex items-center gap-1 ${
-                    transcriptFormat === 'dialogue'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                  title="Dialogue exchanges view"
-                >
-                  <ListFilter class="w-3 h-3" />
-                  <span>Dialogue</span>
-                </button>
-                <button
-                  onclick={() => transcriptFormat = 'text'}
-                  class={`px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer flex items-center gap-1 ${
-                    transcriptFormat === 'text'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                  title="Continuous script text view"
-                >
-                  <AlignLeft class="w-3 h-3" />
-                  <span>Full Text</span>
-                </button>
+        <!-- Content Area: Audio Transcript or Listening Mode Banner -->
+        {#if showTranscript}
+          <div class="space-y-4 pt-2">
+            <!-- Transcript Toolbar -->
+            <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)]">
+              <div class="flex items-center gap-2">
+                <span class="flex items-center gap-1.5 text-xs font-bold text-[var(--text-main)]">
+                  <MessageSquareQuote class="w-4 h-4 text-[var(--accent-primary)]" />
+                  Audio Transcript
+                </span>
+                <span class="text-xs font-mono text-[var(--text-subtle)]">
+                  {currentTopic.qa.length} dialogue turns
+                </span>
               </div>
 
-              <!-- Blur Answers Toggle in Dialogue View -->
-              {#if transcriptFormat === 'dialogue'}
+              <div class="flex items-center gap-2">
+                <!-- Dialogue vs Full Text Switch -->
+                <div class="flex items-center bg-[var(--bg-card)] border border-[var(--border-main)] rounded-lg p-0.5">
+                  <button
+                    onclick={() => transcriptFormat = 'dialogue'}
+                    class={`px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer flex items-center gap-1 ${
+                      transcriptFormat === 'dialogue'
+                        ? 'bg-[var(--accent-primary)] text-white shadow-sm font-semibold'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    }`}
+                  >
+                    <ListFilter class="w-3 h-3" />
+                    <span>Dialogue</span>
+                  </button>
+                  <button
+                    onclick={() => transcriptFormat = 'text'}
+                    class={`px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer flex items-center gap-1 ${
+                      transcriptFormat === 'text'
+                        ? 'bg-[var(--accent-primary)] text-white shadow-sm font-semibold'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    }`}
+                  >
+                    <AlignLeft class="w-3 h-3" />
+                    <span>Full Text</span>
+                  </button>
+                </div>
+
+                <!-- Hide Answers Toggle -->
+                {#if transcriptFormat === 'dialogue'}
+                  <button
+                    onclick={() => hideAnswers = !hideAnswers}
+                    class={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition cursor-pointer border flex items-center gap-1 ${
+                      hideAnswers
+                        ? 'bg-amber-500/15 text-amber-700 border-amber-400/30'
+                        : 'bg-[var(--bg-card)] text-[var(--text-muted)] border-[var(--border-main)]'
+                    }`}
+                  >
+                    {#if hideAnswers}
+                      <EyeOff class="w-3 h-3" />
+                      <span>Responses Hidden</span>
+                    {:else}
+                      <Eye class="w-3 h-3" />
+                      <span>Hide Responses</span>
+                    {/if}
+                  </button>
+                {/if}
+
+                <!-- Copy Transcript -->
                 <button
-                  onclick={() => hideAnswers = !hideAnswers}
-                  class={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition cursor-pointer border flex items-center gap-1 ${
-                    hideAnswers
-                      ? 'bg-amber-600/20 text-amber-300 border-amber-500/30'
-                      : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border-slate-800'
-                  }`}
-                  title="Blur responses for active recall"
+                  onclick={copyTranscript}
+                  class="px-2.5 py-1 rounded-lg bg-[var(--bg-card)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] text-[11px] font-medium transition cursor-pointer border border-[var(--border-main)] flex items-center gap-1"
                 >
-                  {#if hideAnswers}
-                    <EyeOff class="w-3 h-3" />
-                    <span>Responses Hidden</span>
+                  {#if copied}
+                    <Check class="w-3 h-3 text-emerald-600" />
+                    <span class="text-emerald-600">Copied</span>
                   {:else}
-                    <Eye class="w-3 h-3" />
-                    <span>Hide Responses</span>
+                    <Copy class="w-3 h-3" />
+                    <span>Copy</span>
                   {/if}
                 </button>
-              {/if}
-
-              <!-- Copy Transcript Button -->
-              <button
-                onclick={copyTranscript}
-                class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-[11px] font-medium transition cursor-pointer border border-slate-800 flex items-center gap-1"
-                title="Copy entire audio transcript"
-              >
-                {#if copied}
-                  <Check class="w-3 h-3 text-emerald-400" />
-                  <span class="text-emerald-400">Copied</span>
-                {:else}
-                  <Copy class="w-3 h-3" />
-                  <span>Copy</span>
-                {/if}
-              </button>
-            </div>
-          </div>
-
-          <!-- Transcript Body -->
-          {#if transcriptFormat === 'dialogue'}
-            <div class="space-y-3">
-              {#each currentTopic.qa as item, idx}
-                <div class="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2.5 hover:border-slate-700 transition shadow-sm">
-                  <!-- Speaker A (Question / Prompt in Audio) -->
-                  <div class="flex items-start gap-3">
-                    <span class="px-2 py-0.5 rounded text-[11px] font-bold font-mono bg-blue-600/20 text-blue-400 border border-blue-500/30 shrink-0 mt-0.5">
-                      Speaker 1
-                    </span>
-                    <p class="text-sm font-semibold text-slate-200 leading-relaxed">
-                      {item.q}
-                    </p>
-                  </div>
-
-                  <!-- Speaker B (Response / Spoken in Audio) -->
-                  <div class="flex items-start gap-3 pl-2 sm:pl-4 border-l-2 border-slate-800 ml-3">
-                    <span class="px-2 py-0.5 rounded text-[11px] font-bold font-mono bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 shrink-0 mt-0.5">
-                      Speaker 2
-                    </span>
-                    <p class={`text-sm leading-relaxed transition-all duration-200 ${
-                      hideAnswers
-                        ? 'blur-sm select-none text-slate-500 hover:blur-none cursor-pointer'
-                        : 'text-slate-300'
-                    }`}>
-                      {item.a}
-                    </p>
-                  </div>
-                </div>
-              {/each}
-            </div>
-          {:else}
-            <!-- Full Continuous Script View -->
-            <div class="p-6 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-4">
-              <div class="text-xs uppercase tracking-wider text-slate-500 font-bold">
-                Spoken Audio Script: {currentTopic.title}
               </div>
-              <div class="space-y-4 text-sm leading-relaxed text-slate-200 divide-y divide-slate-800/60">
+            </div>
+
+            <!-- Dialogue Turns -->
+            {#if transcriptFormat === 'dialogue'}
+              <div class="space-y-3">
                 {#each currentTopic.qa as item}
-                  <div class="pt-3 first:pt-0 space-y-1">
-                    <p class="font-medium text-blue-300">
-                      — {item.q}
-                    </p>
-                    <p class="text-slate-300 pl-4">
-                      {item.a}
-                    </p>
+                  <div class="p-4 rounded-2xl bg-[var(--bg-inner)] border border-[var(--border-main)] space-y-2.5">
+                    <!-- Speaker 1 -->
+                    <div class="flex items-start gap-3">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-[var(--accent-primary-light)] text-[var(--accent-primary)] border border-[var(--accent-primary-border)] shrink-0 mt-0.5">
+                        Speaker 1
+                      </span>
+                      <p class="text-sm font-semibold text-[var(--text-main)] leading-relaxed">
+                        {item.q}
+                      </p>
+                    </div>
+
+                    <!-- Speaker 2 -->
+                    <div class="flex items-start gap-3 pl-2 sm:pl-4 border-l-2 border-[var(--accent-primary)] ml-3">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-main)] shrink-0 mt-0.5">
+                        Speaker 2
+                      </span>
+                      <p class={`text-sm leading-relaxed transition-all duration-200 ${
+                        hideAnswers
+                          ? 'blur-sm select-none text-[var(--text-subtle)] hover:blur-none cursor-pointer'
+                          : 'text-[var(--text-muted)]'
+                      }`}>
+                        {item.a}
+                      </p>
+                    </div>
                   </div>
                 {/each}
               </div>
+            {:else}
+              <!-- Full Continuous Script -->
+              <div class="p-6 rounded-2xl bg-[var(--bg-inner)] border border-[var(--border-main)] space-y-4">
+                <div class="text-xs uppercase tracking-wider text-[var(--text-muted)] font-bold">
+                  Spoken Audio Script: {currentTopic.title}
+                </div>
+                <div class="space-y-4 text-sm leading-relaxed text-[var(--text-main)] divide-y divide-[var(--border-main)]">
+                  {#each currentTopic.qa as item}
+                    <div class="pt-3 first:pt-0 space-y-1">
+                      <p class="font-medium text-[var(--accent-primary)]">
+                        — {item.q}
+                      </p>
+                      <p class="text-[var(--text-muted)] pl-4">
+                        {item.a}
+                      </p>
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          </div>
+        {:else}
+          <!-- Active Listening Placeholder -->
+          <div class="py-12 px-6 rounded-2xl bg-[var(--bg-inner)] border border-[var(--border-main)] border-dashed text-center space-y-4 flex flex-col items-center justify-center">
+            <div class="w-14 h-14 rounded-2xl bg-[var(--accent-primary-light)] text-[var(--accent-primary)] flex items-center justify-center">
+              <Headphones class="w-7 h-7" />
             </div>
-          {/if}
-        </div>
-      {:else}
-        <!-- Active Listening Comprehension Mode Banner -->
-        <div class="py-12 px-6 rounded-2xl bg-slate-950/40 border border-slate-800/80 border-dashed text-center space-y-4 flex flex-col items-center justify-center">
-          <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shadow-inner">
-            <Headphones class="w-7 h-7" />
+            <div class="max-w-md space-y-1.5">
+              <h4 class="text-base font-bold text-[var(--text-main)]">Active Audio Listening Mode</h4>
+              <p class="text-xs text-[var(--text-muted)] leading-relaxed">
+                Listen to the complete audio recording above to train your ear. When you are ready to review what was spoken, click below to reveal the transcript.
+              </p>
+            </div>
+            <button
+              onclick={() => showTranscript = true}
+              class="px-5 py-2.5 rounded-xl btn-forest font-bold text-xs flex items-center gap-2 transition shadow-sm cursor-pointer"
+            >
+              <FileText class="w-4 h-4" />
+              <span>Show Audio Transcript</span>
+            </button>
           </div>
-          <div class="max-w-md space-y-1.5">
-            <h4 class="text-base font-bold text-slate-200">Active Audio Listening Mode</h4>
-            <p class="text-xs text-slate-400 leading-relaxed">
-              Listen to the complete audio recording above to train your ear. When you are ready to review what was spoken, click below to reveal the audio transcript.
-            </p>
-          </div>
-          <button
-            onclick={() => showTranscript = true}
-            class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-blue-500/25 cursor-pointer active:scale-95"
-          >
-            <FileText class="w-4 h-4" />
-            <span>Show Audio Transcript</span>
-          </button>
-        </div>
-      {/if}
+        {/if}
+      </section>
     </div>
   </div>
 </div>

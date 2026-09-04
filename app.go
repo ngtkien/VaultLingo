@@ -127,6 +127,18 @@ func (a *App) EvaluateWriting(prompt, text, situationVi string) (string, error) 
 	return backend.EvaluateWritingAI(prompt, text, situationVi, cfg)
 }
 
+
+// Translation Methods
+func (a *App) TranslateParagraph(text, sourceLang, targetLang, tone string) (backend.TranslationResult, error) {
+	cfg := backend.LoadConfig()
+	return backend.TranslateParagraph(text, sourceLang, targetLang, tone, cfg)
+}
+
+func (a *App) SaveTranslationToObsidian(sourceText, targetText, sourceLang, targetLang, tone string, vocab []backend.ExtractedVocab) (backend.ObsidianSaveResult, error) {
+	cfg := backend.LoadConfig()
+	return backend.SaveTranslationToObsidian(sourceText, targetText, sourceLang, targetLang, tone, vocab, cfg.ObsidianVaultPath)
+}
+
 // Obsidian Vault Methods
 func (a *App) SaveWordToObsidian(item backend.Word) (backend.ObsidianSaveResult, error) {
 	cfg := backend.LoadConfig()

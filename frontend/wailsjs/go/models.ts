@@ -153,6 +153,24 @@ export namespace backend {
 		}
 	}
 	
+	export class ExtractedVocab {
+	    word: string;
+	    pos: string;
+	    phonetic: string;
+	    meaning: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ExtractedVocab(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.word = source["word"];
+	        this.pos = source["pos"];
+	        this.phonetic = source["phonetic"];
+	        this.meaning = source["meaning"];
+	    }
+	}
 	export class GrammarCategoryInfo {
 	    tense_category: string;
 	    category_icon: string;
@@ -370,6 +388,46 @@ export namespace backend {
 	        this.explanation = source["explanation"];
 	        this.tip = source["tip"];
 	    }
+	}
+	export class TranslationResult {
+	    translated_text: string;
+	    source_lang: string;
+	    target_lang: string;
+	    tone: string;
+	    key_vocabulary: ExtractedVocab[];
+	    nuance_notes: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new TranslationResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.translated_text = source["translated_text"];
+	        this.source_lang = source["source_lang"];
+	        this.target_lang = source["target_lang"];
+	        this.tone = source["tone"];
+	        this.key_vocabulary = this.convertValues(source["key_vocabulary"], ExtractedVocab);
+	        this.nuance_notes = source["nuance_notes"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class VoiceOption {
 	    id: string;

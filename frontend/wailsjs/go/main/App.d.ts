@@ -64,6 +64,8 @@ export function SaveAllWordsToObsidian(arg1:Array<backend.Word>):Promise<Array<b
 
 export function SaveConfig(arg1:backend.Config):Promise<void>;
 
+export function SaveTranslationToObsidian(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string,arg6:Array<backend.ExtractedVocab>):Promise<backend.ObsidianSaveResult>;
+
 export function SaveWordToDB(arg1:backend.Word):Promise<void>;
 
 export function SaveWordToObsidian(arg1:backend.Word):Promise<backend.ObsidianSaveResult>;
@@ -73,5 +75,7 @@ export function SaveWritingToObsidian(arg1:string,arg2:string,arg3:string,arg4:s
 export function SearchWordsInDB(arg1:string,arg2:number):Promise<Array<backend.Word>>;
 
 export function StopAudio():Promise<void>;
+
+export function TranslateParagraph(arg1:string,arg2:string,arg3:string,arg4:string):Promise<backend.TranslationResult>;
 
 export function UpdateObsidianSrsReview(arg1:string,arg2:string,arg3:number):Promise<void>;

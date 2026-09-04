@@ -10,18 +10,14 @@
   import { 
     Volume2, 
     RefreshCw, 
-    CheckCircle2, 
-    XCircle, 
-    Eye, 
-    EyeOff, 
-    Sparkles, 
     Award, 
     Filter, 
     ChevronDown, 
     Check, 
-    Layers,
-    FolderKanban,
-    GraduationCap
+    Eye, 
+    EyeOff, 
+    GraduationCap,
+    Sparkles
   } from 'lucide-svelte';
 
   interface CategoryInfo {
@@ -37,10 +33,10 @@
   }
 
   const CEFR_LEVEL_GROUPS = [
-    { id: 'all', label: 'All Levels', icon: '🌟', desc: 'Any difficulty', color: 'from-blue-500/20 to-indigo-500/20 text-blue-300 border-blue-500/30' },
-    { id: 'A2', label: 'A2 Basic', icon: '🌱', desc: 'Everyday Daily English', color: 'from-emerald-500/20 to-teal-500/20 text-emerald-300 border-emerald-500/30' },
-    { id: 'B1', label: 'B1 Intermediate', icon: '🌿', desc: 'Workplace & Conversations', color: 'from-cyan-500/20 to-blue-500/20 text-cyan-300 border-cyan-500/30' },
-    { id: 'B2', label: 'B2 Advanced', icon: '🚀', desc: 'IELTS, Tech & Academic', color: 'from-purple-500/20 to-amber-500/20 text-purple-300 border-purple-500/30' }
+    { id: 'all', label: 'All Levels', icon: '🌟', desc: 'Any difficulty' },
+    { id: 'A2', label: 'A2 Basic', icon: '🌱', desc: 'Everyday English' },
+    { id: 'B1', label: 'B1 Intermediate', icon: '🌿', desc: 'Workplace & Context' },
+    { id: 'B2', label: 'B2 Advanced', icon: '🚀', desc: 'Academic & Tech' }
   ];
 
   let categories = $state<CategoryInfo[]>([]);
@@ -55,7 +51,6 @@
   let loading = $state(false);
   let isAudioPlaying = $state(false);
   let isCategoryDropdownOpen = $state(false);
-  let isLevelDropdownOpen = $state(false);
   let seenIds = $state<number[]>([]);
   let topicSearch = $state('');
 
@@ -75,13 +70,10 @@
   async function loadSentence(category = selectedCategory, level = selectedLevel) {
     loading = true;
     try {
-      // Exclude recently seen IDs in this category & level to prevent repeating
       const sentence = await GetDictationSentenceFiltered(category, level, seenIds);
       dictation = sentence;
-      if (sentence?.id) {
-        if (!seenIds.includes(sentence.id)) {
-          seenIds = [...seenIds, sentence.id];
-        }
+      if (sentence?.id && !seenIds.includes(sentence.id)) {
+        seenIds = [...seenIds, sentence.id];
       }
       userInput = '';
       checked = false;
@@ -97,7 +89,7 @@
   function handleSelectCategory(cat: string) {
     if (selectedCategory !== cat) {
       selectedCategory = cat;
-      seenIds = []; // reset seen queue when switching topic
+      seenIds = [];
     }
     isCategoryDropdownOpen = false;
     topicSearch = '';
@@ -107,9 +99,8 @@
   function handleSelectLevel(lvl: string) {
     if (selectedLevel !== lvl) {
       selectedLevel = lvl;
-      seenIds = []; // reset seen queue when switching level
+      seenIds = [];
     }
-    isLevelDropdownOpen = false;
     loadSentence(selectedCategory, lvl);
   }
 
@@ -131,7 +122,6 @@
     }
   }
 
-  // Active metadata derivations
   let activeCategoryInfo = $derived(() => {
     if (selectedCategory === 'all') {
       return { category: 'All Topics', category_icon: '🌟', count: categories.reduce((acc, c) => acc + c.count, 0) };
@@ -143,7 +133,7 @@
   let activeLevelInfo = $derived(() => {
     const found = CEFR_LEVEL_GROUPS.find(l => l.id === selectedLevel);
     if (found) return found;
-    return { id: selectedLevel, label: selectedLevel, icon: '🎯', desc: selectedLevel, color: 'text-slate-300' };
+    return { id: selectedLevel, label: selectedLevel, icon: '🎯', desc: selectedLevel };
   });
 
   let filteredCategories = $derived(() => {
@@ -163,41 +153,62 @@
   if (!target.closest('.category-dropdown-container')) {
     isCategoryDropdownOpen = false;
   }
-  if (!target.closest('.level-dropdown-container')) {
-    isLevelDropdownOpen = false;
-  }
 }} />
 
-<div class="w-full max-w-5xl mx-auto space-y-6">
-  <!-- Top Practice Filters Bar -->
-  <div class="relative z-30 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg backdrop-blur-md space-y-4">
-    <!-- Level Selector Bar -->
-    <div class="space-y-2">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2 text-xs font-bold text-slate-300">
-          <GraduationCap class="w-4 h-4 text-emerald-400" />
-          <span>Difficulty Level (CEFR):</span>
-        </div>
-        <span class="text-[11px] text-slate-400 font-mono">
-          Current: <strong class="text-emerald-400">{activeLevelInfo().label}</strong>
+<div class="w-full max-w-5xl mx-auto space-y-6 pb-12">
+  <!-- Header Title -->
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="journal-badge text-[var(--accent-primary)] bg-[var(--accent-primary-light)] px-2.5 py-0.5 rounded text-[10px]">
+          Audio Training
         </span>
       </div>
+      <h1 class="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text-main)] mt-1">
+        Dictation Practice
+      </h1>
+      <p class="text-sm font-serif italic text-[var(--text-muted)] mt-1">
+        Train your ear and refine your spelling with real-world audio dictation.
+      </p>
+    </div>
 
-      <!-- CEFR Level Pills Grid -->
+    <button
+      onclick={() => loadSentence(selectedCategory, selectedLevel)}
+      class="p-2.5 rounded-xl bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold border border-[var(--border-main)] self-start sm:self-auto"
+      title="Load next sentence"
+    >
+      <RefreshCw class="w-3.5 h-3.5" />
+      <span>Next Sentence</span>
+    </button>
+  </div>
+
+  <!-- Filters: CEFR Level & Topic Domain (matches 5.png) -->
+  <section class="journal-card p-5 border border-[var(--border-main)] bg-[var(--bg-card)] space-y-4">
+    <!-- CEFR Levels -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between text-xs font-semibold text-[var(--text-muted)]">
+        <div class="flex items-center gap-1.5">
+          <GraduationCap class="w-4 h-4 text-[var(--accent-primary)]" />
+          <span>Difficulty Level (CEFR):</span>
+        </div>
+        <span class="font-mono">Current: <strong class="text-[var(--accent-primary)]">{activeLevelInfo().label}</strong></span>
+      </div>
+
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {#each CEFR_LEVEL_GROUPS as lvl}
+          {@const isSelected = selectedLevel === lvl.id}
           <button
             onclick={() => handleSelectLevel(lvl.id)}
-            class={`p-2.5 rounded-xl border text-left transition cursor-pointer flex items-center gap-2.5 ${
-              selectedLevel === lvl.id
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 border-emerald-400 text-white font-bold shadow-md shadow-emerald-500/25 ring-1 ring-emerald-400/50'
-                : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+            class={`p-3 rounded-xl border text-left transition cursor-pointer flex items-center gap-2.5 ${
+              isSelected
+                ? 'bg-[var(--accent-primary)] text-white border-[var(--accent-primary)] font-bold shadow-sm'
+                : 'bg-[var(--bg-inner)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-[var(--accent-primary)]'
             }`}
           >
-            <span class="text-lg shrink-0">{lvl.icon}</span>
+            <span class="text-base">{lvl.icon}</span>
             <div class="min-w-0 flex-1">
-              <div class="text-xs font-bold truncate leading-tight">{lvl.label}</div>
-              <div class={`text-[10px] truncate opacity-75 ${selectedLevel === lvl.id ? 'text-white' : 'text-slate-500'}`}>
+              <div class="text-xs font-bold truncate">{lvl.label}</div>
+              <div class={`text-[10px] truncate ${isSelected ? 'text-white/80' : 'text-[var(--text-subtle)]'}`}>
                 {lvl.desc}
               </div>
             </div>
@@ -206,148 +217,114 @@
       </div>
     </div>
 
-    <!-- Divider -->
-    <div class="h-px bg-slate-800/80"></div>
+    <div class="h-px bg-[var(--border-main)]"></div>
 
-    <!-- Practice Topic Bar -->
+    <!-- Topic Domain Selector -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-          <Filter class="w-3.5 h-3.5" />
-        </div>
+        <Filter class="w-4 h-4 text-[var(--accent-primary)]" />
         <div>
-          <span class="text-xs font-bold text-slate-300 block">Topic Domain:</span>
-          <span class="text-[11px] text-slate-400">Filter by conversational context</span>
+          <span class="text-xs font-semibold text-[var(--text-main)] block">Topic Domain:</span>
+          <span class="text-[11px] text-[var(--text-muted)]">Select vocabulary context</span>
         </div>
       </div>
 
-      <!-- Dropdown Selector -->
+      <!-- Dropdown -->
       <div class="relative category-dropdown-container">
         <button
           onclick={() => isCategoryDropdownOpen = !isCategoryDropdownOpen}
-          class="w-full sm:w-64 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700/80 hover:border-slate-600 text-slate-200 text-xs font-semibold flex items-center justify-between transition cursor-pointer shadow-inner"
+          class="w-full sm:w-64 px-3.5 py-2 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)] hover:border-[var(--accent-primary)] text-[var(--text-main)] text-xs font-semibold flex items-center justify-between transition cursor-pointer"
         >
           <div class="flex items-center gap-2 truncate">
             <span>{activeCategoryInfo().category_icon}</span>
             <span class="truncate">{activeCategoryInfo().category}</span>
           </div>
-          <ChevronDown class={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown class={`w-3.5 h-3.5 text-[var(--text-muted)] transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {#if isCategoryDropdownOpen}
-          <div class="absolute right-0 top-full mt-2 w-80 max-h-80 overflow-y-auto bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl shadow-black/90 z-50 p-2 backdrop-blur-xl space-y-1 ring-1 ring-slate-700/50">
-            <!-- Search input inside dropdown -->
+          <div class="absolute right-0 top-full mt-2 w-80 max-h-72 overflow-y-auto bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl shadow-xl z-50 p-2 space-y-1">
             <div class="px-1 pb-1">
               <input
                 type="text"
                 bind:value={topicSearch}
-                placeholder="Search topics (e.g. IELTS, Tech, Food)..."
-                class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 text-xs outline-none focus:border-blue-500 transition"
+                placeholder="Search topics..."
+                class="w-full px-3 py-1.5 rounded-lg bg-[var(--bg-inner)] border border-[var(--border-main)] text-[var(--text-main)] text-xs outline-none focus:border-[var(--accent-primary)]"
               />
             </div>
 
-            <!-- All Topics Option -->
             {#if !topicSearch.trim()}
               <button
                 onclick={() => handleSelectCategory('all')}
-                class={`w-full px-3 py-2 rounded-xl text-left text-xs font-medium flex items-center justify-between transition cursor-pointer ${
-                  selectedCategory === 'all' 
-                    ? 'bg-blue-600/20 text-blue-300 border border-blue-500/30' 
-                    : 'hover:bg-slate-900 text-slate-300'
+                class={`w-full px-3 py-2 rounded-xl text-left text-xs font-medium flex items-center justify-between cursor-pointer ${
+                  selectedCategory === 'all'
+                    ? 'bg-[var(--accent-primary-light)] text-[var(--accent-primary)] font-bold'
+                    : 'hover:bg-[var(--bg-inner)] text-[var(--text-main)]'
                 }`}
               >
-                <div class="flex items-center gap-2.5">
-                  <span class="text-base">🌟</span>
-                  <span class="font-bold">All Topics</span>
+                <div class="flex items-center gap-2">
+                  <span>🌟</span>
+                  <span>All Topics</span>
                 </div>
                 {#if selectedCategory === 'all'}
-                  <Check class="w-3.5 h-3.5 text-blue-400" />
+                  <Check class="w-3.5 h-3.5 text-[var(--accent-primary)]" />
                 {/if}
               </button>
-
-              <div class="h-px bg-slate-800 my-1"></div>
+              <div class="h-px bg-[var(--border-main)] my-1"></div>
             {/if}
 
-            <!-- Dynamic Categories List -->
             {#each filteredCategories() as cat}
               <button
                 onclick={() => handleSelectCategory(cat.category)}
-                class={`w-full px-3 py-2 rounded-xl text-left text-xs font-medium flex items-center justify-between transition cursor-pointer ${
-                  selectedCategory === cat.category 
-                    ? 'bg-blue-600/20 text-blue-300 border border-blue-500/30 font-semibold' 
-                    : 'hover:bg-slate-900 text-slate-300'
+                class={`w-full px-3 py-2 rounded-xl text-left text-xs font-medium flex items-center justify-between cursor-pointer ${
+                  selectedCategory === cat.category
+                    ? 'bg-[var(--accent-primary-light)] text-[var(--accent-primary)] font-bold'
+                    : 'hover:bg-[var(--bg-inner)] text-[var(--text-main)]'
                 }`}
               >
-                <div class="flex items-center gap-2.5 truncate">
-                  <span class="text-base">{cat.category_icon}</span>
+                <div class="flex items-center gap-2 truncate">
+                  <span>{cat.category_icon}</span>
                   <span class="truncate">{cat.category}</span>
                 </div>
-                <div class="flex items-center gap-1.5">
-                  <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">
-                    {cat.count}
-                  </span>
-                  {#if selectedCategory === cat.category}
-                    <Check class="w-3.5 h-3.5 text-blue-400" />
-                  {/if}
-                </div>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--bg-inner)] text-[var(--text-subtle)] font-mono">
+                  {cat.count}
+                </span>
               </button>
             {/each}
-
-            {#if filteredCategories().length === 0}
-              <div class="py-3 text-center text-xs text-slate-500">
-                No matching topic found.
-              </div>
-            {/if}
           </div>
         {/if}
       </div>
     </div>
-  </div>
+  </section>
 
   {#if loading}
-    <div class="flex flex-col items-center justify-center py-20 text-slate-400 space-y-3">
-      <RefreshCw class="w-8 h-8 animate-spin text-emerald-500" />
-      <p class="text-sm font-medium">Loading {activeLevelInfo().label} dictation sentence...</p>
+    <div class="flex flex-col items-center justify-center py-20 text-[var(--text-muted)] space-y-3">
+      <RefreshCw class="w-8 h-8 animate-spin text-[var(--accent-primary)]" />
+      <p class="text-sm font-medium font-serif italic">Selecting audio sentence...</p>
     </div>
   {:else if dictation}
-    <!-- Dictation Main Practice Card -->
-    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-md shadow-xl space-y-6">
+    <!-- Main Dictation Practice Card -->
+    <article class="journal-card p-6 sm:p-8 border border-[var(--border-main)] bg-[var(--bg-card)] space-y-6">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <span class="text-2xl">{dictation.category_icon || '🎧'}</span>
           <div>
-            <div class="flex items-center gap-2">
-              <h3 class="text-lg font-bold text-slate-100">{dictation.category}</h3>
-            </div>
+            <h2 class="text-lg font-bold font-serif text-[var(--text-main)]">{dictation.category}</h2>
             <div class="flex items-center gap-2 mt-0.5">
-              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-[var(--accent-primary-light)] text-[var(--accent-primary)] border border-[var(--accent-primary-border)]">
                 {dictation.level}
               </span>
-              {#if selectedLevel !== 'all'}
-                <span class="text-[11px] text-slate-400 font-mono">
-                  (Filtered by {selectedLevel})
-                </span>
-              {/if}
             </div>
           </div>
         </div>
-
-        <button
-          onclick={() => loadSentence(selectedCategory, selectedLevel)}
-          class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-sm active:scale-95"
-          title="Load next sentence with current filters"
-        >
-          <RefreshCw class="w-3.5 h-3.5" />
-          <span>Next Sentence</span>
-        </button>
       </div>
 
       <!-- Audio Control Center -->
-      <div class="bg-slate-950/60 p-6 rounded-2xl border border-slate-800/80 flex flex-col items-center justify-center space-y-4">
-        <div class="flex items-center gap-4">
+      <div class="p-6 rounded-2xl bg-[var(--bg-inner)] border border-[var(--border-main)] flex flex-col items-center justify-center space-y-3">
+        <div class="flex items-center gap-3">
           <button
             onclick={() => playAudio(false)}
-            class="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-emerald-500/30 active:scale-95 transition cursor-pointer"
+            class="px-6 py-3 rounded-xl btn-forest font-bold text-sm flex items-center gap-2 shadow-sm cursor-pointer"
           >
             <Volume2 class={`w-5 h-5 ${isAudioPlaying ? 'animate-bounce' : ''}`} />
             <span>Play Audio (1.0x)</span>
@@ -355,38 +332,36 @@
 
           <button
             onclick={() => playAudio(true)}
-            class="px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm transition cursor-pointer border border-slate-700 active:scale-95"
+            class="px-4 py-3 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--accent-primary-light)] text-[var(--text-main)] hover:text-[var(--accent-primary)] font-semibold text-sm transition cursor-pointer border border-[var(--border-main)]"
           >
             Slow (0.75x)
           </button>
         </div>
 
-        <p class="text-xs text-slate-400">
-          Listen carefully to the neural pronunciation and transcribe what you hear below 👇
+        <p class="text-xs text-[var(--text-muted)] font-serif italic">
+          Listen carefully to the audio and transcribe what you hear below.
         </p>
       </div>
 
-      <!-- Dictation Input Box -->
+      <!-- User Input Box -->
       <div class="space-y-3">
-        <div class="relative">
-          <textarea
-            bind:value={userInput}
-            onkeydown={(e) => {
-              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey || !e.shiftKey)) {
-                e.preventDefault();
-                handleCheck();
-              }
-            }}
-            placeholder="Type the sentence you hear..."
-            rows="3"
-            class="w-full bg-slate-950 border border-slate-700/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl p-4 text-base text-slate-100 placeholder-slate-500 outline-none transition resize-none leading-relaxed font-sans"
-          ></textarea>
-        </div>
+        <textarea
+          bind:value={userInput}
+          onkeydown={(e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey || !e.shiftKey)) {
+              e.preventDefault();
+              handleCheck();
+            }
+          }}
+          placeholder="Type the exact sentence you hear..."
+          rows="3"
+          class="w-full bg-[var(--bg-inner)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-2xl p-4 text-base text-[var(--text-main)] placeholder-[var(--text-subtle)] outline-none transition resize-none font-sans"
+        ></textarea>
 
         <div class="flex items-center justify-between">
           <button
             onclick={() => showHint = !showHint}
-            class="text-xs font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition cursor-pointer"
+            class="text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--accent-primary)] flex items-center gap-1.5 transition cursor-pointer"
           >
             {#if showHint}
               <EyeOff class="w-3.5 h-3.5" />
@@ -400,57 +375,57 @@
           <button
             onclick={handleCheck}
             disabled={!userInput.trim()}
-            class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-bold text-sm transition shadow-lg shadow-emerald-500/25 active:scale-95 cursor-pointer"
+            class="px-6 py-2.5 rounded-xl btn-forest disabled:opacity-50 font-bold text-sm transition shadow-sm cursor-pointer"
           >
             Check Dictation (Enter)
           </button>
         </div>
 
-        <!-- Hint Box -->
         {#if showHint && dictation.hint}
-          <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300">
+          <div class="p-3.5 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)] text-xs text-[var(--accent-primary)]">
             <strong>Hint:</strong> {dictation.hint}
           </div>
         {/if}
       </div>
 
-      <!-- Diff & Accuracy Result Breakdown -->
+      <!-- Diff & Accuracy Breakdown -->
       {#if checked && diffResult}
-        <div class="bg-slate-950/80 rounded-2xl p-5 border border-slate-800 space-y-4 animate-fade-in">
-          <!-- Accuracy Score Header -->
+        <div class="p-5 rounded-2xl bg-[var(--bg-inner)] border border-[var(--border-main)] space-y-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <Award class={`w-6 h-6 ${diffResult.passed ? 'text-emerald-400' : 'text-amber-400'}`} />
+              <Award class={`w-5 h-5 ${diffResult.passed ? 'text-emerald-600' : 'text-amber-600'}`} />
               <div>
-                <span class="text-sm font-bold text-slate-200">Accuracy Score: </span>
-                <span class={`text-xl font-extrabold ${diffResult.passed ? 'text-emerald-400' : 'text-amber-400'}`}>
+                <span class="text-sm font-semibold text-[var(--text-main)]">Accuracy: </span>
+                <span class={`text-lg font-bold font-mono ${diffResult.passed ? 'text-emerald-600' : 'text-amber-600'}`}>
                   {diffResult.accuracy}%
                 </span>
               </div>
             </div>
 
             <span class={`px-3 py-1 rounded-full text-xs font-bold ${
-              diffResult.passed ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              diffResult.passed
+                ? 'bg-emerald-500/15 text-emerald-700 border border-emerald-400/30'
+                : 'bg-amber-500/15 text-amber-700 border border-amber-400/30'
             }`}>
               {diffResult.passed ? '🎉 Passed' : '⚡ Keep Practicing'}
             </span>
           </div>
 
-          <!-- Token-by-Token Visual Diff -->
-          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800/80 space-y-2">
-            <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Word-by-word Diff Comparison:</span>
-            <div class="flex flex-wrap gap-2 text-base font-mono leading-relaxed pt-1">
+          <!-- Token-by-Token Diff -->
+          <div class="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-main)] space-y-2">
+            <span class="journal-badge text-[var(--text-subtle)]">Word-by-word Diff Comparison:</span>
+            <div class="flex flex-wrap gap-1.5 text-sm font-mono pt-1">
               {#each diffResult.tokens as tok}
                 {#if tok.type === 'correct'}
-                  <span class="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-700 border border-emerald-400/30 font-semibold">
                     {tok.word}
                   </span>
                 {:else if tok.type === 'wrong'}
-                  <span class="px-2 py-0.5 rounded-lg bg-red-500/20 text-red-300 line-through border border-red-500/40" title="Incorrect word">
+                  <span class="px-2 py-0.5 rounded bg-red-500/15 text-red-700 line-through border border-red-400/30" title="Incorrect">
                     {tok.word}
                   </span>
                 {:else if tok.type === 'missing'}
-                  <span class="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 underline" title={`Missing word: "${tok.match}"`}>
+                  <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 underline border border-amber-400/30" title="Missing word">
                     [{tok.match}]
                   </span>
                 {/if}
@@ -459,18 +434,18 @@
           </div>
 
           <!-- Original Correct Sentence & Translation -->
-          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/60 space-y-1.5 text-sm">
-            <div class="text-slate-300">
-              <strong class="text-slate-100">Original Sentence:</strong> {dictation.sentence}
+          <div class="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-main)] space-y-1 text-sm">
+            <div class="text-[var(--text-main)] font-serif italic text-base">
+              “{dictation.sentence}”
             </div>
             {#if dictation.sentence_vi}
-              <div class="text-xs text-slate-400 italic">
-                <strong>Translation:</strong> {dictation.sentence_vi}
+              <div class="text-xs text-[var(--text-muted)] pt-1 border-t border-[var(--border-main)]">
+                👉 {dictation.sentence_vi}
               </div>
             {/if}
           </div>
         </div>
       {/if}
-    </div>
+    </article>
   {/if}
 </div>

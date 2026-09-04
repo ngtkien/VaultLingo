@@ -1,14 +1,139 @@
 <script lang="ts">
-  import { CalendarDays, BookOpen, BookA, Headphones, LibraryBig, Settings, Moon, Sun, ShieldCheck } from 'lucide-svelte';
-  import editorialLogo from '../../assets/images/vaultlingo-app-icon.png';
+  import { 
+    Calendar, 
+    BookA, 
+    BookOpen, 
+    Headphones, 
+    Library, 
+    Settings, 
+    Moon, 
+    Sun,
+    Search,
+    Bell
+  } from 'lucide-svelte';
+  import pegasusLogo from '../../assets/images/pegasus-logo.png';
   import type { ColorMode } from '../utils/theme';
-  let { activeArea, colorMode, onSelectArea, onToggleColorMode } = $props<{ activeArea: string; colorMode: ColorMode; onSelectArea: (area: string) => void; onToggleColorMode: () => void; }>();
-  const areas = [{ id: 'today', label: 'Today', icon: CalendarDays }, { id: 'dictionary', label: 'Dictionary', icon: BookA }, { id: 'learn', label: 'Learn', icon: BookOpen }, { id: 'practice', label: 'Practice', icon: Headphones }, { id: 'library', label: 'Library', icon: LibraryBig }];
+
+  let { 
+    activeArea, 
+    colorMode, 
+    onSelectArea, 
+    onToggleColorMode,
+    onOpenSearch
+  } = $props<{ 
+    activeArea: string; 
+    colorMode: ColorMode; 
+    dayStreak?: number;
+    onSelectArea: (area: string) => void; 
+    onToggleColorMode: () => void;
+    onOpenSearch?: () => void;
+  }>();
+
+  // Exactly matching the design tabs and icons
+  const navItems = [
+    { id: 'today', label: 'Today', icon: Calendar },
+    { id: 'dictionary', label: 'Dictionary', icon: BookA },
+    { id: 'learn', label: 'Learn', icon: BookOpen },
+    { id: 'practice', label: 'Practice', icon: Headphones },
+    { id: 'library', label: 'Library', icon: Library }
+  ];
 </script>
-<header class="journal-mobile-header lg:hidden"><button onclick={() => onSelectArea('today')} class="flex items-center gap-2 cursor-pointer"><img src={editorialLogo} alt="VaultLingo" class="w-8 h-8 rounded-lg object-cover"/><span class="font-serif text-lg">VaultLingo</span></button><div class="flex gap-1"><button onclick={() => onSelectArea('dictionary')} class="p-2"><BookA class="w-4 h-4"/></button><button onclick={onToggleColorMode} class="p-2">{#if colorMode === 'dark'}<Sun class="w-4 h-4"/>{:else}<Moon class="w-4 h-4"/>{/if}</button></div></header>
-<aside class="journal-sidebar hidden lg:flex">
-  <button onclick={() => onSelectArea('today')} class="flex items-center gap-3 text-left cursor-pointer"><img src={editorialLogo} alt="VaultLingo" class="w-11 h-11 rounded-xl object-cover"/><span><b class="block font-serif text-xl">VaultLingo</b><i class="text-xs text-stone-500">Editorial Language Journal</i></span></button>
-  <div class="journal-local"><ShieldCheck class="w-4 h-4"/><span><b>Local-first</b><small>Your learning stays on your device.</small></span></div>
-  <p class="journal-nav-label">Journal</p><nav class="space-y-1">{#each areas as area}{@const Icon=area.icon}<button onclick={() => onSelectArea(area.id)} class:journal-nav-active={activeArea===area.id} class="journal-nav"><Icon class="w-4 h-4"/><span>{area.label}</span></button>{/each}</nav>
-  <div class="mt-auto"><p class="journal-nav-label">Preferences</p><button onclick={() => onSelectArea('settings')} class:journal-nav-active={activeArea==='settings'} class="journal-nav"><Settings class="w-4 h-4"/><span>Settings</span></button><button onclick={onToggleColorMode} class="journal-nav mt-1">{#if colorMode === 'dark'}<Sun class="w-4 h-4"/>{:else}<Moon class="w-4 h-4"/>{/if}<span>{colorMode === 'dark' ? 'Light journal' : 'Dark journal'}</span></button><p class="mt-6 text-xs text-emerald-700">● Vault connected</p></div>
-</aside>
+
+<header class="theme-header sticky top-0 z-50 border-b border-[var(--border-main)] transition-colors duration-200 backdrop-blur-md bg-[var(--bg-main)]/95">
+  <div class="w-full max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+    
+    <!-- Brand / Title matching design -->
+    <button 
+      onclick={() => onSelectArea('today')} 
+      class="flex items-center gap-3 shrink-0 text-left cursor-pointer group"
+    >
+      <div class="w-10 h-10 flex items-center justify-center shrink-0">
+        <img src={pegasusLogo} alt="VaultLingo" class="w-full h-full object-contain filter contrast-125" />
+      </div>
+      <div>
+        <span class="font-serif text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-main)] group-hover:text-[var(--accent-primary)] transition block leading-tight">
+          VaultLingo
+        </span>
+        <p class="text-[11px] font-sans text-[var(--text-muted)] -mt-0.5">
+          English, every day.
+        </p>
+      </div>
+    </button>
+
+    <!-- Navigation Tabs with elegant design underline -->
+    <nav class="flex items-center gap-1 sm:gap-2 h-16">
+      {#each navItems as item}
+        {@const Icon = item.icon}
+        {@const isActive = activeArea === item.id}
+        <button 
+          onclick={() => onSelectArea(item.id)} 
+          class={`relative h-full px-3.5 flex items-center gap-2 text-sm transition-all cursor-pointer ${
+            isActive 
+              ? 'text-[var(--accent-primary)] font-semibold' 
+              : 'text-[var(--text-muted)] hover:text-[var(--text-main)] font-normal'
+          }`}
+        >
+          <Icon class="w-4 h-4" />
+          <span>{item.label}</span>
+          
+          {#if isActive}
+            <div class="absolute bottom-0 left-2 right-2 h-0.5 bg-[var(--accent-primary)] rounded-full"></div>
+          {/if}
+        </button>
+      {/each}
+    </nav>
+
+    <!-- Right Utility Controls matching design -->
+    <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+      <!-- Quick Search -->
+      <button 
+        onclick={onOpenSearch || (() => onSelectArea('dictionary'))}
+        class="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer" 
+        title="Search dictionary"
+      >
+        <Search class="w-4 h-4" />
+      </button>
+
+      <!-- Notification Bell -->
+      <button 
+        class="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer" 
+        title="Notifications"
+      >
+        <Bell class="w-4 h-4" />
+      </button>
+
+      <!-- Theme Switcher / Mode -->
+      <button 
+        onclick={onToggleColorMode} 
+        class="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer" 
+        title="Toggle color theme"
+      >
+        {#if colorMode === 'dark'}
+          <Sun class="w-4 h-4" />
+        {:else}
+          <Moon class="w-4 h-4" />
+        {/if}
+      </button>
+
+      <!-- Settings -->
+      <button 
+        onclick={() => onSelectArea('settings')} 
+        class={`p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer ${
+          activeArea === 'settings' ? 'text-[var(--accent-primary)] bg-[var(--accent-primary-light)]' : ''
+        }`}
+        title="Application Settings"
+      >
+        <Settings class="w-4 h-4" />
+      </button>
+
+      <!-- User Profile Avatar Pill (as in design) -->
+      <div 
+        class="w-8 h-8 rounded-full bg-[var(--bg-inner)] border border-[var(--border-main)] text-[var(--text-main)] font-semibold text-xs flex items-center justify-center ml-1 shadow-xs"
+        title="Learner Profile"
+      >
+        Z
+      </div>
+    </div>
+
+  </div>
+</header>

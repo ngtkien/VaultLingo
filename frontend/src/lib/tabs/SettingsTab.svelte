@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { GetConfig, SaveConfig, GetSavedObsidianVocab, GetVoicesList, PlayTTS } from '../../../wailsjs/go/main/App.js';
-  import { Save, Check, Folder, Key, Cpu, Volume2, ShieldCheck, Sparkles, ExternalLink, Zap, Lock, Info, Bot, Play, Square, Radio, Mic } from 'lucide-svelte';
+  import { Save, Check, Folder, Key, Cpu, Volume2, ShieldCheck, Sparkles, ExternalLink, Zap, Lock, Info, Bot, Play, Radio, Mic } from 'lucide-svelte';
 
   let config = $state<any>({
     obsidian_vault_path: '',
@@ -80,7 +80,6 @@
     if (isTestingVoice) return;
     isTestingVoice = true;
     try {
-      // Temporarily save config to ensure test uses current selected voice & provider
       await SaveConfig(config);
 
       let testSentence = '';
@@ -109,7 +108,7 @@
       const items = await GetSavedObsidianVocab();
       const backupData = {
         app: 'VaultLingo',
-        version: '0.1.4',
+        version: '0.1.7',
         export_date: new Date().toISOString(),
         config: {
           ai_provider: config.ai_provider,
@@ -164,18 +163,27 @@
 </script>
 
 <div class="w-full max-w-5xl mx-auto space-y-6 pb-12">
-  <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl shadow-xl space-y-6">
+  <article class="journal-card p-6 sm:p-8 border border-[var(--border-main)] bg-[var(--bg-card)] space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-main)] pb-4">
       <div>
-        <h3 class="text-xl font-bold text-slate-100">Settings & Preferences</h3>
-        <p class="text-xs text-slate-400">Configure your Obsidian Vault path, AI provider, and Neural Speech Voices</p>
+        <div class="flex items-center gap-2">
+          <span class="journal-badge text-[var(--accent-primary)] bg-[var(--accent-primary-light)] px-2.5 py-0.5 rounded text-[10px]">
+            Preferences
+          </span>
+        </div>
+        <h1 class="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-main)] mt-1">
+          Settings & Preferences
+        </h1>
+        <p class="text-xs text-[var(--text-muted)] mt-0.5">
+          Configure your Obsidian Vault path, AI provider, and Neural Speech Voices
+        </p>
       </div>
 
       <button
         onclick={handleSave}
         disabled={saving}
-        class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-500/25 transition cursor-pointer active:scale-95"
+        class="px-5 py-2.5 rounded-xl btn-forest text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-sm self-start sm:self-auto"
       >
         {#if savedMessage}
           <Check class="w-4 h-4 text-white" />
@@ -188,48 +196,47 @@
     </div>
 
     <!-- Security & Privacy Disclaimer Card -->
-    <div class="p-4 rounded-2xl bg-gradient-to-br from-cyan-950/40 via-slate-900 to-indigo-950/40 border border-cyan-500/30 space-y-3 shadow-lg">
-      <div class="flex items-center gap-2 text-cyan-400 font-bold text-sm">
-        <ShieldCheck class="w-5 h-5 text-cyan-400" />
-        <span>Security & API Token Privacy Disclaimer</span>
+    <div class="p-4.5 rounded-2xl bg-[var(--bg-inner)] border border-[var(--border-main)] space-y-3">
+      <div class="flex items-center gap-2 text-[var(--accent-primary)] font-bold text-sm">
+        <ShieldCheck class="w-5 h-5" />
+        <span>Security & Local Privacy</span>
       </div>
 
-      <div class="grid sm:grid-cols-2 gap-3 text-xs text-slate-300">
-        <div class="flex items-start gap-2 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
-          <Lock class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+      <div class="grid sm:grid-cols-2 gap-3 text-xs text-[var(--text-muted)]">
+        <div class="flex items-start gap-2 bg-[var(--bg-card)] p-3 rounded-xl border border-[var(--border-main)]">
+          <Lock class="w-4 h-4 text-[var(--accent-primary)] shrink-0 mt-0.5" />
           <div>
-            <strong class="text-slate-100 block">100% Local Storage</strong>
-            Your API keys are stored strictly in your local configuration at <code class="text-cyan-300 font-mono text-[11px]">~/.config/VaultLingo/config.json</code>.
+            <strong class="text-[var(--text-main)] block">100% Local Storage</strong>
+            Your configurations and keys are kept safely on your machine.
           </div>
         </div>
 
-        <div class="flex items-start gap-2 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
-          <Info class="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+        <div class="flex items-start gap-2 bg-[var(--bg-card)] p-3 rounded-xl border border-[var(--border-main)]">
+          <Info class="w-4 h-4 text-[var(--accent-primary)] shrink-0 mt-0.5" />
           <div>
-            <strong class="text-slate-100 block">Zero Intermediary Servers</strong>
-            Requests are sent directly and encrypted over HTTPS to your chosen provider or executed locally via <code class="text-slate-200 font-mono">agy</code>.
+            <strong class="text-[var(--text-main)] block">Direct Connections</strong>
+            Requests run directly through your chosen provider or offline via local models.
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Speech & TTS Voice Engine (New Feature) -->
-    <div class="space-y-4 border-t border-slate-800 pt-5">
+    <!-- Speech & TTS Voice Engine -->
+    <div class="space-y-4 border-t border-[var(--border-main)] pt-5">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2 text-sm font-bold text-amber-400">
-          <Volume2 class="w-4 h-4" />
+        <div class="flex items-center gap-2 text-sm font-bold text-[var(--text-main)]">
+          <Volume2 class="w-4 h-4 text-[var(--accent-primary)]" />
           <span>Speech & TTS Voice Engine</span>
         </div>
 
-        <!-- Live Voice Test Button -->
         <button
           onclick={handleTestVoice}
           disabled={isTestingVoice}
-          class="px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer active:scale-95"
+          class="px-3 py-1.5 rounded-xl bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
         >
           {#if isTestingVoice}
-            <span class="animate-pulse flex items-center gap-1.5">
-              <Radio class="w-3.5 h-3.5 text-amber-400 animate-spin" />
+            <span class="animate-pulse flex items-center gap-1.5 text-[var(--accent-primary)]">
+              <Radio class="w-3.5 h-3.5 animate-spin" />
               <span>Playing Sample...</span>
             </span>
           {:else}
@@ -246,15 +253,15 @@
           onclick={() => config.tts_provider = 'edge'}
           class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
             config.tts_provider === 'edge'
-              ? 'bg-amber-600/20 border-amber-500 text-amber-300 ring-1 ring-amber-500/40'
-              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+              ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary-border)] text-[var(--accent-primary)]'
+              : 'bg-[var(--bg-inner)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
           }`}
         >
           <div class="flex items-center justify-between">
-            <span class="text-sm font-bold">Edge Neural AI ⭐</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300">Free AI</span>
+            <span class="text-sm font-bold text-[var(--text-main)]">Edge Neural AI ⭐</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[var(--bg-card)] text-[var(--accent-primary)]">Free AI</span>
           </div>
-          <div class="text-xs opacity-75">Ultra-natural US/UK/AU human voices</div>
+          <div class="text-xs text-[var(--text-muted)]">Ultra-natural US/UK human voices</div>
         </button>
 
         <!-- Piper TTS (Offline) -->
@@ -262,15 +269,15 @@
           onclick={() => config.tts_provider = 'piper'}
           class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
             config.tts_provider === 'piper'
-              ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40'
-              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+              ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary-border)] text-[var(--accent-primary)]'
+              : 'bg-[var(--bg-inner)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
           }`}
         >
           <div class="flex items-center justify-between">
-            <span class="text-sm font-bold">Piper TTS 🦙</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300">Offline</span>
+            <span class="text-sm font-bold text-[var(--text-main)]">Piper TTS 🦙</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[var(--bg-card)] text-emerald-700">Offline</span>
           </div>
-          <div class="text-xs opacity-75">100% on-device neural model</div>
+          <div class="text-xs text-[var(--text-muted)]">100% on-device neural model</div>
         </button>
 
         <!-- Google Translate TTS (Legacy) -->
@@ -278,27 +285,27 @@
           onclick={() => config.tts_provider = 'google'}
           class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
             config.tts_provider === 'google'
-              ? 'bg-blue-600/20 border-blue-500 text-blue-300 ring-1 ring-blue-500/40'
-              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+              ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary-border)] text-[var(--accent-primary)]'
+              : 'bg-[var(--bg-inner)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
           }`}
         >
           <div class="flex items-center justify-between">
-            <span class="text-sm font-bold">Google TTS 🤖</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-300">Basic</span>
+            <span class="text-sm font-bold text-[var(--text-main)]">Google TTS 🤖</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[var(--bg-card)] text-[var(--text-subtle)]">Basic</span>
           </div>
-          <div class="text-xs opacity-75">Standard fallback voice</div>
+          <div class="text-xs text-[var(--text-muted)]">Standard fallback voice</div>
         </button>
       </div>
 
       <!-- Edge TTS Voice Selector Grid -->
       {#if config.tts_provider === 'edge'}
-        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-3">
+        <div class="bg-[var(--bg-inner)] p-4 rounded-xl border border-[var(--border-main)] space-y-3">
           <div class="flex items-center justify-between text-xs">
-            <span class="text-amber-300 font-bold flex items-center gap-1.5">
-              <Mic class="w-4 h-4 text-amber-400" />
+            <span class="text-[var(--text-main)] font-bold flex items-center gap-1.5">
+              <Mic class="w-4 h-4 text-[var(--accent-primary)]" />
               <span>Select Neural Voice:</span>
             </span>
-            <span class="text-[11px] text-slate-400">Zero API Key Needed • Cached Locally</span>
+            <span class="text-[11px] text-[var(--text-muted)]">Zero API Key Needed • Cached Locally</span>
           </div>
 
           <div class="grid sm:grid-cols-2 gap-2.5">
@@ -314,61 +321,29 @@
                 onclick={() => config.tts_voice = v.id}
                 class={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-3 ${
                   config.tts_voice === v.id
-                    ? 'bg-amber-500/15 border-amber-500/80 text-slate-100 ring-1 ring-amber-500/40'
-                    : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                    ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary)] text-[var(--accent-primary)]'
+                    : 'bg-[var(--bg-card)] border border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 <span class="text-2xl shrink-0 mt-0.5">{v.flag}</span>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-200">{v.name}</span>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-medium">{v.gender}</span>
+                    <span class="text-xs font-bold text-[var(--text-main)]">{v.name}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-inner)] text-[var(--text-subtle)] font-medium">{v.gender}</span>
                   </div>
-                  <p class="text-[11px] text-slate-400 mt-1 line-clamp-1">{v.description}</p>
+                  <p class="text-[11px] text-[var(--text-muted)] mt-1 line-clamp-1">{v.description}</p>
                 </div>
               </button>
             {/each}
           </div>
         </div>
-
-      {:else if config.tts_provider === 'piper'}
-        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-3">
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-emerald-300 font-bold flex items-center gap-1.5">
-              <Bot class="w-4 h-4 text-emerald-400" />
-              <span>Piper Offline TTS Configuration:</span>
-            </span>
-            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[11px]">100% Offline</span>
-          </div>
-
-          <div class="space-y-3 text-xs">
-            <div class="space-y-1">
-              <span class="text-slate-300 font-semibold">Piper Binary Path (defaults to system PATH):</span>
-              <input
-                type="text"
-                bind:value={config.piper_path}
-                placeholder="/usr/bin/piper (or leave blank to auto-detect)"
-                class="w-full bg-slate-900 border border-slate-700/80 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-xs text-slate-100 font-mono"
-              />
-            </div>
-            <div class="space-y-1">
-              <span class="text-slate-300 font-semibold">Piper ONNX Voice Model Path (.onnx):</span>
-              <input
-                type="text"
-                bind:value={config.piper_model_path}
-                placeholder="~/.local/share/piper/en_US-lessac-medium.onnx"
-                class="w-full bg-slate-900 border border-slate-700/80 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-xs text-slate-100 font-mono"
-              />
-            </div>
-          </div>
-        </div>
       {/if}
 
       <!-- Speech Speed Selector -->
-      <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+      <div class="flex items-center justify-between p-3.5 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)]">
         <div>
-          <span class="text-xs font-semibold text-slate-200 block">Default Pronunciation Speed:</span>
-          <span class="text-[11px] text-slate-400">Controls speech rate across Flashcards, Dictation & Gym</span>
+          <span class="text-xs font-semibold text-[var(--text-main)] block">Default Pronunciation Speed:</span>
+          <span class="text-[11px] text-[var(--text-muted)]">Controls speech rate across Flashcards, Dictation & Gym</span>
         </div>
         <div class="flex items-center gap-1.5">
           {#each [0.75, 0.85, 1.0, 1.15] as spd}
@@ -376,8 +351,8 @@
               onclick={() => config.default_audio_speed = spd}
               class={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition cursor-pointer ${
                 config.default_audio_speed === spd
-                  ? 'bg-amber-500 text-slate-950'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-[var(--accent-primary)] text-white'
+                  : 'bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-main)]'
               }`}
             >
               {spd}x
@@ -388,45 +363,44 @@
     </div>
 
     <!-- Obsidian Vault Settings -->
-    <div class="space-y-3 border-t border-slate-800 pt-5">
-      <div class="flex items-center gap-2 text-sm font-bold text-purple-400">
-        <Folder class="w-4 h-4" />
+    <div class="space-y-3 border-t border-[var(--border-main)] pt-5">
+      <div class="flex items-center gap-2 text-sm font-bold text-[var(--text-main)]">
+        <Folder class="w-4 h-4 text-[var(--accent-primary)]" />
         <span>Obsidian Vault Directory</span>
       </div>
-      <p class="text-xs text-slate-400 leading-relaxed">
-        The absolute or home-relative path to your Obsidian Vault (e.g., <code class="text-slate-300">~/Obsidian/ZederVault</code>). Vocabulary cards will be automatically organized into <code class="text-slate-300">English/Vocab/</code> and writing essays into <code class="text-slate-300">English/Writing/</code>.
+      <p class="text-xs text-[var(--text-muted)] leading-relaxed">
+        The path to your Obsidian Vault (e.g., <code class="text-[var(--text-main)] font-mono">~/Obsidian/ZederVault</code>). Vocabulary cards will be stored in <code class="text-[var(--text-main)] font-mono">English/Vocab/</code> and writing essays in <code class="text-[var(--text-main)] font-mono">English/Writing/</code>.
       </p>
       <input
         type="text"
         bind:value={config.obsidian_vault_path}
         placeholder="~/Obsidian/ZederVault"
-        class="w-full bg-slate-950 border border-slate-700/80 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none font-mono"
+        class="w-full bg-[var(--bg-inner)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-main)] placeholder-[var(--text-subtle)] outline-none font-mono"
       />
     </div>
 
     <!-- AI Evaluation Engine Settings -->
-    <div class="space-y-4 border-t border-slate-800 pt-5">
-      <div class="flex items-center gap-2 text-sm font-bold text-cyan-400">
-        <Cpu class="w-4 h-4" />
+    <div class="space-y-4 border-t border-[var(--border-main)] pt-5">
+      <div class="flex items-center gap-2 text-sm font-bold text-[var(--text-main)]">
+        <Cpu class="w-4 h-4 text-[var(--accent-primary)]" />
         <span>AI Evaluation Provider</span>
       </div>
 
-      <!-- 5 Provider Selector Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
         <!-- Antigravity (agy) -->
         <button
           onclick={() => config.ai_provider = 'agy'}
           class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
             config.ai_provider === 'agy'
-              ? 'bg-violet-600/20 border-violet-500 text-violet-300 ring-1 ring-violet-500/40'
-              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+              ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary)] text-[var(--accent-primary)]'
+              : 'bg-[var(--bg-inner)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
           }`}
         >
           <div class="flex items-center justify-between">
-            <span class="text-sm font-bold">Antigravity 🛸</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-violet-500/20 text-violet-300">Native</span>
+            <span class="text-sm font-bold text-[var(--text-main)]">Antigravity 🛸</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[var(--bg-card)] text-[var(--accent-primary)]">Native</span>
           </div>
-          <div class="text-xs opacity-75">Runs via local agy CLI</div>
+          <div class="text-xs text-[var(--text-muted)]">Runs via local agy CLI</div>
         </button>
 
         <!-- OpenCode CLI -->
@@ -434,15 +408,15 @@
           onclick={() => config.ai_provider = 'opencode'}
           class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
             config.ai_provider === 'opencode'
-              ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40'
-              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+              ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary)] text-[var(--accent-primary)]'
+              : 'bg-[var(--bg-inner)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
           }`}
         >
           <div class="flex items-center justify-between">
-            <span class="text-sm font-bold">OpenCode 🤖</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300">Free Agent</span>
+            <span class="text-sm font-bold text-[var(--text-main)]">OpenCode 🤖</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[var(--bg-card)] text-emerald-700">Free Agent</span>
           </div>
-          <div class="text-xs opacity-75">Runs via opencode CLI</div>
+          <div class="text-xs text-[var(--text-muted)]">Runs via opencode CLI</div>
         </button>
 
         <!-- OpenRouter -->
@@ -450,15 +424,15 @@
           onclick={() => config.ai_provider = 'openrouter'}
           class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
             config.ai_provider === 'openrouter'
-              ? 'bg-cyan-600/20 border-cyan-500 text-cyan-300 ring-1 ring-cyan-500/40'
-              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+              ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary)] text-[var(--accent-primary)]'
+              : 'bg-[var(--bg-inner)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
           }`}
         >
           <div class="flex items-center justify-between">
-            <span class="text-sm font-bold">OpenRouter 🌐</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-500/20 text-cyan-300">Cloud</span>
+            <span class="text-sm font-bold text-[var(--text-main)]">OpenRouter 🌐</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[var(--bg-card)] text-[var(--accent-primary)]">Cloud</span>
           </div>
-          <div class="text-xs opacity-75">Llama 3.3 & DeepSeek Free</div>
+          <div class="text-xs text-[var(--text-muted)]">Llama 3.3 & DeepSeek Free</div>
         </button>
 
         <!-- Groq -->
@@ -466,15 +440,15 @@
           onclick={() => config.ai_provider = 'groq'}
           class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
             config.ai_provider === 'groq'
-              ? 'bg-amber-600/20 border-amber-500 text-amber-300 ring-1 ring-amber-500/40'
-              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+              ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary)] text-[var(--accent-primary)]'
+              : 'bg-[var(--bg-inner)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
           }`}
         >
           <div class="flex items-center justify-between">
-            <span class="text-sm font-bold">Groq ⚡</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300">Ultra-Fast</span>
+            <span class="text-sm font-bold text-[var(--text-main)]">Groq ⚡</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[var(--bg-card)] text-amber-700">Fast</span>
           </div>
-          <div class="text-xs opacity-75">Fast inference Llama 70B</div>
+          <div class="text-xs text-[var(--text-muted)]">Fast inference Llama 70B</div>
         </button>
 
         <!-- Ollama -->
@@ -482,56 +456,39 @@
           onclick={() => config.ai_provider = 'ollama'}
           class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
             config.ai_provider === 'ollama'
-              ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 ring-1 ring-indigo-500/40'
-              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+              ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary)] text-[var(--accent-primary)]'
+              : 'bg-[var(--bg-inner)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
           }`}
         >
           <div class="flex items-center justify-between">
-            <span class="text-sm font-bold">Local Ollama 🦙</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300">Offline</span>
+            <span class="text-sm font-bold text-[var(--text-main)]">Local Ollama 🦙</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[var(--bg-card)] text-[var(--text-subtle)]">Offline</span>
           </div>
-          <div class="text-xs opacity-75">100% private offline</div>
+          <div class="text-xs text-[var(--text-muted)]">100% private offline</div>
         </button>
       </div>
 
-      <!-- OpenCode Info Panel -->
-      {#if config.ai_provider === 'opencode'}
-        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-3">
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-emerald-300 font-bold flex items-center gap-1.5">
-              <Bot class="w-4 h-4 text-emerald-400" />
-              <span>OpenCode CLI Agent Configuration:</span>
-            </span>
-            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[11px]">/usr/bin/opencode</span>
-          </div>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            VaultLingo directly invokes <code class="text-emerald-300 font-mono">opencode run</code> locally without requiring third-party API keys. Free AI agents are used to evaluate writing and synthesize Oxford 6-block dictionary entries.
-          </p>
-        </div>
-      {/if}
-
       <!-- Detail Form for Selected Provider -->
       {#if config.ai_provider === 'agy'}
-        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-3">
+        <div class="bg-[var(--bg-inner)] p-4 rounded-xl border border-[var(--border-main)] space-y-3">
           <div class="flex items-center justify-between text-xs">
-            <span class="text-violet-300 font-bold flex items-center gap-1.5">
-              <Bot class="w-4 h-4 text-violet-400" />
+            <span class="text-[var(--accent-primary)] font-bold flex items-center gap-1.5">
+              <Bot class="w-4 h-4" />
               <span>Antigravity CLI (agy) Configuration:</span>
             </span>
-            <span class="text-[11px] text-slate-400">Authenticated Session (No API Key Required)</span>
+            <span class="text-[11px] text-[var(--text-muted)]">Authenticated Session</span>
           </div>
 
-          <!-- Model Selector & Presets -->
           <div class="space-y-1.5">
-            <span class="text-xs font-semibold text-slate-300">Supported Model:</span>
+            <span class="text-xs font-semibold text-[var(--text-main)]">Supported Model:</span>
             <div class="flex flex-wrap gap-1.5">
               {#each AGY_MODEL_PRESETS as preset}
                 <button
                   onclick={() => config.agy_model = preset.id}
                   class={`px-2.5 py-1 rounded-lg text-xs font-mono transition cursor-pointer ${
                     config.agy_model === preset.id
-                      ? 'bg-violet-600 text-white font-bold'
-                      : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                      ? 'bg-[var(--accent-primary)] text-white font-bold'
+                      : 'bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-main)]'
                   }`}
                 >
                   {preset.label}
@@ -539,30 +496,19 @@
               {/each}
             </div>
           </div>
-
-          <!-- Custom Model Input -->
-          <div class="space-y-1">
-            <span class="text-[11px] text-slate-400">Custom Model Identifier (dynamically updates with agy CLI versions):</span>
-            <input
-              type="text"
-              bind:value={config.agy_model}
-              placeholder="gemini-3.7-flash"
-              class="w-full bg-slate-900 border border-slate-700/80 focus:border-violet-500 rounded-xl px-3.5 py-2 text-xs text-slate-100 font-mono"
-            />
-          </div>
         </div>
 
       {:else if config.ai_provider === 'openrouter'}
-        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-3">
+        <div class="bg-[var(--bg-inner)] p-4 rounded-xl border border-[var(--border-main)] space-y-3">
           <div class="flex items-center justify-between text-xs">
-            <span class="font-bold text-slate-300 flex items-center gap-1.5">
-              <Key class="w-3.5 h-3.5 text-cyan-400" />
+            <span class="font-bold text-[var(--text-main)] flex items-center gap-1.5">
+              <Key class="w-3.5 h-3.5 text-[var(--accent-primary)]" />
               OpenRouter API Key:
             </span>
             <a
               href="https://openrouter.ai/keys"
               target="_blank"
-              class="text-cyan-400 hover:underline flex items-center gap-1"
+              class="text-[var(--accent-primary)] hover:underline flex items-center gap-1"
             >
               <span>Get Free Key at OpenRouter.ai</span>
               <ExternalLink class="w-3 h-3" />
@@ -572,40 +518,21 @@
             type="password"
             bind:value={config.openrouter_api_key}
             placeholder="sk-or-v1-..."
-            class="w-full bg-slate-900 border border-slate-700/80 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 rounded-xl px-4 py-2 text-xs text-slate-100 placeholder-slate-500 outline-none font-mono"
+            class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-4 py-2 text-xs text-[var(--text-main)] placeholder-[var(--text-subtle)] outline-none font-mono"
           />
-
-          <!-- Free Model Presets -->
-          <div class="space-y-1.5 pt-1">
-            <span class="text-xs font-semibold text-slate-400">Free Model Selection:</span>
-            <div class="flex flex-wrap gap-1.5">
-              {#each OPENROUTER_FREE_MODELS as m}
-                <button
-                  onclick={() => config.openrouter_model = m.id}
-                  class={`px-2.5 py-1 rounded-lg text-xs font-mono transition cursor-pointer ${
-                    config.openrouter_model === m.id
-                      ? 'bg-cyan-500 text-slate-950 font-bold'
-                      : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
-                  }`}
-                >
-                  {m.label}
-                </button>
-              {/each}
-            </div>
-          </div>
         </div>
 
       {:else if config.ai_provider === 'groq'}
-        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-3">
+        <div class="bg-[var(--bg-inner)] p-4 rounded-xl border border-[var(--border-main)] space-y-3">
           <div class="flex items-center justify-between text-xs">
-            <span class="font-bold text-slate-300 flex items-center gap-1.5">
-              <Zap class="w-3.5 h-3.5 text-amber-400" />
+            <span class="font-bold text-[var(--text-main)] flex items-center gap-1.5">
+              <Zap class="w-3.5 h-3.5 text-[var(--accent-primary)]" />
               Groq API Key:
             </span>
             <a
               href="https://console.groq.com/keys"
               target="_blank"
-              class="text-amber-400 hover:underline flex items-center gap-1"
+              class="text-[var(--accent-primary)] hover:underline flex items-center gap-1"
             >
               <span>Get Free Key at Groq Console</span>
               <ExternalLink class="w-3 h-3" />
@@ -615,98 +542,80 @@
             type="password"
             bind:value={config.groq_api_key}
             placeholder="gsk_..."
-            class="w-full bg-slate-900 border border-slate-700/80 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl px-4 py-2 text-xs text-slate-100 placeholder-slate-500 outline-none font-mono"
+            class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-4 py-2 text-xs text-[var(--text-main)] placeholder-[var(--text-subtle)] outline-none font-mono"
           />
-
-          <div class="space-y-1.5 pt-1">
-            <span class="text-xs font-semibold text-slate-400">Groq Model:</span>
-            <div class="flex gap-2">
-              {#each ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768'] as gm}
-                <button
-                  onclick={() => config.groq_model = gm}
-                  class={`px-3 py-1 rounded-lg text-xs font-mono transition cursor-pointer ${
-                    config.groq_model === gm
-                      ? 'bg-amber-500 text-slate-950 font-bold'
-                      : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
-                  }`}
-                >
-                  {gm}
-                </button>
-              {/each}
-            </div>
-          </div>
         </div>
 
       {:else if config.ai_provider === 'ollama'}
-        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 grid grid-cols-2 gap-3">
+        <div class="bg-[var(--bg-inner)] p-4 rounded-xl border border-[var(--border-main)] grid grid-cols-2 gap-3">
           <div class="space-y-1.5">
-            <span class="text-xs font-bold text-slate-300">Ollama Host URL:</span>
+            <span class="text-xs font-bold text-[var(--text-main)]">Ollama Host URL:</span>
             <input
               type="text"
               bind:value={config.ollama_url}
               placeholder="http://localhost:11434"
-              class="w-full bg-slate-900 border border-slate-700/80 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-xs text-slate-100 font-mono"
+              class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-3.5 py-2 text-xs text-[var(--text-main)] font-mono"
             />
           </div>
           <div class="space-y-1.5">
-            <span class="text-xs font-bold text-slate-300">Ollama Model Name:</span>
+            <span class="text-xs font-bold text-[var(--text-main)]">Ollama Model Name:</span>
             <input
               type="text"
               bind:value={config.ollama_model}
               placeholder="llama3:latest"
-              class="w-full bg-slate-900 border border-slate-700/80 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-xs text-slate-100 font-mono"
+              class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-3.5 py-2 text-xs text-[var(--text-main)] font-mono"
             />
           </div>
         </div>
       {/if}
     </div>
 
-    <!-- Data Safety, Backup & Factory Reset -->
-    <div class="space-y-4 border-t border-slate-800 pt-5">
-      <div class="flex items-center gap-2 text-sm font-bold text-emerald-400">
-        <ShieldCheck class="w-4 h-4" />
-        <span>Data Safety & Backup Management</span>
+    <!-- Data Safety & Backup -->
+    <div class="space-y-4 border-t border-[var(--border-main)] pt-5">
+      <div class="flex items-center gap-2 text-sm font-bold text-[var(--text-main)]">
+        <ShieldCheck class="w-4 h-4 text-[var(--accent-primary)]" />
+        <span>Data Safety & Backup</span>
       </div>
 
       <div class="grid sm:grid-cols-2 gap-3">
         <!-- Backup Export Button -->
-        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+        <div class="p-4 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)] space-y-2.5">
           <div>
-            <h4 class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+            <h3 class="text-xs font-bold text-[var(--text-main)] flex items-center gap-1.5">
               <span>📦</span>
               <span>Export Vocabulary Backup</span>
-            </h4>
-            <p class="text-[11px] text-slate-400 mt-0.5">
+            </h3>
+            <p class="text-[11px] text-[var(--text-muted)] mt-0.5">
               Download all saved vocabulary, configurations, and review history as a JSON backup.
             </p>
           </div>
           <button
             onclick={handleExportBackup}
-            class="w-full py-2 px-3 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-95"
+            class="w-full py-2 px-3 rounded-lg bg-[var(--bg-card)] hover:bg-[var(--accent-primary-light)] text-[var(--accent-primary)] border border-[var(--border-main)] text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
           >
             <span>Download Backup (.json)</span>
           </button>
         </div>
 
         <!-- Factory Reset Button -->
-        <div class="p-4 rounded-xl bg-slate-950 border border-red-500/30 space-y-2.5">
+        <div class="p-4 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)] space-y-2.5">
           <div>
-            <h4 class="text-xs font-bold text-red-400 flex items-center gap-1.5">
+            <h3 class="text-xs font-bold text-red-600 flex items-center gap-1.5">
               <span>⚠️</span>
               <span>Factory Reset & Clear Cache</span>
-            </h4>
-            <p class="text-[11px] text-slate-400 mt-0.5">
-              Restore app configurations and search cache to factory defaults. (Keeps Obsidian notes safe).
+            </h3>
+            <p class="text-[11px] text-[var(--text-muted)] mt-0.5">
+              Restore app configurations to factory defaults. (Keeps Obsidian notes safe).
             </p>
           </div>
           <button
             onclick={handleFactoryReset}
-            class="w-full py-2 px-3 rounded-lg bg-red-500/15 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-95"
+            class="w-full py-2 px-3 rounded-lg bg-[var(--bg-card)] hover:bg-red-500/10 text-red-600 border border-red-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
           >
             <span>Restore Factory Defaults</span>
           </button>
         </div>
       </div>
     </div>
-  </div>
+  </article>
 </div>

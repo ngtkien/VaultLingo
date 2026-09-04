@@ -1,36 +1,77 @@
 @import "tailwindcss";
 
-:root,
-html.dark:not(.drawing) {
-  --bg-main: #090d16;
-  --bg-header: rgba(11, 15, 23, 0.9);
-  --bg-card: rgba(15, 23, 42, 0.85);
-  --bg-card-hover: rgba(30, 41, 59, 0.7);
-  --bg-inner: rgba(2, 6, 23, 0.6);
-  --border-main: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(255, 255, 255, 0.15);
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-subtle: #64748b;
-  --input-bg: #030712;
-  --input-border: #334155;
-  --nav-bg: rgba(15, 23, 42, 0.9);
+@theme {
+  --font-serif: 'Newsreader', Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-journal-bg: #fcf9f4;
+  --color-journal-card: #ffffff;
+  --color-journal-subtle: #f8f5ee;
+  --color-journal-border: #e6dfd5;
+  --color-journal-border-strong: #d2c8ba;
+
+  --color-forest-50: #f2f7f4;
+  --color-forest-100: #eaf2ec;
+  --color-forest-200: #c9ded0;
+  --color-forest-300: #9fc2aa;
+  --color-forest-400: #71a280;
+  --color-forest-500: #4a835b;
+  --color-forest-600: #386848;
+  --color-forest-700: #2d553b;
+  --color-forest-800: #264330;
+  --color-forest-900: #203829;
+  --color-forest-950: #101e16;
+
+  --color-ink-950: #111613;
+  --color-ink-900: #1a221d;
+  --color-ink-800: #28302b;
+  --color-ink-700: #424e46;
+  --color-ink-600: #536257;
+  --color-ink-500: #6d7d72;
+  --color-ink-400: #8d9d93;
+  --color-ink-300: #b5c2ba;
 }
 
+:root,
 html.light:not(.drawing) {
-  --bg-main: #faf8f3;
-  --bg-header: rgba(255, 253, 248, 0.96);
-  --bg-card: #fffdf8;
-  --bg-card-hover: #f7f3ea;
-  --bg-inner: #f7f3ea;
-  --border-main: #e5ded1;
-  --border-highlight: #cdc2b1;
-  --text-main: #26343b;
-  --text-muted: #69736d;
-  --text-subtle: #65786c;
-  --input-bg: #fffdf8;
-  --input-border: #ded5c7;
-  --nav-bg: #f1ede4;
+  --bg-main: #fcf9f4;
+  --bg-header: rgba(252, 249, 244, 0.95);
+  --bg-card: #ffffff;
+  --bg-card-hover: #faf6ee;
+  --bg-inner: #f8f5ee;
+  --border-main: #e6dfd5;
+  --border-highlight: #d2c8ba;
+  --text-main: #121814;
+  --text-muted: #536257;
+  --text-subtle: #7d8e82;
+  --input-bg: #ffffff;
+  --input-border: #dcd4c8;
+  --nav-bg: #f4ede3;
+  --accent-primary: #386848;
+  --accent-primary-hover: #2d553b;
+  --accent-primary-light: #eaf2ec;
+  --accent-primary-border: #c4d9cb;
+}
+
+html.dark:not(.drawing) {
+  --bg-main: #0f1411;
+  --bg-header: rgba(15, 20, 17, 0.95);
+  --bg-card: #161e19;
+  --bg-card-hover: #1c2620;
+  --bg-inner: #121814;
+  --border-main: #243028;
+  --border-highlight: #35463b;
+  --text-main: #edf2ee;
+  --text-muted: #9eb0a4;
+  --text-subtle: #6c8073;
+  --input-bg: #111713;
+  --input-border: #2c3c31;
+  --nav-bg: #161e19;
+  --accent-primary: #4d835a;
+  --accent-primary-hover: #5ea06e;
+  --accent-primary-light: #1b2d21;
+  --accent-primary-border: #32563e;
 }
 
 /* ==========================================================================
@@ -68,253 +109,30 @@ html.palette-nord.light:not(.drawing) {
   --nav-bg: #e5e9f0;
 }
 
-/* ==========================================================================
-   Everforest Theme Palette
-   ========================================================================== */
-html.palette-everforest.dark:not(.drawing) {
-  --bg-main: #232a2e;
-  --bg-header: rgba(35, 42, 46, 0.95);
-  --bg-card: #2d353b;
-  --bg-card-hover: #343f44;
-  --bg-inner: #1e2326;
-  --border-main: rgba(167, 192, 128, 0.22);
-  --border-highlight: rgba(167, 192, 128, 0.45);
-  --text-main: #d3c6aa;
-  --text-muted: #9da9a0;
-  --text-subtle: #7a8478;
-  --input-bg: #1e2326;
-  --input-border: #425047;
-  --nav-bg: #2d353b;
-}
-
-html.palette-everforest.light:not(.drawing) {
-  --bg-main: #fdf6e3;
-  --bg-header: rgba(253, 246, 227, 0.95);
-  --bg-card: #f4f0d9;
-  --bg-card-hover: #eae4ca;
-  --bg-inner: #ffffff;
-  --border-main: rgba(92, 106, 92, 0.18);
-  --border-highlight: rgba(92, 106, 92, 0.35);
-  --text-main: #5c6a72;
-  --text-muted: #708089;
-  --text-subtle: #8da101;
-  --input-bg: #ffffff;
-  --input-border: #dfd5b5;
-  --nav-bg: #f4f0d9;
-}
-
-/* ==========================================================================
-   Catppuccin Theme Palette (Mocha & Latte)
-   ========================================================================== */
-html.palette-catppuccin.dark:not(.drawing) {
-  --bg-main: #181825;
-  --bg-header: rgba(24, 24, 37, 0.95);
-  --bg-card: #1e1e2e;
-  --bg-card-hover: #313244;
-  --bg-inner: #11111b;
-  --border-main: rgba(203, 166, 247, 0.22);
-  --border-highlight: rgba(203, 166, 247, 0.45);
-  --text-main: #cdd6f4;
-  --text-muted: #a6adc8;
-  --text-subtle: #cba6f7;
-  --input-bg: #11111b;
-  --input-border: #313244;
-  --nav-bg: #1e1e2e;
-}
-
-html.palette-catppuccin.light:not(.drawing) {
-  --bg-main: #eff1f5;
-  --bg-header: rgba(239, 241, 245, 0.95);
-  --bg-card: #e6e9ef;
-  --bg-card-hover: #dce0e8;
-  --bg-inner: #ffffff;
-  --border-main: rgba(136, 57, 239, 0.18);
-  --border-highlight: rgba(136, 57, 239, 0.35);
-  --text-main: #4c4f69;
-  --text-muted: #6c6f85;
-  --text-subtle: #8839ef;
-  --input-bg: #ffffff;
-  --input-border: #ccd0da;
-  --nav-bg: #e6e9ef;
-}
-
-/* ==========================================================================
-   Tokyo Night Theme Palette
-   ========================================================================== */
-html.palette-tokyonight.dark:not(.drawing) {
-  --bg-main: #16161e;
-  --bg-header: rgba(22, 22, 30, 0.95);
-  --bg-card: #1a1b26;
-  --bg-card-hover: #24283b;
-  --bg-inner: #13141c;
-  --border-main: rgba(122, 162, 247, 0.22);
-  --border-highlight: rgba(122, 162, 247, 0.45);
-  --text-main: #c0caf5;
-  --text-muted: #9aa5ce;
-  --text-subtle: #7aa2f7;
-  --input-bg: #13141c;
-  --input-border: #292e42;
-  --nav-bg: #1a1b26;
-}
-
-html.palette-tokyonight.light:not(.drawing) {
-  --bg-main: #e1e2e7;
-  --bg-header: rgba(225, 226, 231, 0.95);
-  --bg-card: #d5d6db;
-  --bg-card-hover: #cbccd1;
-  --bg-inner: #ffffff;
-  --border-main: rgba(52, 84, 138, 0.18);
-  --border-highlight: rgba(52, 84, 138, 0.35);
-  --text-main: #343b58;
-  --text-muted: #565a6e;
-  --text-subtle: #34548a;
-  --input-bg: #ffffff;
-  --input-border: #cbccd1;
-  --nav-bg: #d5d6db;
-}
-
-/* ==========================================================================
-   Gruvbox Theme Palette
-   ========================================================================== */
-html.palette-gruvbox.dark:not(.drawing) {
-  --bg-main: #1d2021;
-  --bg-header: rgba(29, 32, 33, 0.95);
-  --bg-card: #282828;
-  --bg-card-hover: #3c3836;
-  --bg-inner: #141617;
-  --border-main: rgba(250, 189, 47, 0.22);
-  --border-highlight: rgba(250, 189, 47, 0.45);
-  --text-main: #ebdbb2;
-  --text-muted: #d5c4a1;
-  --text-subtle: #fabd2f;
-  --input-bg: #141617;
-  --input-border: #504945;
-  --nav-bg: #282828;
-}
-
-html.palette-gruvbox.light:not(.drawing) {
-  --bg-main: #fbf1c7;
-  --bg-header: rgba(251, 241, 199, 0.95);
-  --bg-card: #ebdbb2;
-  --bg-card-hover: #d5c4a1;
-  --bg-inner: #ffffff;
-  --border-main: rgba(60, 56, 54, 0.18);
-  --border-highlight: rgba(60, 56, 54, 0.35);
-  --text-main: #282828;
-  --text-muted: #504945;
-  --text-subtle: #b57614;
-  --input-bg: #ffffff;
-  --input-border: #d5c4a1;
-  --nav-bg: #ebdbb2;
-}
-
-/* ==========================================================================
-   Dracula Theme Palette
-   ========================================================================== */
-html.palette-dracula.dark:not(.drawing) {
-  --bg-main: #1e1f29;
-  --bg-header: rgba(30, 31, 41, 0.95);
-  --bg-card: #282a36;
-  --bg-card-hover: #44475a;
-  --bg-inner: #191a21;
-  --border-main: rgba(255, 121, 198, 0.22);
-  --border-highlight: rgba(255, 121, 198, 0.45);
-  --text-main: #f8f8f2;
-  --text-muted: #bd93f9;
-  --text-subtle: #ff79c6;
-  --input-bg: #191a21;
-  --input-border: #44475a;
-  --nav-bg: #282a36;
-}
-
-html.palette-dracula.light:not(.drawing) {
-  --bg-main: #f8f8f2;
-  --bg-header: rgba(248, 248, 242, 0.95);
-  --bg-card: #e8e8e2;
-  --bg-card-hover: #d8d8d2;
-  --bg-inner: #ffffff;
-  --border-main: rgba(98, 114, 164, 0.2);
-  --border-highlight: rgba(98, 114, 164, 0.4);
-  --text-main: #282a36;
-  --text-muted: #6272a4;
-  --text-subtle: #bd93f9;
-  --input-bg: #ffffff;
-  --input-border: #d8d8d2;
-  --nav-bg: #e8e8e2;
-}
-
-/* ==========================================================================
-   Excalidraw / Drawing Theme Variants
-   ========================================================================== */
-html.drawing.dark {
-  --bg-main: #11141d;
-  --bg-header: rgba(17, 20, 29, 0.95);
-  --bg-card: rgba(22, 26, 38, 0.92);
-  --bg-card-hover: rgba(33, 39, 56, 0.9);
-  --bg-inner: rgba(12, 14, 22, 0.85);
-  --border-main: rgba(251, 191, 36, 0.35);
-  --border-highlight: rgba(251, 191, 36, 0.6);
-  --text-main: #fef08a;
-  --text-muted: #cbd5e1;
-  --text-subtle: #94a3b8;
-  --input-bg: #080a0f;
-  --input-border: #d97706;
-  --nav-bg: rgba(22, 26, 38, 0.95);
-}
-
-html.drawing.light {
-  --bg-main: #faf8f2;
-  --bg-header: rgba(250, 248, 242, 0.95);
-  --bg-card: #ffffff;
-  --bg-card-hover: #fefce8;
-  --bg-inner: #f5f0e3;
-  --border-main: rgba(180, 83, 9, 0.3);
-  --border-highlight: rgba(180, 83, 9, 0.6);
-  --text-main: #1c1917;
-  --text-muted: #57534e;
-  --text-subtle: #78716c;
-  --input-bg: #ffffff;
-  --input-border: #d97706;
-  --nav-bg: #ede7d5;
-}
-
-
 body {
   margin: 0;
   padding: 0;
   background-color: var(--bg-main) !important;
   color: var(--text-main) !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
   user-select: none;
   overflow-x: hidden;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-html.drawing body {
-  font-family: 'Kalam', 'Patrick Hand', 'Gaegu', cursive, -apple-system, sans-serif !important;
+.font-serif {
+  font-family: var(--font-serif, 'Newsreader', Georgia, serif);
 }
 
-html.drawing.dark body {
-  background-color: var(--bg-main) !important;
-  background-image: radial-gradient(circle, rgba(251, 191, 36, 0.18) 1.2px, transparent 1.2px) !important;
-  background-size: 26px 26px !important;
+.font-sans {
+  font-family: var(--font-sans, 'Plus Jakarta Sans', -apple-system, sans-serif);
 }
 
-html.drawing.light body {
-  background-color: var(--bg-main) !important;
-  background-image: radial-gradient(circle, rgba(180, 83, 9, 0.18) 1.2px, transparent 1.2px) !important;
-  background-size: 26px 26px !important;
+.font-mono {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
 }
 
-html.drawing button,
-html.drawing input,
-html.drawing textarea,
-html.drawing select {
-  font-family: 'Kalam', 'Patrick Hand', cursive, sans-serif !important;
-}
-
-
-/* Global Theme Color Mapping so all tabs & components instantly adapt */
+/* Global Theme Color Mapping */
 .app-container {
   background-color: var(--bg-main) !important;
   color: var(--text-main) !important;
@@ -356,314 +174,77 @@ html.drawing select {
   color: var(--text-subtle) !important;
 }
 
-/* Universal mappings for hardcoded slate classes across all tabs */
-.bg-slate-950,
-.bg-slate-950\/90,
-.bg-slate-950\/80,
-.bg-slate-950\/70,
-.bg-slate-950\/60,
-.bg-slate-950\/50,
-.bg-slate-950\/40 {
-  background-color: var(--bg-inner) !important;
+/* Editorial Journal Component Utilities */
+.journal-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-main);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
 }
 
-.bg-slate-900,
-.bg-slate-900\/95,
-.bg-slate-900\/90,
-.bg-slate-900\/85,
-.bg-slate-900\/80,
-.bg-slate-900\/70,
-.bg-slate-900\/60 {
-  background-color: var(--bg-card) !important;
+.journal-card:hover {
+  border-color: var(--border-highlight);
 }
 
-.bg-slate-800,
-.bg-slate-800\/90,
-.bg-slate-800\/80,
-.bg-slate-800\/70,
-.bg-slate-800\/60 {
-  background-color: var(--bg-card-hover) !important;
+.journal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.border-slate-800,
-.border-slate-800\/80,
-.border-slate-800\/60,
-.border-slate-700,
-.border-slate-700\/80,
-.border-slate-700\/60 {
-  border-color: var(--border-main) !important;
+.btn-forest {
+  background-color: var(--accent-primary);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-.text-slate-100,
-.text-slate-200 {
-  color: var(--text-main) !important;
+.btn-forest:hover {
+  background-color: var(--accent-primary-hover);
 }
 
-.text-slate-300,
-.text-slate-400 {
-  color: var(--text-muted) !important;
+.pill-filter {
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--border-main);
+  background-color: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
-.text-slate-500 {
-  color: var(--text-subtle) !important;
+.pill-filter:hover {
+  background-color: var(--accent-primary-light);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary-border);
 }
 
+.pill-filter.active {
+  background-color: var(--accent-primary);
+  color: #ffffff;
+  border-color: var(--accent-primary);
+}
 
-/* Custom modern scrollbars */
+/* Custom Scrollbar for editorial aesthetic */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
-  border-radius: 9999px;
+  background: var(--border-main);
+  border-radius: 4px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.45);
+  background: var(--text-subtle);
 }
-
-/* ==========================================================================
-   Excalidraw / Hand-Drawn Sketch Design System
-   ========================================================================== */
-
-.font-sketch {
-  font-family: 'Kalam', 'Patrick Hand', 'Gaegu', cursive, -apple-system, sans-serif;
-}
-
-.font-hand {
-  font-family: 'Caveat', 'Patrick Hand', cursive, sans-serif;
-}
-
-/* Excalidraw Canvas Dot-Grid Background */
-.canvas-grid-dark {
-  background-color: #0b0f19;
-  background-image: radial-gradient(circle, rgba(148, 163, 184, 0.15) 1.2px, transparent 1.2px);
-  background-size: 24px 24px;
-}
-
-.canvas-grid-light {
-  background-color: #f8fafc;
-  background-image: radial-gradient(circle, rgba(100, 116, 139, 0.2) 1.2px, transparent 1.2px);
-  background-size: 24px 24px;
-}
-
-/* Organic Hand-Drawn / Wobbly Borders */
-.sketch-box {
-  border-style: solid;
-  border-width: 2px;
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-}
-
-.sketch-box-alt {
-  border-style: solid;
-  border-width: 2px;
-  border-radius: 20px 255px 20px 255px / 255px 20px 255px 20px;
-}
-
-.sketch-box-pill {
-  border-style: solid;
-  border-width: 2px;
-  border-radius: 999px 999px 999px 999px / 999px 999px 999px 999px;
-}
-
-/* Sketch Solid Offset Shadows (Excalidraw Style) */
-.sketch-shadow-sm {
-  box-shadow: 2px 2px 0px 0px currentColor;
-}
-
-.sketch-shadow-md {
-  box-shadow: 3px 3px 0px 0px currentColor;
-}
-
-.sketch-shadow-lg {
-  box-shadow: 5px 5px 0px 0px currentColor;
-}
-
-.sketch-shadow-amber {
-  box-shadow: 4px 4px 0px 0px #d97706;
-}
-
-.sketch-shadow-blue {
-  box-shadow: 4px 4px 0px 0px #2563eb;
-}
-
-.sketch-shadow-purple {
-  box-shadow: 4px 4px 0px 0px #7c3aed;
-}
-
-.sketch-shadow-emerald {
-  box-shadow: 4px 4px 0px 0px #059669;
-}
-
-.sketch-shadow-pink {
-  box-shadow: 4px 4px 0px 0px #db2777;
-}
-
-/* Mechanical Press Effect on Active/Click */
-.sketch-btn {
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
-
-.sketch-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px 0px currentColor !important;
-}
-
-/* Highlighter Marker Effects */
-.highlighter-yellow {
-  background: linear-gradient(104deg, rgba(253, 224, 71, 0) 0.9%, rgba(253, 224, 71, 0.35) 2.4%, rgba(253, 224, 71, 0.4) 5.8%, rgba(253, 224, 71, 0.25) 93%, rgba(253, 224, 71, 0.35) 96%, rgba(253, 224, 71, 0) 98%);
-  padding: 0.1em 0.3em;
-  border-radius: 4px;
-}
-
-.highlighter-cyan {
-  background: linear-gradient(104deg, rgba(34, 211, 238, 0) 0.9%, rgba(34, 211, 238, 0.35) 2.4%, rgba(34, 211, 238, 0.4) 5.8%, rgba(34, 211, 238, 0.25) 93%, rgba(34, 211, 238, 0.35) 96%, rgba(34, 211, 238, 0) 98%);
-  padding: 0.1em 0.3em;
-  border-radius: 4px;
-}
-
-.highlighter-pink {
-  background: linear-gradient(104deg, rgba(244, 114, 182, 0) 0.9%, rgba(244, 114, 182, 0.35) 2.4%, rgba(244, 114, 182, 0.4) 5.8%, rgba(244, 114, 182, 0.25) 93%, rgba(244, 114, 182, 0.35) 96%, rgba(244, 114, 182, 0) 98%);
-  padding: 0.1em 0.3em;
-  border-radius: 4px;
-}
-
-/* Sketchy Underline */
-.sketch-underline {
-  position: relative;
-}
-
-.sketch-underline::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 100%;
-  height: 3px;
-  background: currentColor;
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  opacity: 0.6;
-}
-
-/* Editorial journal shell: a quiet, paper-like reading surface for study. */
-.journal-sidebar { position: fixed; inset: 0 auto 0 0; width: 16.5rem; z-index: 40; flex-direction: column; padding: 2rem 1.25rem; background: #f3efe6; border-right: 1px solid #dfd8ca; color: #26343b; }
-.journal-sidebar::after { content:''; position:absolute; right:.4rem; bottom:4rem; width:9rem; height:7rem; background:url('./assets/images/editorial-quill-watermark.png') center / contain no-repeat; opacity:.10; pointer-events:none; }
-.journal-mobile-header { height: 3.75rem; align-items: center; justify-content: space-between; padding: 0 1rem; background: #f8f5ee; border-bottom: 1px solid #dfd8ca; color: #26343b; }
-.journal-local { display:flex; gap:.6rem; align-items:flex-start; margin:2rem 0 1.5rem; padding:.8rem; border:1px solid #ddd6c8; border-radius:.6rem; color:#47644f; background:#eeeadf; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; }
-.journal-local small { display:block; margin-top:.3rem; color:#66716a; text-transform:none; letter-spacing:0; font-size:.72rem; }
-.journal-nav-label { margin:1.25rem 0 .5rem; color:#777365; font-family:Georgia,serif; font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; }
-.journal-nav { width:100%; display:flex; align-items:center; gap:.75rem; padding:.65rem .7rem; border-radius:.45rem; color:#43515a; font-size:.9rem; text-align:left; cursor:pointer; transition:background .15s,color .15s; }
-.journal-nav:hover { background:#e9e4d9; }.journal-nav-active { background:#e4e6da; color:#234b3b; font-weight:600; }
-@media (min-width: 1024px) { .journal-app-main { margin-left:16.5rem; } }
-@media (min-width: 1024px) { .app-container { margin-left:16.5rem; min-height:100vh; } }
-html.light .app-container { background:#f8f5ee !important; color:#26343b !important; }
-html.light .journal-app-main .bg-slate-900\/60, html.light .journal-app-main .bg-slate-900\/50 { background:#fffdf8 !important; border-color:#dfd8ca !important; }
-
-/* Apply the journal language to the existing learning features without
-   changing their behaviour or data contracts. */
-html.light .app-container main { color:#26343b; }
-html.light .app-container main h1,
-html.light .app-container main h2,
-html.light .app-container main h3,
-html.light .app-container main h4 { color:#26343b; font-family: Georgia, 'Times New Roman', serif; letter-spacing:-.015em; }
-html.light .app-container main [class*='bg-slate-900'],
-html.light .app-container main [class*='bg-slate-950'] { background:#fffdf8 !important; }
-html.light .app-container main [class*='border-slate-8'],
-html.light .app-container main [class*='border-slate-7'] { border-color:#dfd8ca !important; }
-html.light .app-container main .text-cyan-300,
-html.light .app-container main .text-cyan-400 { color:#35694e !important; }
-html.light .app-container main .bg-cyan-500,
-html.light .app-container main .bg-blue-600 { background:#456d52 !important; color:#fffdf8 !important; }
-html.light .app-container main .bg-cyan-500:hover,
-html.light .app-container main .bg-blue-600:hover { background:#355940 !important; }
-html.light .app-container main [class*='rounded-2xl'] { box-shadow:0 8px 24px rgba(72,63,46,.045); }
-html.light .app-container main input,
-html.light .app-container main textarea { background:#fffdf8 !important; border-color:#d8d0c1 !important; color:#26343b !important; }
-
-/* The editorial palette is intentionally quiet: information lives on the page,
-   while colour is reserved for actions and small pieces of metadata. */
-html.light .app-container main {
-  background: #faf8f3;
-  font-family: Georgia, 'Times New Roman', serif;
-}
-html.light .app-container main :is(button, input, textarea, select) {
-  font-family: inherit;
-}
-html.light .app-container main [class*='bg-slate-8'],
-html.light .app-container main [class*='bg-slate-7'],
-html.light .app-container main [class*='bg-slate-6'] {
-  background-color: #f7f3ea !important;
-}
-html.light .app-container main [class*='bg-slate-9'] {
-  background-color: #fffdf8 !important;
-}
-html.light .app-container main [class*='border-slate-'] {
-  border-color: #e5ded1 !important;
-}
-html.light .app-container main [class*='rounded-3xl'] {
-  border-radius: 0.9rem !important;
-}
-html.light .app-container main [class*='rounded-2xl'] {
-  border-radius: 0.75rem !important;
-  box-shadow: none !important;
-}
-html.light .app-container main [class*='rounded-xl'] {
-  border-radius: 0.6rem !important;
-}
-html.light .app-container main [class*='bg-gradient-'] {
-  background-image: none !important;
-  background-color: #f7f3ea !important;
-}
-html.light .app-container main [class*='shadow-'] {
-  box-shadow: none !important;
-}
-html.light .app-container main button:not(.journal-nav) {
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
-}
-html.light .app-container main button:focus-visible,
-html.light .app-container main input:focus-visible,
-html.light .app-container main textarea:focus-visible {
-  outline: 2px solid #b97942;
-  outline-offset: 2px;
-}
-html.light .app-container main ::selection { background: #e7d69d; color: #26343b; }
-html.light .app-container main :is(button, input, textarea)::placeholder { color: #9a958b; }
-
-/* Forest is the one decisive action colour; amber is an editorial annotation. */
-html.light .app-container main .bg-blue-600,
-html.light .app-container main .bg-blue-500,
-html.light .app-container main .bg-cyan-500 {
-  background-color: #426753 !important;
-  color: #fffdf8 !important;
-}
-html.light .app-container main .bg-blue-600:hover,
-html.light .app-container main .bg-blue-500:hover,
-html.light .app-container main .bg-cyan-500:hover { background-color: #31513f !important; }
-html.light .app-container main .text-blue-400,
-html.light .app-container main .text-cyan-400,
-html.light .app-container main .text-emerald-400 { color: #4b7661 !important; }
-html.light .app-container main .text-amber-300,
-html.light .app-container main .text-amber-400 { color: #b97942 !important; }
-html.light .app-container main .text-violet-300,
-html.light .app-container main .text-violet-400,
-html.light .app-container main .text-purple-400 { color: #806baf !important; }
-html.light .app-container main .text-rose-400,
-html.light .app-container main .text-red-400 { color: #bb6654 !important; }
-html.light .app-container main [class*='bg-amber-'][class*='/'],
-html.light .app-container main [class*='bg-yellow-'][class*='/'] { background-color: #fbf1d7 !important; }
-html.light .app-container main [class*='bg-emerald-'][class*='/'] { background-color: #e8f1e9 !important; }
-html.light .app-container main [class*='bg-violet-'][class*='/'],
-html.light .app-container main [class*='bg-purple-'][class*='/'] { background-color: #f1edf8 !important; }
-html.light .app-container main [class*='bg-rose-'][class*='/'],
-html.light .app-container main [class*='bg-red-'][class*='/'] { background-color: #fbebea !important; }
-
-/* Keep the sub-navigation from reverting to the old neon-blue treatment. */
-html.light .app-container > .border-b { border-color: #e5ded1 !important; background: #fffdf8; }
-html.light .app-container > .border-b button { font-family: Georgia, 'Times New Roman', serif; }
-html.light .app-container > .border-b .border-cyan-400 { border-color: #426753 !important; }

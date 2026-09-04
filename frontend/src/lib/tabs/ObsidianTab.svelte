@@ -1,22 +1,45 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { GetSavedObsidianVocab, UpdateObsidianSrsReview, DeleteWordFromObsidian, OpenInObsidian, GetConfig } from '../../../wailsjs/go/main/App.js';
+  import { 
+    GetSavedObsidianVocab, 
+    UpdateObsidianSrsReview, 
+    DeleteWordFromObsidian, 
+    OpenInObsidian, 
+    GetConfig 
+  } from '../../../wailsjs/go/main/App.js';
   import { playTTS } from '../utils/audio';
-  import { FolderSync, ExternalLink, RefreshCw, Volume2, Calendar, Clock, Layers, Trash2, BookA } from 'lucide-svelte';
+  import { 
+    ExternalLink, 
+    RefreshCw, 
+    Volume2, 
+    Calendar, 
+    Clock, 
+    Trash2, 
+    ChevronDown,
+    List,
+    LayoutGrid,
+    MoreVertical,
+    ArrowUpDown
+  } from 'lucide-svelte';
 
   let { onNavigateToDictionary } = $props<{ onNavigateToDictionary?: (word: string) => void }>();
 
   let items = $state<any[]>([]);
   let config = $state<any>(null);
   let loading = $state(false);
-  let filterMode = $state<'all' | 'due'>('all');
-  let selectedTopic = $state('all');
+  let activeSubTab = $state<'saved' | 'due'>('saved');
+  let viewMode = $state<'list' | 'grid'>('list');
+  let sortOrder = $state<'newest' | 'oldest' | 'alphabetical'>('newest');
+  let openDropdownWord = $state<string | null>(null);
 
   let filteredItems = $derived(
     items.filter(item => {
-      if (filterMode === 'due' && !item.is_due) return false;
-      if (selectedTopic !== 'all' && item.topic_key !== selectedTopic) return false;
+      if (activeSubTab === 'due' && !item.is_due) return false;
       return true;
+    }).sort((a, b) => {
+      if (sortOrder === 'alphabetical') return a.word.localeCompare(b.word);
+      if (sortOrder === 'oldest') return (a.id || 0) - (b.id || 0);
+      return (b.id || 0) - (a.id || 0);
     })
   );
 
@@ -24,11 +47,21 @@
     items.filter(item => item.is_due).length
   );
 
+  function cleanString(text: string | undefined | null): string {
+    if (!text) return '';
+    return text
+      .replace(/:\s*:\s*id=[^"'\s]*/gi, '')
+      .replace(/id=[a-zA-Z0-9._&=-]+/gi, '')
+      .replace(/\s*\b\d{3,}\b\s*$/, '')
+      .trim();
+  }
+
   async function loadObsidianData() {
     loading = true;
     try {
       config = await GetConfig();
       items = await GetSavedObsidianVocab();
+      openDropdownWord = null;
     } catch (e) {
       console.error(e);
     } finally {
@@ -62,181 +95,357 @@
     }
   }
 
+  function toggleDropdown(word: string, e?: Event) {
+    if (e) e.stopPropagation();
+    openDropdownWord = openDropdownWord === word ? null : word;
+  }
+
   onMount(() => {
     loadObsidianData();
+    const closeDropdown = () => { openDropdownWord = null; };
+    window.addEventListener('click', closeDropdown);
+    return () => {
+      window.removeEventListener('click', closeDropdown);
+    };
   });
 </script>
 
-<div class="space-y-6">
-  <!-- Top Stats & Vault Header -->
-  <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 backdrop-blur-md shadow-xl flex flex-wrap items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="p-3 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
-        <FolderSync class="w-6 h-6" />
+<div class="w-full max-w-6xl mx-auto space-y-5 pb-12">
+  
+  <!-- Subnav Tabs (Saved & Obsidian / Due Reviews) matching design -->
+  <div class="flex items-center gap-8 border-b border-[var(--border-main)] px-1">
+    <button 
+      onclick={() => activeSubTab = 'saved'}
+      class={`pb-3 text-sm transition-all cursor-pointer relative ${
+        activeSubTab === 'saved' 
+          ? 'text-[var(--accent-primary)] font-semibold' 
+          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] font-normal'
+      }`}
+    >
+      <span>Saved & Obsidian</span>
+      {#if activeSubTab === 'saved'}
+        <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent-primary)] rounded-full"></div>
+      {/if}
+    </button>
+
+    <button 
+      onclick={() => activeSubTab = 'due'}
+      class={`pb-3 text-sm transition-all cursor-pointer relative flex items-center gap-1.5 ${
+        activeSubTab === 'due' 
+          ? 'text-[var(--accent-primary)] font-semibold' 
+          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] font-normal'
+      }`}
+    >
+      <span>Due Reviews</span>
+      {#if dueCount > 0}
+        <span class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-700 font-bold">
+          {dueCount}
+        </span>
+      {/if}
+      {#if activeSubTab === 'due'}
+        <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent-primary)] rounded-full"></div>
+      {/if}
+    </button>
+  </div>
+
+  <!-- Top Card: Obsidian Vault Info matching design -->
+  <div class="journal-card p-5 border border-[var(--border-main)] bg-[var(--bg-card)] rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="space-y-1">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-[var(--accent-primary)]"></span>
+        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
+          Obsidian Vault
+        </h2>
+        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#eaf2ec] text-[#386848] border border-[#c4d9cb]/50 flex items-center gap-1">
+          <span>Synced Vocab</span>
+          <span>🌿</span>
+        </span>
       </div>
-      <div>
-        <h3 class="text-lg font-bold text-slate-100">Obsidian Vault Synced Vocab</h3>
-        <p class="text-xs text-slate-400 font-mono">
-          Path: {config?.obsidian_vault_path || '~/Obsidian/ZederVault'}
-        </p>
-      </div>
+      <p class="text-xs text-[var(--text-muted)] font-mono pl-4 truncate max-w-xl">
+        Path: {config?.obsidian_vault_path || '/home/kienngo/Obsidian/ZederVault'}
+      </p>
     </div>
 
-    <!-- Filters & Actions -->
-    <div class="flex items-center gap-2">
-      <!-- Filter Due vs All -->
-      <div class="bg-slate-800 p-1 rounded-xl flex items-center gap-1 border border-slate-700">
-        <button
-          onclick={() => filterMode = 'all'}
-          class={`px-3 py-1 text-xs font-semibold rounded-lg transition cursor-pointer ${
-            filterMode === 'all' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          All Saved ({items.length})
-        </button>
-        <button
-          onclick={() => filterMode = 'due'}
-          class={`px-3 py-1 text-xs font-semibold rounded-lg transition cursor-pointer flex items-center gap-1 ${
-            filterMode === 'due' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <Clock class="w-3 h-3" />
-          Due Reviews ({dueCount})
-        </button>
-      </div>
+    <!-- Right Top Buttons matching design -->
+    <div class="flex items-center gap-2 shrink-0">
+      <button
+        onclick={() => activeSubTab = 'saved'}
+        class={`px-4 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+          activeSubTab === 'saved'
+            ? 'btn-forest shadow-xs'
+            : 'bg-[var(--bg-inner)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-main)]'
+        }`}
+      >
+        All Saved ({items.length})
+      </button>
+
+      <button
+        onclick={() => activeSubTab = 'due'}
+        class={`px-4 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border ${
+          activeSubTab === 'due'
+            ? 'btn-forest shadow-xs border-transparent'
+            : 'border-[var(--border-main)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
+        }`}
+      >
+        <Clock class="w-3.5 h-3.5" />
+        <span>Due Reviews ({dueCount})</span>
+      </button>
 
       <button
         onclick={loadObsidianData}
-        class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer border border-slate-700"
-        title="Rescan Obsidian Vault"
+        class="p-2 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer shadow-xs"
+        title="Refresh Obsidian Vault files"
       >
         <RefreshCw class={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
       </button>
     </div>
   </div>
 
-  <!-- Items List -->
+  <!-- Row Controls: Item count + Sort + List/Grid toggle -->
+  <div class="flex items-center justify-between pt-1">
+    <div class="text-xs font-semibold text-[var(--text-muted)]">
+      <strong class="text-[var(--text-main)] text-sm">{filteredItems.length}</strong> items
+    </div>
+
+    <div class="flex items-center gap-2">
+      <!-- Sort Dropdown -->
+      <div class="relative">
+        <button
+          onclick={() => sortOrder = sortOrder === 'newest' ? 'alphabetical' : 'newest'}
+          class="px-3 py-1.5 rounded-xl border border-[var(--border-main)] bg-[var(--bg-card)] text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+          title="Toggle sort order"
+        >
+          <ArrowUpDown class="w-3.5 h-3.5" />
+          <span>Sort: {sortOrder === 'newest' ? 'Newest' : 'A-Z'}</span>
+          <ChevronDown class="w-3 h-3 opacity-60" />
+        </button>
+      </div>
+
+      <!-- Segmented List / Grid Toggle -->
+      <div class="p-1 rounded-xl bg-[var(--bg-card)] border border-[var(--border-main)] flex items-center gap-0.5 shadow-2xs">
+        <button
+          onclick={() => viewMode = 'list'}
+          class={`px-2.5 py-1 text-xs font-semibold rounded-lg transition cursor-pointer flex items-center gap-1 ${
+            viewMode === 'list'
+              ? 'bg-[var(--accent-primary-light)] text-[var(--accent-primary)] font-bold'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+          }`}
+          title="List View"
+        >
+          <List class="w-3.5 h-3.5" />
+          <span>List</span>
+        </button>
+        <button
+          onclick={() => viewMode = 'grid'}
+          class={`px-2.5 py-1 text-xs font-semibold rounded-lg transition cursor-pointer flex items-center gap-1 ${
+            viewMode === 'grid'
+              ? 'bg-[var(--accent-primary-light)] text-[var(--accent-primary)] font-bold'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+          }`}
+          title="Grid View"
+        >
+          <LayoutGrid class="w-3.5 h-3.5" />
+          <span>Grid</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
   {#if loading}
-    <div class="flex flex-col items-center justify-center py-20 text-slate-400 space-y-3">
-      <RefreshCw class="w-8 h-8 animate-spin text-purple-500" />
-      <p class="text-sm font-medium">Scanning Obsidian Vault Markdown files...</p>
+    <div class="flex flex-col items-center justify-center py-20 text-[var(--text-muted)] space-y-3">
+      <RefreshCw class="w-8 h-8 animate-spin text-[var(--accent-primary)]" />
+      <p class="text-sm font-medium font-serif">Syncing with Obsidian Vault...</p>
     </div>
   {:else if filteredItems.length === 0}
-    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-12 text-center space-y-3">
-      <p class="text-base font-semibold text-slate-300">No saved vocabulary found in this view!</p>
-      <p class="text-xs text-slate-500">
-        Go to the <strong>Vocabulary</strong> tab and click <em>"Save to Obsidian"</em> to bookmark words directly into your Vault.
+    <div class="journal-card p-12 text-center rounded-2xl border border-[var(--border-main)] bg-[var(--bg-card)] space-y-3">
+      <span class="text-3xl">📚</span>
+      <h3 class="font-serif text-lg font-bold text-[var(--text-main)]">No words found in this view</h3>
+      <p class="text-xs text-[var(--text-muted)] max-w-md mx-auto">
+        Save vocabulary words from Learn or Dictionary tabs to your Obsidian Vault to track spaced review and build your personal lexicon.
       </p>
     </div>
-  {:else}
-    <div class="grid gap-4">
+  {:else if viewMode === 'list'}
+    <!-- List Mode matching exact design row by row -->
+    <div class="space-y-3">
       {#each filteredItems as item}
-        <div class="bg-slate-900/70 border border-slate-800 hover:border-purple-500/40 rounded-2xl p-5 backdrop-blur-md transition space-y-3">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <div class="flex items-center gap-2">
+        <div class="journal-card p-4 sm:p-5 border border-[var(--border-main)] bg-[var(--bg-card)] rounded-2xl shadow-xs transition-all hover:border-[var(--border-highlight)]">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+            
+            <!-- Col 1: Word & Topic (lg:col-span-3) -->
+            <div class="lg:col-span-3 space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
                 <button
                   onclick={() => onNavigateToDictionary?.(item.word)}
-                  class="text-xl font-bold text-slate-100 hover:text-cyan-400 text-left transition cursor-pointer flex items-center gap-1.5 group/title"
-                  title="Click to view in Smart Dictionary"
+                  class="font-serif text-lg font-bold text-[var(--text-main)] hover:text-[var(--accent-primary)] transition text-left cursor-pointer"
                 >
-                  <span>{item.word}</span>
-                  <BookA class="w-3.5 h-3.5 opacity-0 group-hover/title:opacity-100 text-cyan-400 transition" />
+                  {item.word}
                 </button>
                 {#if item.is_due}
-                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">
-                    SRS Due Today 🔥
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/15 text-amber-700 border border-amber-500/30 flex items-center gap-1">
+                    <span>SRS Due Today</span>
+                    <span>🔥</span>
                   </span>
                 {/if}
               </div>
-              <div class="text-xs text-slate-500 mt-0.5">
-                Topic: {item.topic_title || item.topic_key}
-              </div>
+              <p class="text-xs text-[var(--text-muted)] truncate">
+                Topic: {item.topic_title || 'Daily Life & Social'}
+              </p>
             </div>
 
-            <!-- Actions -->
-            <div class="flex items-center gap-2">
+            <!-- Col 2: Definition (lg:col-span-4) -->
+            <div class="lg:col-span-4 text-xs sm:text-sm text-[var(--text-main)] leading-relaxed">
+              <p class="line-clamp-2">{cleanString(item.definition_en)}</p>
+            </div>
+
+            <!-- Col 3: Next Review & Interval (lg:col-span-2) -->
+            <div class="lg:col-span-2 space-y-0.5 text-xs text-[var(--text-muted)]">
+              <div class="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-[var(--text-subtle)]">
+                <Calendar class="w-3 h-3" />
+                <span>Next Review</span>
+              </div>
+              <p class="text-[var(--accent-primary)] font-medium font-mono text-xs pl-4">
+                {item.next_review || '2026-09-04'}
+              </p>
+              <p class="text-[11px] text-[var(--text-subtle)] pl-4">
+                Interval: {item.interval || 1} day(s)
+              </p>
+            </div>
+
+            <!-- Col 4: Action Icons & Review Dropdown (lg:col-span-3) -->
+            <div class="lg:col-span-3 flex items-center justify-end gap-1.5 relative">
               <button
-                onclick={() => onNavigateToDictionary?.(item.word)}
-                class="p-2 rounded-xl bg-slate-800 hover:bg-cyan-600 text-slate-300 hover:text-white transition cursor-pointer"
-                title="Look up in Smart Dictionary"
+                onclick={() => handleOpenInObsidian(item.file_path)}
+                class="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer"
+                title="Open note in Obsidian"
               >
-                <BookA class="w-4 h-4" />
+                <ExternalLink class="w-4 h-4" />
               </button>
               <button
                 onclick={() => playTTS(item.word)}
-                class="p-2 rounded-xl bg-slate-800 hover:bg-purple-600 text-slate-300 hover:text-white transition cursor-pointer"
+                class="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer"
                 title="Pronounce"
               >
                 <Volume2 class="w-4 h-4" />
               </button>
               <button
-                onclick={() => handleOpenInObsidian(item.file_path)}
-                class="px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-purple-500/30"
-                title="Open Markdown file in Obsidian"
+                class="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer"
+                title="More Options"
               >
-                <span>Open in Obsidian</span>
+                <MoreVertical class="w-4 h-4" />
+              </button>
+
+              <!-- Review Now ⌵ Dropdown matching image 2 -->
+              <div class="relative">
+                <button
+                  onclick={(e) => toggleDropdown(item.word, e)}
+                  class="px-3 py-1.5 rounded-xl border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--accent-primary-light)] text-xs font-semibold text-[var(--text-main)] flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+                >
+                  <span>Review Now</span>
+                  <ChevronDown class="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                </button>
+
+                {#if openDropdownWord === item.word}
+                  <!-- svelte-ignore a11y_click_events_have_key_events -->
+                  <!-- svelte-ignore a11y_no_static_element_interactions -->
+                  <div
+                    onclick={(e) => e.stopPropagation()}
+                    class="absolute right-0 top-full mt-1 w-36 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl shadow-lg z-30 py-1.5 text-xs font-semibold space-y-0.5"
+                  >
+                    <button
+                      onclick={() => { handleSrsRate(item, 1); openDropdownWord = null; }}
+                      class="w-full text-left px-3 py-1.5 hover:bg-red-500/10 text-red-600 transition cursor-pointer flex items-center justify-between"
+                    >
+                      <span>Again</span>
+                      <span class="text-[11px] font-mono opacity-80">(1d)</span>
+                    </button>
+                    <button
+                      onclick={() => { handleSrsRate(item, 2); openDropdownWord = null; }}
+                      class="w-full text-left px-3 py-1.5 hover:bg-amber-500/10 text-amber-700 transition cursor-pointer flex items-center justify-between"
+                    >
+                      <span>Hard</span>
+                      <span class="text-[11px] font-mono opacity-80">(2d)</span>
+                    </button>
+                    <button
+                      onclick={() => { handleSrsRate(item, 3); openDropdownWord = null; }}
+                      class="w-full text-left px-3 py-1.5 hover:bg-blue-500/10 text-blue-600 transition cursor-pointer flex items-center justify-between"
+                    >
+                      <span>Good</span>
+                      <span class="text-[11px] font-mono opacity-80">(4d)</span>
+                    </button>
+                    <button
+                      onclick={() => { handleSrsRate(item, 4); openDropdownWord = null; }}
+                      class="w-full text-left px-3 py-1.5 hover:bg-emerald-500/10 text-emerald-600 transition cursor-pointer flex items-center justify-between"
+                    >
+                      <span>Easy</span>
+                      <span class="text-[11px] font-mono opacity-80">(7d)</span>
+                    </button>
+                    <hr class="my-1 border-[var(--border-main)]" />
+                    <button
+                      onclick={() => { handleDeleteWord(item.word); openDropdownWord = null; }}
+                      class="w-full text-left px-3 py-1.5 hover:bg-red-500/10 text-slate-600 hover:text-red-600 transition cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Trash2 class="w-3.5 h-3.5" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                {/if}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      {/each}
+    </div>
+  {:else}
+    <!-- Grid Mode -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {#each filteredItems as item}
+        <div class="journal-card p-5 border border-[var(--border-main)] bg-[var(--bg-card)] rounded-2xl shadow-xs flex flex-col justify-between space-y-3">
+          <div class="space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <button
+                onclick={() => onNavigateToDictionary?.(item.word)}
+                class="font-serif text-xl font-bold text-[var(--text-main)] hover:text-[var(--accent-primary)] transition text-left cursor-pointer"
+              >
+                {item.word}
+              </button>
+              {#if item.is_due}
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/15 text-amber-700 border border-amber-500/30">
+                  Due 🔥
+                </span>
+              {/if}
+            </div>
+
+            <p class="text-xs text-[var(--text-main)] line-clamp-3 leading-relaxed">
+              {cleanString(item.definition_en)}
+            </p>
+          </div>
+
+          <div class="pt-3 border-t border-[var(--border-main)] flex items-center justify-between text-xs">
+            <span class="text-[var(--text-muted)] font-mono">Interval: {item.interval || 1}d</span>
+            
+            <div class="flex items-center gap-1">
+              <button
+                onclick={() => handleOpenInObsidian(item.file_path)}
+                class="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] transition cursor-pointer"
+                title="Open in Obsidian"
+              >
                 <ExternalLink class="w-3.5 h-3.5" />
               </button>
               <button
-                onclick={() => handleDeleteWord(item.word)}
-                class="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/30 transition cursor-pointer"
-                title="Delete from Obsidian Vault"
+                onclick={() => playTTS(item.word)}
+                class="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] transition cursor-pointer"
+                title="Pronounce"
               >
-                <Trash2 class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {#if item.definition}
-            <p class="text-sm text-slate-300 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-              {item.definition}
-            </p>
-          {/if}
-
-          <!-- SRS Review Controls -->
-          <div class="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs">
-            <div class="text-slate-400 flex items-center gap-3">
-              <span class="flex items-center gap-1">
-                <Calendar class="w-3 h-3 text-slate-500" />
-                Next Review: {item.next_review || 'Not set'}
-              </span>
-              <span>Interval: {item.interval || 1} day(s)</span>
-            </div>
-
-            <!-- Rating buttons -->
-            <div class="flex items-center gap-1.5">
-              <button
-                onclick={() => handleSrsRate(item, 1)}
-                class="px-2.5 py-1 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition cursor-pointer"
-              >
-                Again (1d)
-              </button>
-              <button
-                onclick={() => handleSrsRate(item, 2)}
-                class="px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 transition cursor-pointer"
-              >
-                Hard (2d)
-              </button>
-              <button
-                onclick={() => handleSrsRate(item, 3)}
-                class="px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition cursor-pointer"
-              >
-                Good (4d)
-              </button>
-              <button
-                onclick={() => handleSrsRate(item, 4)}
-                class="px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition cursor-pointer"
-              >
-                Easy (7d)
+                <Volume2 class="w-3.5 h-3.5" />
               </button>
               <button
                 onclick={() => handleDeleteWord(item.word)}
-                class="px-2.5 py-1 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition cursor-pointer flex items-center gap-1"
-                title="Delete from Vault"
+                class="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-600 transition cursor-pointer"
+                title="Delete"
               >
-                <Trash2 class="w-3 h-3" />
-                <span>Delete</span>
+                <Trash2 class="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -244,4 +453,16 @@
       {/each}
     </div>
   {/if}
+
+  <!-- Footer Decorative Quote matching design bottom -->
+  <div class="pt-8 pb-4 text-center">
+    <div class="flex items-center justify-center gap-4 text-[var(--text-subtle)]">
+      <div class="h-px bg-[var(--border-main)] w-24 sm:w-48"></div>
+      <span class="font-serif italic text-sm tracking-wide text-[var(--text-muted)]">
+        Keep learning, keep growing.
+      </span>
+      <div class="h-px bg-[var(--border-main)] w-24 sm:w-48"></div>
+    </div>
+  </div>
+
 </div>
