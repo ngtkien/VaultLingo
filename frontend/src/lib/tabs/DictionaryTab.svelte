@@ -57,6 +57,32 @@
   let autoSuggestions = $state<backend.Word[]>([]);
   let isSearchingSuggest = $state(false);
   let showSuggestions = $state(false);
+  let isEnriching = $state(false);
+
+  async function handleDeepEnrich() {
+    if (!currentResult?.word?.word) return;
+    const term = currentResult.word.word;
+    isEnriching = true;
+    showLogs = true;
+    try {
+      const result = await lookupSmartDictionary(
+        term,
+        (msg) => {
+          logs = [...logs, msg];
+        },
+        true
+      );
+      if (result) {
+        currentResult = result;
+        await checkSavedStatus(result.word.word);
+        if (onWordStored) onWordStored();
+      }
+    } catch (err: any) {
+      logs = [...logs, `❌ AI Enrichment failed: ${err?.message || err}`];
+    } finally {
+      isEnriching = false;
+    }
+  }
 
   async function checkSavedStatus(word: string) {
     try {
@@ -325,6 +351,22 @@
             title="Slow Pronunciation (0.75x)"
           >
             0.75x
+          </button>
+
+          <!-- AI Deep Enrich Button -->
+          <button
+            onclick={handleDeepEnrich}
+            disabled={isEnriching || loading}
+            class="px-3 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-300/40 dark:border-purple-600/40 transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Deep AI analysis: 6-block breakdown, collocations, nuances, roots & examples"
+          >
+            {#if isEnriching}
+              <RefreshCw class="w-3.5 h-3.5 animate-spin text-purple-600 dark:text-purple-400" />
+              <span>Enriching...</span>
+            {:else}
+              <Sparkles class="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+              <span>{currentResult.source === "ai" ? "AI Re-enrich ✨" : "AI Enrich ✨"}</span>
+            {/if}
           </button>
 
           <a

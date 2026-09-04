@@ -157,7 +157,8 @@ export function ensureRichUnifiedResult(result: SmartWordResult): SmartWordResul
  */
 export async function smartLookup(
   term: string, 
-  onLog?: (msg: string) => void
+  onLog?: (msg: string) => void,
+  forceAI: boolean = false
 ): Promise<SmartWordResult | null> {
   const cleanTerm = term.trim().toLowerCase();
   if (!cleanTerm) return null;
@@ -171,6 +172,8 @@ export async function smartLookup(
   const startTime = performance.now();
   log(`🔍 Pipeline initialized for term: "${cleanTerm}"`);
 
+  let existingUnified: SmartWordResult | null = null;
+
   // Tier 1: Local SQLite Dictionary Lookup (Instant sub-5ms)
   try {
     log(`[Tier 1] Querying embedded SQLite dictionary database...`);
@@ -182,27 +185,31 @@ export async function smartLookup(
       const rawResult: SmartWordResult = {
         word: dbWord,
         isLocal: true,
-        source: 'lexicon',
+        source: "lexicon",
         debugLogs: logs,
         executionTimeMs: Math.round(performance.now() - startTime)
       };
 
-      const unified = ensureRichUnifiedResult(rawResult);
+      existingUnified = ensureRichUnifiedResult(rawResult);
 
-      if (!unified.word.definition_vi || unified.examples?.length === 0) {
-        log(`⚠️ SQLite HIT for "${dbWord.word}", but record is incomplete (missing Vietnamese definitions/examples). Auto-upgrading via AI...`);
-        try {
-          const enriched = await enrichWordWithAI(cleanTerm, unified, log);
-          enriched.debugLogs = logs;
-          enriched.executionTimeMs = Math.round(performance.now() - startTime);
-          return enriched;
-        } catch (enrichErr) {
-          log(`⚠️ AI background upgrade skipped: ${enrichErr}`);
-          return unified;
+      if (!forceAI) {
+        if (!existingUnified.word.definition_vi || existingUnified.examples?.length === 0) {
+          log(`⚠️ SQLite HIT for "${dbWord.word}", but record is incomplete (missing Vietnamese definitions/examples). Auto-upgrading via AI...`);
+          try {
+            const enriched = await enrichWordWithAI(cleanTerm, existingUnified, log);
+            enriched.debugLogs = logs;
+            enriched.executionTimeMs = Math.round(performance.now() - startTime);
+            return enriched;
+          } catch (enrichErr) {
+            log(`⚠️ AI background upgrade skipped: ${enrichErr}`);
+            return existingUnified;
+          }
         }
-      }
 
-      return unified;
+        return existingUnified;
+      } else {
+        log(`✨ [Force AI Enrich] Escalating "${cleanTerm}" to Tier 2 for full 6-block AI synthesis...`);
+      }
     } else {
       log(`[Tier 1] SQLite MISS for "${cleanTerm}". Escalating to Tier 2 AI Enrichment...`);
     }
@@ -213,7 +220,7 @@ export async function smartLookup(
   // Tier 2: AI Deep Enrichment
   try {
     log(`[Tier 2] Invoking AI Provider to synthesize structured lexical dataset...`);
-    const aiResult = await enrichWordWithAI(cleanTerm, null, log);
+    const aiResult = await enrichWordWithAI(cleanTerm, existingUnified, log);
     aiResult.debugLogs = logs;
     aiResult.executionTimeMs = Math.round(performance.now() - startTime);
     return aiResult;
@@ -221,7 +228,7 @@ export async function smartLookup(
     log(`❌ Tier 2 AI synthesis error: ${aiErr}`);
   }
 
-  return null;
+  return existingUnified;
 }
 
 /**
