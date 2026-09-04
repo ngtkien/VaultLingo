@@ -21,7 +21,8 @@
     Terminal,
     ChevronDown,
     ChevronUp,
-    X
+    X,
+    Zap
   } from "lucide-svelte";
   import {
     lookupSmartDictionary,
@@ -38,6 +39,7 @@
   import { BrowserOpenURL } from "../../../wailsjs/runtime/runtime";
   import { playTTS, playAudioUrl } from "../utils/audio";
   import ParagraphTranslator from "../components/ParagraphTranslator.svelte";
+  import WordPracticeModal from "../components/WordPracticeModal.svelte";
 
   let {
     initialWord = "resilience",
@@ -52,6 +54,7 @@
   let searchTerm = $state(initialWord || "resilience");
   let currentResult = $state<SmartWordResult | null>(null);
   let isSaved = $state(false);
+  let isPracticeModalOpen = $state(false);
   let loading = $state(false);
   let logs = $state<string[]>([]);
   let showLogs = $state(false);
@@ -426,6 +429,17 @@
             {/if}
           </button>
 
+          <!-- Practice This Word (⚡ 5-Drill Workout) -->
+          <button
+            type="button"
+            onclick={() => isPracticeModalOpen = true}
+            class="px-3 py-1.5 rounded-xl border border-[var(--border-main)] hover:border-[var(--accent-primary-border)] bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-main)] hover:text-[var(--accent-primary)] transition cursor-pointer flex items-center gap-1.5 text-xs font-medium shadow-sm active:scale-95"
+            title="Practice this word (5-step active recall workout)"
+          >
+            <Zap class="w-3.5 h-3.5 text-[var(--accent-primary)] fill-[var(--accent-primary)]/20" />
+            <span>Practice</span>
+          </button>
+
           <!-- External Cambridge Dictionary Link -->
           <button
             type="button"
@@ -718,3 +732,12 @@
   {/if}
   {/if}
 </div>
+
+{#if currentResult?.word}
+  <WordPracticeModal
+    word={currentResult.word}
+    isOpen={isPracticeModalOpen}
+    onClose={() => isPracticeModalOpen = false}
+    onWordSaved={() => { isSaved = true; }}
+  />
+{/if}

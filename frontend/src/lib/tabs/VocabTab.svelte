@@ -11,6 +11,7 @@
     RecordSrsReview 
   } from '../../../wailsjs/go/main/App.js';
   import { playTTS } from '../utils/audio';
+  import WordPracticeModal from '../components/WordPracticeModal.svelte';
   import { 
     Volume2, 
     Bookmark, 
@@ -25,7 +26,8 @@
     RotateCcw,
     BookA,
     Dices,
-    PenTool
+    PenTool,
+    Zap
   } from 'lucide-svelte';
 
   let { onNavigateToDictionary } = $props<{ onNavigateToDictionary?: (word: string) => void }>();
@@ -128,6 +130,18 @@
   let currentCardIndex = $state(0);
   let cardFlipped = $state(false);
   let openSrsWordId = $state<number | null>(null);
+  let practiceWord = $state<any>(null);
+  let isPracticeModalOpen = $state(false);
+
+  function openPracticeModal(w: any) {
+    practiceWord = w;
+    isPracticeModalOpen = true;
+  }
+
+  function closePracticeModal() {
+    isPracticeModalOpen = false;
+    practiceWord = null;
+  }
 
   function cleanString(text: string | undefined | null): string {
     if (!text) return '';
@@ -546,55 +560,16 @@
                 </button>
               </div>
 
-              <!-- SRS Review Listdown Dropdown Button -->
-              <div class="relative w-full">
-                <button
-                  onclick={(e) => toggleSrsDropdown(w.id, e)}
-                  class="w-full py-1.5 px-3 rounded-xl border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--accent-primary-light)] text-xs font-semibold text-[var(--text-main)] flex items-center justify-between gap-1 shadow-2xs transition cursor-pointer"
-                >
-                  <span>Review SRS</span>
-                  <ChevronDown class="w-3.5 h-3.5 text-[var(--text-muted)]" />
-                </button>
-
-                <!-- Floating Listdown Menu -->
-                {#if openSrsWordId === w.id}
-                  <!-- svelte-ignore a11y_click_events_have_key_events -->
-                  <!-- svelte-ignore a11y_no_static_element_interactions -->
-                  <div
-                    onclick={(e) => e.stopPropagation()}
-                    class="absolute right-0 top-full mt-1 w-36 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl shadow-lg z-30 py-1.5 text-xs font-semibold space-y-0.5"
-                  >
-                    <button
-                      onclick={() => handleSrsRate(w.id, 1)}
-                      class="w-full text-left px-3 py-1.5 hover:bg-red-500/10 text-red-600 transition cursor-pointer flex items-center justify-between"
-                    >
-                      <span>Again</span>
-                      <span class="text-[11px] font-mono opacity-80">(0d)</span>
-                    </button>
-                    <button
-                      onclick={() => handleSrsRate(w.id, 2)}
-                      class="w-full text-left px-3 py-1.5 hover:bg-amber-500/10 text-amber-700 transition cursor-pointer flex items-center justify-between"
-                    >
-                      <span>Hard</span>
-                      <span class="text-[11px] font-mono opacity-80">(3d)</span>
-                    </button>
-                    <button
-                      onclick={() => handleSrsRate(w.id, 3)}
-                      class="w-full text-left px-3 py-1.5 hover:bg-blue-500/10 text-blue-600 transition cursor-pointer flex items-center justify-between"
-                    >
-                      <span>Good</span>
-                      <span class="text-[11px] font-mono opacity-80">(6d)</span>
-                    </button>
-                    <button
-                      onclick={() => handleSrsRate(w.id, 4)}
-                      class="w-full text-left px-3 py-1.5 hover:bg-emerald-500/10 text-emerald-600 transition cursor-pointer flex items-center justify-between"
-                    >
-                      <span>Easy</span>
-                      <span class="text-[11px] font-mono opacity-80">(7d)</span>
-                    </button>
-                  </div>
-                {/if}
-              </div>
+              <!-- Practice Word Button (⚡) -->
+              <button
+                type="button"
+                onclick={() => openPracticeModal(w)}
+                class="w-full py-1.5 px-3 rounded-xl border border-[var(--border-main)] hover:border-[var(--accent-primary-border)] bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-xs font-semibold text-[var(--text-main)] hover:text-[var(--accent-primary)] flex items-center justify-center gap-1.5 shadow-2xs transition cursor-pointer active:scale-95"
+                title="Practice this word (5-step active recall drill)"
+              >
+                <Zap class="w-3.5 h-3.5 text-[var(--accent-primary)] fill-[var(--accent-primary)]/20" />
+                <span>Practice</span>
+              </button>
             </div>
 
           </div>
@@ -709,6 +684,15 @@
                   title="Look up in Dictionary"
                 >
                   <BookA class="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onclick={() => openPracticeModal(curWord)}
+                  class="p-2 rounded-xl bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer flex items-center gap-1 text-xs font-semibold border border-[var(--border-main)]"
+                  title="Practice this word"
+                >
+                  <Zap class="w-3.5 h-3.5 text-[var(--accent-primary)] fill-[var(--accent-primary)]/20" />
+                  <span>Practice</span>
                 </button>
               </div>
 
@@ -902,3 +886,14 @@
     {/if}
   </div>
 </div>
+
+{#if practiceWord}
+  <WordPracticeModal
+    word={practiceWord}
+    isOpen={isPracticeModalOpen}
+    onClose={closePracticeModal}
+    onWordSaved={(w) => {
+      savedWordsMap[w.word.toLowerCase()] = true;
+    }}
+  />
+{/if}
