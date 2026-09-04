@@ -141,33 +141,48 @@
   function formatExample(rawEn: string | undefined | null, rawVi: string | undefined | null): { en: string; vi: string } {
     if (!rawEn) return { en: '', vi: '' };
 
-    const cleanEn = cleanString(rawEn);
-    const cleanVi = cleanString(rawVi || '');
+    const en = cleanString(rawEn);
+    const rawParts = en.split(/\s*[/|]\s*/).map(s => s.trim()).filter(Boolean);
+    const cleanEnSents: string[] = [];
 
-    const splitSentences = (str: string) => {
-      return str
-        .split(/(?:\s*[/|]\s*|\r?\n+)/)
-        .map(s => s.replace(/^["'“”\s]+|["'“”\s]+$/g, '').trim())
-        .filter(Boolean);
-    };
+    for (const p of (rawParts.length > 0 ? rawParts : [en])) {
+      const sents = p.match(/[^.!?]+[.!?]/g);
+      if (sents) {
+        for (const s of sents) {
+          const sc = s.trim();
+          if (sc.length > 5) cleanEnSents.push(sc);
+        }
+      } else if (p.length > 5) {
+        cleanEnSents.push(p.replace(/[.!?]*$/, '') + '.');
+      }
+    }
 
-    const enParts = splitSentences(cleanEn);
-    const viParts = splitSentences(cleanVi);
+    const finalEnSents = cleanEnSents.slice(0, 2);
+    if (finalEnSents.length > 0) {
+      const lastIdx = finalEnSents.length - 1;
+      finalEnSents[lastIdx] = finalEnSents[lastIdx].replace(/([.!?])\s+[a-zA-Z\-]+\.?$/, '$1');
+    }
 
-    const joinClean = (parts: string[]) => {
-      if (parts.length === 0) return '';
-      return parts
-        .map(s => {
-          let trimmed = s.trim();
-          if (!/[.?!]$/.test(trimmed)) trimmed += '.';
-          return trimmed;
-        })
-        .join(' ');
-    };
+    let finalVi = '';
+    if (rawVi) {
+      const vi = cleanString(rawVi);
+      const viSents = (vi.match(/[^.!?]+[.!?]/g) || [])
+        .map(s => s.trim())
+        .filter(s => s.length > 3);
+
+      const targetCount = Math.max(1, Math.min(2, finalEnSents.length));
+      if (viSents.length > targetCount + 1) {
+        finalVi = viSents.slice(-targetCount).join(' ');
+      } else if (viSents.length > 0) {
+        finalVi = viSents.slice(0, targetCount).join(' ');
+      } else {
+        finalVi = vi;
+      }
+    }
 
     return {
-      en: enParts.length > 0 ? joinClean(enParts) : cleanEn,
-      vi: viParts.length > 0 ? joinClean(viParts) : cleanVi
+      en: finalEnSents.length > 0 ? finalEnSents.join(' ') : en,
+      vi: finalVi
     };
   }
 
