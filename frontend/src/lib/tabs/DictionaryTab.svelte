@@ -335,62 +335,68 @@
           {/if}
         </div>
 
-        <!-- Action Buttons -->
-        <div class="flex items-center gap-2 shrink-0">
-          <button
-            onclick={() => handlePronounce(false)}
-            class="p-2.5 rounded-xl bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer border border-[var(--border-main)]"
-            title="Pronounce (1.0x)"
-          >
-            <Volume2 class="w-4 h-4" />
-          </button>
+        <!-- Action Toolbar: Cohesive Editorial Journal Controls -->
+        <div class="flex items-center gap-2 shrink-0 flex-wrap">
+          <!-- Audio Speed Segmented Group -->
+          <div class="inline-flex items-center rounded-xl border border-[var(--border-main)] bg-[var(--bg-inner)] overflow-hidden divide-x divide-[var(--border-main)] shadow-sm">
+            <button
+              onclick={() => handlePronounce(false)}
+              class="px-2.5 py-1.5 flex items-center gap-1.5 text-xs text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] hover:text-[var(--accent-primary)] transition cursor-pointer"
+              title="Pronounce at standard speed (1.0x)"
+            >
+              <Volume2 class="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+              <span class="font-mono font-medium">1.0x</span>
+            </button>
+            <button
+              onclick={() => handlePronounce(true)}
+              class="px-2 py-1.5 text-xs font-mono text-[var(--text-muted)] hover:bg-[var(--accent-primary-light)] hover:text-[var(--accent-primary)] transition cursor-pointer"
+              title="Pronounce slowly (0.75x)"
+            >
+              0.75x
+            </button>
+          </div>
 
-          <button
-            onclick={() => handlePronounce(true)}
-            class="px-3 py-2 rounded-xl bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] text-xs font-mono transition cursor-pointer border border-[var(--border-main)]"
-            title="Slow Pronunciation (0.75x)"
-          >
-            0.75x
-          </button>
-
-          <!-- AI Deep Enrich Button -->
+          <!-- AI Enrich Button (Editorial Forest/Sage Theme) -->
           <button
             onclick={handleDeepEnrich}
             disabled={isEnriching || loading}
-            class="px-3 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-300/40 dark:border-purple-600/40 transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-3 py-1.5 rounded-xl border border-[var(--border-main)] hover:border-[var(--accent-primary-border)] bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-main)] hover:text-[var(--accent-primary)] transition cursor-pointer flex items-center gap-1.5 text-xs font-medium shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Deep AI analysis: 6-block breakdown, collocations, nuances, roots & examples"
           >
             {#if isEnriching}
-              <RefreshCw class="w-3.5 h-3.5 animate-spin text-purple-600 dark:text-purple-400" />
+              <RefreshCw class="w-3.5 h-3.5 animate-spin text-[var(--accent-primary)]" />
               <span>Enriching...</span>
             {:else}
-              <Sparkles class="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-              <span>{currentResult.source === "ai" ? "AI Re-enrich ✨" : "AI Enrich ✨"}</span>
+              <Sparkles class="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+              <span>{currentResult.source === "ai" ? "AI Re-enrich" : "AI Enrich"}</span>
             {/if}
           </button>
 
+          <!-- External Cambridge Dictionary Link -->
           <a
             href={currentResult.word.dict_link}
             target="_blank"
-            class="p-2.5 rounded-xl bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer border border-[var(--border-main)]"
-            title="Open Cambridge Dictionary"
+            class="px-2.5 py-1.5 rounded-xl border border-[var(--border-main)] hover:border-[var(--border-highlight)] bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer flex items-center gap-1.5 text-xs font-medium shadow-sm"
+            title="Open Cambridge Dictionary in new tab"
           >
-            <ExternalLink class="w-4 h-4" />
+            <ExternalLink class="w-3.5 h-3.5" />
+            <span class="hidden sm:inline">Cambridge</span>
           </a>
 
+          <!-- Save to Obsidian Button -->
           <button
             onclick={handleSaveWord}
-            class={`px-4 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold border ${
+            class={`px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold border shadow-sm ${
               isSaved
                 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/40"
                 : "btn-forest"
             }`}
           >
             {#if isSaved}
-              <Check class="w-4 h-4 text-emerald-600" />
+              <Check class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>Saved in Vault</span>
             {:else}
-              <Bookmark class="w-4 h-4" />
+              <Bookmark class="w-3.5 h-3.5" />
               <span>Save to Obsidian</span>
             {/if}
           </button>
