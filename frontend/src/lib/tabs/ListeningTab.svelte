@@ -423,23 +423,16 @@
           </div>
         {:else}
           <!-- Active Listening Placeholder -->
-          <div class="py-12 px-6 rounded-2xl bg-[var(--bg-inner)] border border-[var(--border-main)] border-dashed text-center space-y-4 flex flex-col items-center justify-center">
-            <div class="w-14 h-14 rounded-2xl bg-[var(--accent-primary-light)] text-[var(--accent-primary)] flex items-center justify-center">
+          <div class="py-14 px-6 rounded-2xl bg-[var(--bg-inner)] border border-[var(--border-main)] border-dashed text-center space-y-3 flex flex-col items-center justify-center">
+            <div class="w-14 h-14 rounded-2xl bg-[var(--accent-primary-light)] text-[var(--accent-primary)] flex items-center justify-center shadow-2xs">
               <Headphones class="w-7 h-7" />
             </div>
             <div class="max-w-md space-y-1.5">
               <h4 class="text-base font-bold text-[var(--text-main)]">Active Audio Listening Mode</h4>
               <p class="text-xs text-[var(--text-muted)] leading-relaxed">
-                Listen to the complete audio recording above to train your ear. When you are ready to review what was spoken, click below to reveal the transcript.
+                Listen to the complete audio recording above to train your ear. When you are ready to review what was spoken, toggle <strong>Show Transcript</strong> in the top right.
               </p>
             </div>
-            <button
-              onclick={() => showTranscript = true}
-              class="px-5 py-2.5 rounded-xl btn-forest font-bold text-xs flex items-center gap-2 transition shadow-sm cursor-pointer"
-            >
-              <FileText class="w-4 h-4" />
-              <span>Show Audio Transcript</span>
-            </button>
           </div>
         {/if}
       </section>
