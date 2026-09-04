@@ -37,33 +37,50 @@ export function parseExamplePairs(rawEn: string | undefined | null, rawVi: strin
 
   const cleanString = (str: string) => {
     return str
-      .replace(/:\s*:\s*id=[^"'\s]*/gi, '')
-      .replace(/id=[a-zA-Z0-9._&=-]+/gi, '')
-      .replace(/\s*\b\d{3,}\b\s*$/, '')
+      .replace(/:\s*:\s*id=[^"'\s]*/gi, "")
+      .replace(/id=[a-zA-Z0-9._&=-]+/gi, "")
+      .replace(/\s*\b\d{3,}\b\s*$/, "")
       .trim();
   };
 
   const cleanEn = cleanString(rawEn);
-  const cleanVi = cleanString(rawVi || '');
+  const cleanVi = cleanString(rawVi || "");
 
-  const splitSentences = (text: string) => {
+  const splitParts = (text: string) => {
     if (!text) return [];
     return text
       .split(/(?:\s*[/|]\s*|\r?\n+)/)
-      .map(s => s.replace(/^["'“”\s]+|["'“”\s]+$/g, '').trim())
+      .map(s => s.replace(/^[\"'“”\s]+|[\"'“”\s]+$/g, "").trim())
       .filter(s => s.length > 0);
   };
 
-  const enParts = splitSentences(cleanEn);
-  const viParts = splitSentences(cleanVi);
+  let enParts = splitParts(cleanEn);
+  let viParts = splitParts(cleanVi);
+
+  // If EN was not split by delimiter, try splitting by sentence boundary punctuation
+  if (enParts.length === 1) {
+    const sents = enParts[0].match(/[^.!?]+[.!?]/g);
+    if (sents && sents.length > 1) {
+      enParts = sents.map(s => s.trim()).filter(s => s.length > 5);
+    }
+  }
+
+  // If VI was not split by delimiter, but EN has multiple sentences, try splitting VI
+  if (viParts.length === 1 && enParts.length > 1) {
+    const sents = viParts[0].match(/[^.!?]+[.!?]/g);
+    if (sents && sents.length > 1) {
+      viParts = sents.map(s => s.trim()).filter(s => s.length > 3);
+    }
+  }
 
   if (enParts.length === 0) return [];
 
   const pairs: BilingualExample[] = [];
-  for (let i = 0; i < enParts.length; i++) {
+  const maxCount = Math.min(enParts.length, 2);
+  for (let i = 0; i < maxCount; i++) {
     pairs.push({
       en: enParts[i],
-      vi: viParts[i] || (enParts.length === 1 ? (viParts[0] || '') : '')
+      vi: viParts[i] || (maxCount === 1 ? (viParts[0] || "") : "")
     });
   }
 

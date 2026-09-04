@@ -152,52 +152,53 @@
       .trim();
   }
 
-  function formatExample(rawEn: string | undefined | null, rawVi: string | undefined | null): { en: string; vi: string } {
-    if (!rawEn) return { en: '', vi: '' };
+    function formatExamplePairs(rawEn: string | undefined | null, rawVi: string | undefined | null): { en: string; vi: string }[] {
+    if (!rawEn) return [];
 
     const en = cleanString(rawEn);
-    const rawParts = en.split(/\s*[/|]\s*/).map(s => s.trim()).filter(Boolean);
-    const cleanEnSents: string[] = [];
-
-    for (const p of (rawParts.length > 0 ? rawParts : [en])) {
+    const rawEnParts = en.split(/\s*[/|]\s*|\n+/).map(s => s.trim()).filter(Boolean);
+    let enSents: string[] = [];
+    for (const p of rawEnParts) {
       const sents = p.match(/[^.!?]+[.!?]/g);
-      if (sents) {
+      if (sents && sents.length > 0) {
         for (const s of sents) {
           const sc = s.trim();
-          if (sc.length > 5) cleanEnSents.push(sc);
+          if (sc.length > 5) enSents.push(sc);
         }
       } else if (p.length > 5) {
-        cleanEnSents.push(p.replace(/[.!?]*$/, '') + '.');
+        enSents.push(p.replace(/[.!?]*$/, "") + ".");
       }
     }
 
-    const finalEnSents = cleanEnSents.slice(0, 2);
-    if (finalEnSents.length > 0) {
-      const lastIdx = finalEnSents.length - 1;
-      finalEnSents[lastIdx] = finalEnSents[lastIdx].replace(/([.!?])\s+[a-zA-Z\-]+\.?$/, '$1');
-    }
-
-    let finalVi = '';
-    if (rawVi) {
-      const vi = cleanString(rawVi);
-      const viSents = (vi.match(/[^.!?]+[.!?]/g) || [])
-        .map(s => s.trim())
-        .filter(s => s.length > 3);
-
-      const targetCount = Math.max(1, Math.min(2, finalEnSents.length));
-      if (viSents.length > targetCount + 1) {
-        finalVi = viSents.slice(-targetCount).join(' ');
-      } else if (viSents.length > 0) {
-        finalVi = viSents.slice(0, targetCount).join(' ');
-      } else {
-        finalVi = vi;
+    const vi = cleanString(rawVi || "");
+    const viRawParts = vi.split(/\s*[/|]\s*|\n+/).map(s => s.trim()).filter(Boolean);
+    let viSents: string[] = [];
+    for (const p of viRawParts) {
+      const sents = p.match(/[^.!?]+[.!?]/g);
+      if (sents && sents.length > 0 && viRawParts.length === 1 && enSents.length > 1) {
+        for (const s of sents) {
+          const sc = s.trim();
+          if (sc.length > 3) viSents.push(sc);
+        }
+      } else if (p.length > 3) {
+        viSents.push(p.trim());
       }
     }
 
-    return {
-      en: finalEnSents.length > 0 ? finalEnSents.join(' ') : en,
-      vi: finalVi
-    };
+    const maxCount = Math.min(enSents.length, 2);
+    const pairs: { en: string; vi: string }[] = [];
+    for (let i = 0; i < maxCount; i++) {
+      pairs.push({
+        en: enSents[i],
+        vi: viSents[i] || ""
+      });
+    }
+
+    if (pairs.length === 0 && en.length > 0) {
+      pairs.push({ en, vi });
+    }
+
+    return pairs;
   }
 
   async function loadDailyIdiom() {
@@ -457,7 +458,7 @@
     <!-- Word List View: SRS is listdown dropdown to maximize room for EXAMPLE -->
     <div class="space-y-3.5">
       {#each words as w, index}
-        {@const ex = formatExample(w.example_en, w.example_vi)}
+        {@const examplePairs = formatExamplePairs(w.example_en, w.example_vi)}
         <div class="journal-card p-5 sm:p-6 border border-[var(--border-main)] bg-[var(--bg-card)] rounded-2xl shadow-xs transition-all hover:border-[var(--border-highlight)]">
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
             
@@ -516,18 +517,24 @@
               {/if}
             </div>
 
-            <!-- Col 3: EXAMPLE (lg:col-span-4 - EXPANDED SPACE FOR 2 SENTENCES) -->
-            <div class="lg:col-span-4 space-y-1">
+            <!-- Col 3: EXAMPLE (lg:col-span-4 - Bilingual Paired Sentences) -->
+            <div class="lg:col-span-4 space-y-2">
               <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)] block">EXAMPLE</span>
-              {#if ex.en}
-                <p class="font-serif italic text-sm text-[var(--text-main)] leading-relaxed">
-                  {ex.en}
-                </p>
-                {#if ex.vi}
-                  <p class="text-xs text-[var(--text-muted)] leading-relaxed mt-0.5">
-                    {ex.vi}
-                  </p>
-                {/if}
+              {#if examplePairs.length > 0}
+                <div class="space-y-2.5">
+                  {#each examplePairs as pair}
+                    <div class="space-y-0.5">
+                      <p class="font-serif italic text-sm text-[var(--text-main)] leading-relaxed">
+                        {pair.en}
+                      </p>
+                      {#if pair.vi}
+                        <p class="text-xs text-[var(--text-muted)] leading-relaxed">
+                          {pair.vi}
+                        </p>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
               {:else}
                 <p class="text-xs text-[var(--text-muted)] italic">No example sentence available.</p>
               {/if}
@@ -580,7 +587,7 @@
     <!-- Flashcard Mode -->
     {#if words.length > 0}
       {@const curWord = words[currentCardIndex]}
-      {@const cardEx = formatExample(curWord.example_en, curWord.example_vi)}
+      {@const cardExamplePairs = formatExamplePairs(curWord.example_en, curWord.example_vi)}
       <div class="max-w-xl mx-auto space-y-4">
         <!-- Progress Dots & Counter -->
         <div class="flex items-center justify-between journal-card px-4 py-2.5 border border-[var(--border-main)] bg-[var(--bg-card)]">
@@ -651,17 +658,21 @@
                   {/if}
                 </div>
 
-                {#if cardEx.en}
-                  <div class="pt-3 border-t border-[var(--border-main)] text-center space-y-1">
+                {#if cardExamplePairs.length > 0}
+                  <div class="pt-3 border-t border-[var(--border-main)] text-center space-y-2.5">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">EXAMPLE</span>
-                    <p class="font-serif italic text-sm text-[var(--text-main)] leading-relaxed">
-                      {cardEx.en}
-                    </p>
-                    {#if cardEx.vi}
-                      <p class="text-xs text-[var(--text-muted)] leading-relaxed">
-                        {cardEx.vi}
-                      </p>
-                    {/if}
+                    {#each cardExamplePairs as pair}
+                      <div class="space-y-0.5">
+                        <p class="font-serif italic text-sm text-[var(--text-main)] leading-relaxed">
+                          {pair.en}
+                        </p>
+                        {#if pair.vi}
+                          <p class="text-xs text-[var(--text-muted)] leading-relaxed">
+                            {pair.vi}
+                          </p>
+                        {/if}
+                      </div>
+                    {/each}
                   </div>
                 {/if}
               </div>
