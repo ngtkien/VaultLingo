@@ -13,7 +13,8 @@
     FileText,
     CheckCircle2,
     Plus,
-    BookOpen
+    BookOpen,
+    Code2
   } from "lucide-svelte";
   import {
     TranslateParagraph,
@@ -22,6 +23,7 @@
   } from "../../../wailsjs/go/main/App.js";
   import { backend } from "../../../wailsjs/go/models";
   import { playTTS } from "../utils/audio";
+  import { renderMarkdown } from "../utils/markdown";
 
   let sourceText = $state("");
   let sourceLang = $state<"English" | "Vietnamese">("English");
@@ -33,6 +35,7 @@
   let errorMsg = $state("");
   let isCopied = $state(false);
   let isSavedToObsidian = $state(false);
+  let showRawTranslation = $state(false);
   let savedWords = $state<Record<string, boolean>>({});
 
   const toneOptions = [
@@ -212,57 +215,56 @@
   </div>
 
   <!-- Translation Workspace (2-Column Split View) -->
-  <div class="grid lg:grid-cols-2 gap-4">
+  <div class="grid lg:grid-cols-2 gap-4 items-stretch">
     <!-- Source Column -->
-    <div class="journal-card p-4.5 space-y-3 flex flex-col justify-between">
-      <div class="space-y-3">
-        <!-- Source Header -->
-        <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2.5">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-[var(--accent-primary)]"></span>
-            <span class="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider font-mono">
-              Source Text ({sourceLang})
-            </span>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <!-- Swap Button -->
-            <button
-              type="button"
-              onclick={swapLanguages}
-              class="p-1.5 rounded-lg text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center justify-center active:scale-95 shadow-2xs"
-              title="Swap source and target languages"
-            >
-              <ArrowLeftRight class="w-3.5 h-3.5" />
-            </button>
-
-            <!-- Clear Button -->
-            {#if sourceText}
-              <button
-                type="button"
-                onclick={() => { sourceText = ""; translationResult = null; errorMsg = ""; }}
-                class="px-1.5 py-1 rounded-md text-xs text-[var(--text-muted)] hover:text-red-600 hover:bg-red-500/10 transition cursor-pointer"
-                title="Clear text"
-              >
-                <Trash2 class="w-3.5 h-3.5" />
-              </button>
-            {/if}
-          </div>
+    <div class="journal-card p-4.5 flex flex-col min-h-[380px]">
+      <!-- Source Header -->
+      <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2.5 flex-shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[var(--accent-primary)]"></span>
+          <span class="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider font-mono">
+            Source Text ({sourceLang})
+          </span>
         </div>
 
-        <!-- Source Textarea -->
+        <div class="flex items-center gap-2">
+          <!-- Swap Button -->
+          <button
+            type="button"
+            onclick={swapLanguages}
+            class="p-1.5 rounded-lg text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center justify-center active:scale-95 shadow-2xs"
+            title="Swap source and target languages"
+          >
+            <ArrowLeftRight class="w-3.5 h-3.5" />
+          </button>
+
+          <!-- Clear Button -->
+          {#if sourceText}
+            <button
+              type="button"
+              onclick={() => { sourceText = ""; translationResult = null; errorMsg = ""; }}
+              class="px-1.5 py-1 rounded-md text-xs text-[var(--text-muted)] hover:text-red-600 hover:bg-red-500/10 transition cursor-pointer"
+              title="Clear text"
+            >
+              <Trash2 class="w-3.5 h-3.5" />
+            </button>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Source Textarea Wrapper (fills available vertical space) -->
+      <div class="flex-1 flex flex-col min-h-0 py-3">
         <textarea
           bind:value={sourceText}
-          rows="7"
           placeholder={sourceLang === "English" 
             ? "Enter or paste English text/paragraph here..." 
             : "Enter or paste Vietnamese text/paragraph here..."}
-          class="w-full bg-transparent border-0 focus:outline-none resize-none text-sm text-[var(--text-main)] font-sans leading-relaxed placeholder:text-[var(--text-muted)] placeholder:italic"
+          class="w-full flex-1 min-h-[220px] bg-transparent border-0 focus:outline-none resize-none text-sm text-[var(--text-main)] font-sans leading-relaxed placeholder:text-[var(--text-muted)] placeholder:italic focus:ring-0 overflow-y-auto"
         ></textarea>
       </div>
 
       <!-- Source Footer -->
-      <div class="pt-3 border-t border-[var(--border-main)] flex items-center justify-between text-xs text-[var(--text-subtle)]">
+      <div class="pt-3 border-t border-[var(--border-main)] flex items-center justify-between text-xs text-[var(--text-subtle)] flex-shrink-0 mt-auto">
         <span class="font-mono">{sourceText.length} characters</span>
 
         <!-- Action Button -->
@@ -284,89 +286,110 @@
     </div>
 
     <!-- Target / Result Column -->
-    <div class="journal-card p-4.5 space-y-3 flex flex-col justify-between">
-      <div class="space-y-3">
-        <!-- Target Header -->
-        <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2.5">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span class="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider font-mono">
-              Target Translation ({targetLang})
-            </span>
-          </div>
-
-          <!-- Target Tools -->
-          <div class="flex items-center gap-1.5">
-            <!-- Audio Playback Button (for English) -->
-            {#if (sourceLang === "English" && sourceText) || (targetLang === "English" && translationResult?.translated_text)}
-              <button
-                type="button"
-                onclick={handlePlayAudio}
-                class="px-2 py-1 rounded-md text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center gap-1"
-                title="Listen to authentic English pronunciation"
-              >
-                <Volume2 class="w-3 h-3" />
-                <span class="text-[11px] hidden sm:inline">Listen</span>
-              </button>
-            {/if}
-
-            <!-- Copy Button -->
-            {#if translationResult?.translated_text}
-              <button
-                type="button"
-                onclick={handleCopy}
-                class="px-2 py-1 rounded-md text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center gap-1"
-                title="Copy translation"
-              >
-                {#if isCopied}
-                  <Check class="w-3 h-3 text-emerald-600" />
-                  <span class="text-[11px] text-emerald-600">Copied</span>
-                {:else}
-                  <Copy class="w-3 h-3" />
-                  <span class="text-[11px]">Copy</span>
-                {/if}
-              </button>
-
-              <!-- Save to Obsidian Button -->
-              <button
-                type="button"
-                onclick={handleSaveToObsidian}
-                disabled={isSavedToObsidian}
-                class={`px-2 py-1 rounded-md text-xs border transition cursor-pointer flex items-center gap-1 ${
-                  isSavedToObsidian
-                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/40"
-                    : "bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border-[var(--border-main)]"
-                }`}
-                title="Save translation & vocabulary to Obsidian"
-              >
-                {#if isSavedToObsidian}
-                  <CheckCircle2 class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                  <span class="text-[11px]">Saved to Vault</span>
-                {:else}
-                  <Bookmark class="w-3 h-3" />
-                  <span class="text-[11px]">Save to Vault</span>
-                {/if}
-              </button>
-            {/if}
-          </div>
+    <div class="journal-card p-4.5 flex flex-col min-h-[380px]">
+      <!-- Target Header -->
+      <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2.5 flex-shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          <span class="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider font-mono">
+            Target Translation ({targetLang})
+          </span>
         </div>
 
-        <!-- Target Text Body -->
+        <!-- Target Tools -->
+        <div class="flex items-center gap-1.5">
+          <!-- Toggle Formatted / Raw View -->
+          {#if translationResult?.translated_text}
+            <button
+              type="button"
+              onclick={() => (showRawTranslation = !showRawTranslation)}
+              class={`px-2 py-1 rounded-md text-xs border transition cursor-pointer flex items-center gap-1 ${
+                showRawTranslation
+                  ? "bg-[var(--accent-primary-light)] text-[var(--accent-primary)] border-[var(--accent-primary)]"
+                  : "bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border-[var(--border-main)]"
+              }`}
+              title={showRawTranslation ? "Switch to rendered markdown view" : "Switch to raw markdown view"}
+            >
+              <Code2 class="w-3 h-3" />
+              <span class="text-[11px]">{showRawTranslation ? "Raw" : "Formatted"}</span>
+            </button>
+          {/if}
+
+          <!-- Audio Playback Button (for English) -->
+          {#if (sourceLang === "English" && sourceText) || (targetLang === "English" && translationResult?.translated_text)}
+            <button
+              type="button"
+              onclick={handlePlayAudio}
+              class="px-2 py-1 rounded-md text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center gap-1"
+              title="Listen to authentic English pronunciation"
+            >
+              <Volume2 class="w-3 h-3" />
+              <span class="text-[11px] hidden sm:inline">Listen</span>
+            </button>
+          {/if}
+
+          <!-- Copy Button -->
+          {#if translationResult?.translated_text}
+            <button
+              type="button"
+              onclick={handleCopy}
+              class="px-2 py-1 rounded-md text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center gap-1"
+              title="Copy translation"
+            >
+              {#if isCopied}
+                <Check class="w-3 h-3 text-emerald-600" />
+                <span class="text-[11px] text-emerald-600">Copied</span>
+              {:else}
+                <Copy class="w-3 h-3" />
+                <span class="text-[11px]">Copy</span>
+              {/if}
+            </button>
+
+            <!-- Save to Obsidian Button -->
+            <button
+              type="button"
+              onclick={handleSaveToObsidian}
+              disabled={isSavedToObsidian}
+              class={`px-2 py-1 rounded-md text-xs border transition cursor-pointer flex items-center gap-1 ${
+                isSavedToObsidian
+                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/40"
+                  : "bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border-[var(--border-main)]"
+              }`}
+              title="Save translation & vocabulary to Obsidian"
+            >
+              {#if isSavedToObsidian}
+                <CheckCircle2 class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                <span class="text-[11px]">Saved to Vault</span>
+              {:else}
+                <Bookmark class="w-3 h-3" />
+                <span class="text-[11px]">Save to Vault</span>
+              {/if}
+            </button>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Target Text Body -->
+      <div class="flex-1 flex flex-col min-h-0 py-3 overflow-y-auto">
         {#if isTranslating}
-          <div class="py-10 flex flex-col items-center justify-center space-y-3 text-[var(--text-muted)]">
+          <div class="py-12 flex-1 flex flex-col items-center justify-center space-y-3 text-[var(--text-muted)]">
             <RefreshCw class="w-6 h-6 animate-spin text-[var(--accent-primary)]" />
             <p class="text-xs font-serif italic">AI is analyzing linguistic context and composing translation...</p>
           </div>
         {:else if errorMsg}
-          <div class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-600 dark:text-red-400">
+          <div class="p-3.5 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-600 dark:text-red-400">
             {errorMsg}
           </div>
         {:else if translationResult?.translated_text}
-          <div class="text-sm font-medium text-[var(--text-main)] leading-relaxed font-sans min-h-[140px] whitespace-pre-line select-text">
-            {translationResult.translated_text}
-          </div>
+          {#if showRawTranslation}
+            <pre class="w-full flex-1 p-3 rounded-lg bg-[var(--bg-inner)] border border-[var(--border-main)] font-mono text-xs text-[var(--text-main)] whitespace-pre-wrap leading-relaxed select-text overflow-y-auto">{translationResult.translated_text}</pre>
+          {:else}
+            <div class="text-sm font-normal text-[var(--text-main)] leading-relaxed font-sans select-text overflow-y-auto pr-1">
+              {@html renderMarkdown(translationResult.translated_text)}
+            </div>
+          {/if}
         {:else}
-          <div class="py-12 flex flex-col items-center justify-center space-y-2 text-[var(--text-muted)] opacity-60">
+          <div class="py-12 flex-1 flex flex-col items-center justify-center space-y-2 text-[var(--text-muted)] opacity-60">
             <FileText class="w-8 h-8 stroke-[1.25]" />
             <p class="text-xs font-serif italic">Translation output and linguistic analysis will appear here.</p>
           </div>
@@ -374,7 +397,7 @@
       </div>
 
       <!-- Target Footer -->
-      <div class="pt-3 border-t border-[var(--border-main)] flex items-center justify-between text-xs text-[var(--text-subtle)]">
+      <div class="pt-3 border-t border-[var(--border-main)] flex items-center justify-between text-xs text-[var(--text-subtle)] flex-shrink-0 mt-auto">
         <span class="font-mono">
           {translationResult?.translated_text ? `${translationResult.translated_text.length} characters` : "Ready"}
         </span>
