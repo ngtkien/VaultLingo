@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -84,12 +85,24 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 		if err != nil {
 			cmdPath = "/usr/bin/opencode"
 		}
-		cmd := exec.Command(cmdPath, "run", fullPrompt)
+		var args []string
+		args = append(args, "run", "--title", "VaultLingo")
+		model := cfg.OpencodeModel
+		if model == "" {
+			model = "opencode/mimo-v2.5-free"
+		}
+		if model != "default" {
+			args = append(args, "-m", model)
+		}
+		args = append(args, fullPrompt)
+		cmd := exec.Command(cmdPath, args...)
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			return "", fmt.Errorf("opencode execution failed: %s (%w)", string(out), err)
 		}
-		return strings.TrimSpace(string(out)), nil
+		// Strip opencode banner line (e.g. "> build · ...")
+		cleanOut := regexp.MustCompile(`(?m)^>\s*(build|chat|plan|agent).*$\n?`).ReplaceAllString(string(out), "")
+		return strings.TrimSpace(cleanOut), nil
 	}
 
 	// 2. Antigravity CLI (Native system-authenticated agy CLI)
@@ -135,8 +148,8 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 			return generateLocalMockEvaluation(userContent), nil
 		}
 		model := cfg.OpenrouterModel
-		if model == "" {
-			model = "meta-llama/llama-3.3-70b-instruct:free"
+		if model == "" || model == "meta-llama/llama-3.3-70b-instruct:free" {
+			model = "openrouter/free"
 		}
 		return callOpenAICompatible(client, "https://openrouter.ai/api/v1/chat/completions", cfg.OpenrouterApiKey, model, systemInstruction, userContent, map[string]string{
 			"HTTP-Referer": "https://github.com/ngtkien/VaultLingo",
@@ -150,8 +163,8 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 			return generateLocalMockEvaluation(userContent), nil
 		}
 		model := cfg.GroqModel
-		if model == "" {
-			model = "llama-3.3-70b-versatile"
+		if model == "" || model == "llama-3.3-70b-versatile" || model == "llama-3.1-8b-instant" {
+			model = "qwen/qwen3.6-27b"
 		}
 		return callOpenAICompatible(client, "https://api.groq.com/openai/v1/chat/completions", cfg.GroqApiKey, model, systemInstruction, userContent, nil)
 	}

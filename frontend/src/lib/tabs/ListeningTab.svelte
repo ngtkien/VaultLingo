@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
   import { playAudioUrl, playTTS, stopAudio } from '../utils/audio';
   import { 
     Volume2, 
@@ -248,14 +249,14 @@
             </button>
 
             {#if currentTopic.url}
-              <a
-                href={currentTopic.url}
-                target="_blank"
-                class="p-2.5 rounded-xl bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition border border-[var(--border-main)]"
+              <button
+                type="button"
+                onclick={() => currentTopic.url && BrowserOpenURL(currentTopic.url)}
+                class="p-2.5 rounded-xl bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition border border-[var(--border-main)] cursor-pointer"
                 title="Open source transcript"
               >
                 <ExternalLink class="w-4 h-4" />
-              </a>
+              </button>
             {/if}
           </div>
         </div>

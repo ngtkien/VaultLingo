@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import {
     ArrowLeftRight,
     Languages,
@@ -14,16 +15,51 @@
     CheckCircle2,
     Plus,
     BookOpen,
-    Code2
+    Code2,
+    Cpu
   } from "lucide-svelte";
   import {
     TranslateParagraph,
     SaveTranslationToObsidian,
-    SaveWordToDB
+    SaveWordToDB,
+    GetConfig
   } from "../../../wailsjs/go/main/App.js";
   import { backend } from "../../../wailsjs/go/models";
   import { playTTS } from "../utils/audio";
   import { renderMarkdown } from "../utils/markdown";
+
+  let appConfig = $state<backend.Config | null>(null);
+
+  onMount(async () => {
+    try {
+      appConfig = await GetConfig();
+    } catch (e) {
+      console.error("Failed to load config for ParagraphTranslator:", e);
+    }
+  });
+
+  let activeEngineLabel = $derived(() => {
+    if (!appConfig) return "Bilingual Engine";
+    const provider = appConfig.translation_provider && appConfig.translation_provider !== "default"
+      ? appConfig.translation_provider
+      : appConfig.ai_provider || "AI";
+    
+    let modelName = "";
+    if (appConfig.translation_provider && appConfig.translation_provider !== "default") {
+      modelName = appConfig.translation_model || "";
+    } else {
+      if (provider === "groq") modelName = appConfig.groq_model || "";
+      else if (provider === "ollama") modelName = appConfig.ollama_model || "";
+      else if (provider === "openrouter") modelName = appConfig.openrouter_model || "";
+      else if (provider === "agy") modelName = appConfig.agy_model || "";
+      else if (provider === "opencode") modelName = appConfig.opencode_model || "";
+    }
+
+    if (modelName.includes("/")) {
+      modelName = modelName.split("/")[1];
+    }
+    return `${provider.toUpperCase()}${modelName ? ` • ${modelName}` : ""}`;
+  });
 
   let sourceText = $state("");
   let sourceLang = $state<"English" | "Vietnamese">("English");
@@ -178,7 +214,10 @@
             <Languages class="w-4 h-4" />
           </span>
           <h2 class="font-serif text-lg font-bold text-[var(--text-main)]">AI Paragraph Translator</h2>
-          <span class="journal-badge text-xs font-mono">Bilingual Engine</span>
+          <span class="journal-badge text-xs font-mono flex items-center gap-1.5">
+            <Cpu class="w-3 h-3 text-[var(--accent-primary)]" />
+            <span>{activeEngineLabel()}</span>
+          </span>
         </div>
         <p class="text-xs text-[var(--text-muted)] mt-1 font-sans">
           Deep contextual translation with grammatical breakdowns and Obsidian vocabulary extraction.

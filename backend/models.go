@@ -152,8 +152,11 @@ type Config struct {
 	DefaultAudioSpeed float64 `json:"default_audio_speed"`
 	TTSProvider       string  `json:"tts_provider"` // "edge", "piper", "google"
 	TTSVoice          string  `json:"tts_voice"`    // e.g. "en-US-JennyNeural"
-	PiperPath         string  `json:"piper_path,omitempty"`
-	PiperModelPath    string  `json:"piper_model_path,omitempty"`
+	PiperPath           string  `json:"piper_path,omitempty"`
+	PiperModelPath      string  `json:"piper_model_path,omitempty"`
+	OpencodeModel       string  `json:"opencode_model,omitempty"`
+	TranslationProvider string  `json:"translation_provider,omitempty"` // "default", "groq", "ollama", "openrouter", "agy", "opencode"
+	TranslationModel    string  `json:"translation_model,omitempty"`    // e.g. "qwen/qwen3.6-27b"
 }
 
 type DiffToken struct {

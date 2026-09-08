@@ -20,16 +20,19 @@ func LoadConfig() Config {
 		AgyModel:          "gemini-3.7-flash",
 		AgyEffort:         "low",
 		AgyPath:           "",
-		OpenrouterApiKey:  "",
-		OpenrouterModel:   "meta-llama/llama-3.3-70b-instruct:free",
-		GroqApiKey:        "",
-		GroqModel:         "llama-3.3-70b-versatile",
-		OllamaUrl:         "http://localhost:11434",
-		OllamaModel:       "llama3:latest",
-		AutoPlayAudio:     true,
-		DefaultAudioSpeed: 1.0,
-		TTSProvider:       "edge",
-		TTSVoice:          "en-US-JennyNeural",
+		OpenrouterApiKey:    "",
+		OpenrouterModel:     "openrouter/free",
+		GroqApiKey:          "",
+		GroqModel:           "qwen/qwen3.6-27b",
+		OllamaUrl:           "http://localhost:11434",
+		OllamaModel:         "qwen2.5:7b",
+		AutoPlayAudio:       true,
+		DefaultAudioSpeed:   1.0,
+		TTSProvider:         "edge",
+		TTSVoice:            "en-US-JennyNeural",
+		OpencodeModel:       "opencode/mimo-v2.5-free",
+		TranslationProvider: "default",
+		TranslationModel:    "qwen/qwen3.6-27b",
 	}
 
 	configPath := GetConfigPath()
@@ -52,14 +55,26 @@ func LoadConfig() Config {
 	if cfg.AgyModel == "" {
 		cfg.AgyModel = "gemini-3.7-flash"
 	}
-	if cfg.OpenrouterModel == "" {
-		cfg.OpenrouterModel = "meta-llama/llama-3.3-70b-instruct:free"
+	if cfg.OpenrouterModel == "" || cfg.OpenrouterModel == "meta-llama/llama-3.3-70b-instruct:free" {
+		cfg.OpenrouterModel = "openrouter/free"
 	}
-	if cfg.GroqModel == "" {
-		cfg.GroqModel = "llama-3.3-70b-versatile"
+	if cfg.OpencodeModel == "" || cfg.OpencodeModel == "openrouter/free" || cfg.OpencodeModel == "deepseek-v4-flash" {
+		cfg.OpencodeModel = "opencode/mimo-v2.5-free"
+	}
+	if cfg.GroqModel == "" || cfg.GroqModel == "llama-3.3-70b-versatile" || cfg.GroqModel == "llama-3.1-8b-instant" {
+		cfg.GroqModel = "qwen/qwen3.6-27b"
+	}
+	if cfg.TranslationProvider == "" {
+		cfg.TranslationProvider = "default"
+	}
+	if cfg.TranslationModel == "" {
+		cfg.TranslationModel = "qwen/qwen3.6-27b"
 	}
 	if cfg.OllamaUrl == "" {
 		cfg.OllamaUrl = "http://localhost:11434"
+	}
+	if cfg.OllamaModel == "" {
+		cfg.OllamaModel = "qwen2.5:7b"
 	}
 	if cfg.TTSProvider == "" {
 		cfg.TTSProvider = "edge"

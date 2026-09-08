@@ -18,6 +18,9 @@ export namespace backend {
 	    tts_voice: string;
 	    piper_path?: string;
 	    piper_model_path?: string;
+	    opencode_model?: string;
+	    translation_provider?: string;
+	    translation_model?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Config(source);
@@ -42,6 +45,9 @@ export namespace backend {
 	        this.tts_voice = source["tts_voice"];
 	        this.piper_path = source["piper_path"];
 	        this.piper_model_path = source["piper_model_path"];
+	        this.opencode_model = source["opencode_model"];
+	        this.translation_provider = source["translation_provider"];
+	        this.translation_model = source["translation_model"];
 	    }
 	}
 	export class Dictation {

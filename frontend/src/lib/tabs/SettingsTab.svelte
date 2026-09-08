@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { GetConfig, SaveConfig, GetSavedObsidianVocab, GetVoicesList, PlayTTS } from '../../../wailsjs/go/main/App.js';
-  import { Save, Check, Folder, Key, Cpu, Volume2, ShieldCheck, Sparkles, ExternalLink, Zap, Lock, Info, Bot, Play, Radio, Mic } from 'lucide-svelte';
+  import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
+  import { Save, Check, Folder, Key, Cpu, Volume2, ShieldCheck, Sparkles, ExternalLink, Zap, Lock, Info, Bot, Play, Radio, Mic, Languages } from 'lucide-svelte';
 
   let config = $state<any>({
     obsidian_vault_path: '',
@@ -9,17 +10,20 @@
     agy_model: 'gemini-3.7-flash',
     agy_path: '',
     openrouter_api_key: '',
-    openrouter_model: 'meta-llama/llama-3.3-70b-instruct:free',
+    openrouter_model: 'openrouter/free',
     groq_api_key: '',
-    groq_model: 'llama-3.3-70b-versatile',
+    groq_model: 'qwen/qwen3.6-27b',
     ollama_url: 'http://localhost:11434',
-    ollama_model: 'llama3:latest',
+    ollama_model: 'qwen2.5:7b',
+    opencode_model: 'openrouter/free',
     auto_play_audio: true,
     default_audio_speed: 1.0,
     tts_provider: 'edge',
     tts_voice: 'en-US-JennyNeural',
     piper_path: '',
-    piper_model_path: ''
+    piper_model_path: '',
+    translation_provider: 'default',
+    translation_model: 'qwen/qwen3.6-27b'
   });
 
   let voices = $state<any[]>([]);
@@ -28,16 +32,49 @@
   let isTestingVoice = $state(false);
 
   const AGY_MODEL_PRESETS = [
-    { id: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash (Recommended)' },
-    { id: 'gemini-3.0-flash', label: 'Gemini 3.0 Flash' },
-    { id: 'auto', label: 'Auto (Current agy default)' },
+    { id: 'gemini-3.8-flash-low', label: 'Gemini 3.8 Flash (Latest)' },
+    { id: 'gemini-3.7-flash-low', label: 'Gemini 3.7 Flash (Fast & Balanced)' },
+    { id: 'gemini-3.6-flash-low', label: 'Gemini 3.6 Flash' },
+    { id: 'gemini-3.1-pro-low', label: 'Gemini 3.1 Pro (Deep Reasoning)' },
+    { id: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
+    { id: 'claude-opus-4-6-thinking', label: 'Claude Opus 4.6 Thinking' },
+    { id: 'gpt-oss-120b-medium', label: 'GPT OSS 120B' },
+    { id: 'auto', label: 'Auto (System Default)' },
   ];
 
-  const OPENROUTER_FREE_MODELS = [
-    { id: 'meta-llama/llama-3.3-70b-instruct:free', label: 'Llama 3.3 70B (Free)' },
-    { id: 'google/gemini-2.0-flash-exp:free', label: 'Gemini 2.0 Flash (Free)' },
-    { id: 'deepseek/deepseek-chat:free', label: 'DeepSeek Chat (Free)' },
-    { id: 'qwen/qwen-2.5-72b-instruct:free', label: 'Qwen 2.5 72B (Free)' },
+  const OPENROUTER_MODELS = [
+    { id: 'openrouter/free', label: 'Free Pool (Auto Router ⭐)' },
+    { id: 'google/gemma-4-31b-it:free', label: 'Gemma 4 31B (Free ⭐)' },
+    { id: 'google/gemma-4-26b-a4b-it:free', label: 'Gemma 4 26B (Free)' },
+    { id: 'nvidia/nemotron-3.5-lightning:free', label: 'Nemotron 3.5 (Free)' },
+    { id: 'poolside/laguna-s-2.1:free', label: 'Laguna 2.1 (Free)' },
+    { id: 'liquid/lfm-2.5-2.6b:free', label: 'Liquid LFM 2.6B (Free)' },
+    { id: 'google/gemini-2.0-flash-001', label: 'Gemini 2.0 Flash (Ultra Fast)' },
+    { id: 'qwen/qwen-2.5-72b-instruct', label: 'Qwen 2.5 72B' },
+    { id: 'meta-llama/llama-3.3-70b-instruct', label: 'Llama 3.3 70B' },
+  ];
+
+  const OPENCODE_MODELS = [
+    { id: 'opencode/mimo-v2.5-free', label: 'Mimo 2.5 Free (Verified ⭐)' },
+    { id: 'opencode/nemotron-3.5-lightning-free', label: 'Nemotron 3.5 Free' },
+    { id: 'opencode/ling-3.0-flash-fin-free', label: 'Ling 3.0 Flash Free' },
+    { id: 'opencode/gemini-3-flash', label: 'Gemini 3 Flash' },
+    { id: 'opencode/claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
+    { id: 'default', label: 'Default Agent' },
+  ];
+
+  const GROQ_MODELS = [
+    { id: 'qwen/qwen3.6-27b', label: 'qwen3.6-27b (Verified ⭐)' },
+    { id: 'qwen/qwen3.8-27b', label: 'qwen3.8-27b' },
+    { id: 'openai/gpt-oss-120b', label: 'gpt-oss-120b' },
+    { id: 'openai/gpt-oss-20b', label: 'gpt-oss-20b' },
+  ];
+
+  const OLLAMA_MODELS = [
+    { id: 'qwen2.5:7b', label: 'qwen2.5:7b (Best for VI ⭐)' },
+    { id: 'qwen2.5:3b', label: 'qwen2.5:3b (Fast)' },
+    { id: 'llama3.1:latest', label: 'llama3.1' },
+    { id: 'gemma2:9b', label: 'gemma2:9b' },
   ];
 
   async function loadConfig() {
@@ -45,6 +82,18 @@
       config = await GetConfig();
       if (!config.tts_provider) config.tts_provider = 'edge';
       if (!config.tts_voice) config.tts_voice = 'en-US-JennyNeural';
+      if (!config.translation_provider) config.translation_provider = 'default';
+      if (!config.translation_model) config.translation_model = 'qwen/qwen3.6-27b';
+      if (!config.groq_model || config.groq_model === 'llama-3.3-70b-versatile' || config.groq_model === 'llama-3.1-8b-instant') {
+        config.groq_model = 'qwen/qwen3.6-27b';
+      }
+      if (!config.openrouter_model || config.openrouter_model === 'meta-llama/llama-3.3-70b-instruct:free') {
+        config.openrouter_model = 'openrouter/free';
+      }
+      if (!config.opencode_model || config.opencode_model === 'openrouter/free' || config.opencode_model === 'deepseek-v4-flash') {
+        config.opencode_model = 'opencode/mimo-v2.5-free';
+      }
+      if (!config.ollama_model) config.ollama_model = 'qwen2.5:7b';
     } catch (e) {
       console.error(e);
     }
@@ -141,15 +190,17 @@
         openrouter_api_key: '',
         openrouter_model: 'meta-llama/llama-3.3-70b-instruct:free',
         groq_api_key: '',
-        groq_model: 'llama-3.3-70b-versatile',
+        groq_model: 'qwen/qwen3.6-27b',
         ollama_url: 'http://localhost:11434',
-        ollama_model: 'llama3:latest',
+        ollama_model: 'qwen2.5:7b',
         auto_play_audio: true,
         default_audio_speed: 1.0,
         tts_provider: 'edge',
         tts_voice: 'en-US-JennyNeural',
         piper_path: '',
-        piper_model_path: ''
+        piper_model_path: '',
+        translation_provider: 'default',
+        translation_model: 'qwen/qwen3.6-27b'
       };
       handleSave();
       window.location.reload();
@@ -498,6 +549,44 @@
           </div>
         </div>
 
+      {:else if config.ai_provider === 'opencode'}
+        <div class="bg-[var(--bg-inner)] p-4 rounded-xl border border-[var(--border-main)] space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-[var(--accent-primary)] font-bold flex items-center gap-1.5">
+              <Bot class="w-4 h-4" />
+              <span>OpenCode CLI Configuration:</span>
+            </span>
+            <span class="text-[11px] text-[var(--text-muted)]">Local Terminal Agent</span>
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-[var(--text-main)]">Model Selection:</span>
+              <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
+                {#each OPENCODE_MODELS as opm}
+                  <button
+                    type="button"
+                    class={`hover:underline transition ${config.opencode_model === opm.id ? 'text-[var(--accent-primary)] font-bold' : 'text-[var(--text-muted)]'}`}
+                    onclick={() => config.opencode_model = opm.id}
+                  >
+                    {opm.label}
+                  </button>
+                  <span class="text-[var(--text-subtle)] last:hidden">•</span>
+                {/each}
+              </div>
+            </div>
+            <input
+              type="text"
+              bind:value={config.opencode_model}
+              placeholder="opencode/mimo-v2.5-free"
+              class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-4 py-2 text-xs text-[var(--text-main)] font-mono"
+            />
+            <p class="text-[11px] text-[var(--text-muted)]">
+              Tip: <code class="font-mono text-[var(--accent-primary)]">opencode/mimo-v2.5-free</code> is a verified free model with no balance required.
+            </p>
+          </div>
+        </div>
+
       {:else if config.ai_provider === 'openrouter'}
         <div class="bg-[var(--bg-inner)] p-4 rounded-xl border border-[var(--border-main)] space-y-3">
           <div class="flex items-center justify-between text-xs">
@@ -505,14 +594,14 @@
               <Key class="w-3.5 h-3.5 text-[var(--accent-primary)]" />
               OpenRouter API Key:
             </span>
-            <a
-              href="https://openrouter.ai/keys"
-              target="_blank"
-              class="text-[var(--accent-primary)] hover:underline flex items-center gap-1"
+            <button
+              type="button"
+              onclick={() => BrowserOpenURL('https://openrouter.ai/keys')}
+              class="text-[var(--accent-primary)] hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 text-xs"
             >
               <span>Get Free Key at OpenRouter.ai</span>
               <ExternalLink class="w-3 h-3" />
-            </a>
+            </button>
           </div>
           <input
             type="password"
@@ -520,6 +609,30 @@
             placeholder="sk-or-v1-..."
             class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-4 py-2 text-xs text-[var(--text-main)] placeholder-[var(--text-subtle)] outline-none font-mono"
           />
+
+          <div class="space-y-1.5 pt-1 border-t border-[var(--border-subtle)]">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[var(--text-main)]">OpenRouter Model:</span>
+              <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
+                {#each OPENROUTER_MODELS as om}
+                  <button
+                    type="button"
+                    class={`hover:underline transition ${config.openrouter_model === om.id ? 'text-[var(--accent-primary)] font-bold' : 'text-[var(--text-muted)]'}`}
+                    onclick={() => config.openrouter_model = om.id}
+                  >
+                    {om.label}
+                  </button>
+                  <span class="text-[var(--text-subtle)] last:hidden">•</span>
+                {/each}
+              </div>
+            </div>
+            <input
+              type="text"
+              bind:value={config.openrouter_model}
+              placeholder="openrouter/free"
+              class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-4 py-2 text-xs text-[var(--text-main)] font-mono"
+            />
+          </div>
         </div>
 
       {:else if config.ai_provider === 'groq'}
@@ -529,14 +642,14 @@
               <Zap class="w-3.5 h-3.5 text-[var(--accent-primary)]" />
               Groq API Key:
             </span>
-            <a
-              href="https://console.groq.com/keys"
-              target="_blank"
-              class="text-[var(--accent-primary)] hover:underline flex items-center gap-1"
+            <button
+              type="button"
+              onclick={() => BrowserOpenURL('https://console.groq.com/keys')}
+              class="text-[var(--accent-primary)] hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 text-xs"
             >
               <span>Get Free Key at Groq Console</span>
               <ExternalLink class="w-3 h-3" />
-            </a>
+            </button>
           </div>
           <input
             type="password"
@@ -544,27 +657,203 @@
             placeholder="gsk_..."
             class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-4 py-2 text-xs text-[var(--text-main)] placeholder-[var(--text-subtle)] outline-none font-mono"
           />
+
+          <div class="space-y-1.5 pt-1 border-t border-[var(--border-subtle)]">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[var(--text-main)]">Groq Model:</span>
+              <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
+                {#each GROQ_MODELS as gm}
+                  <button
+                    type="button"
+                    class={`hover:underline transition ${config.groq_model === gm.id ? 'text-[var(--accent-primary)] font-bold' : 'text-[var(--text-muted)]'}`}
+                    onclick={() => config.groq_model = gm.id}
+                  >
+                    {gm.label}
+                  </button>
+                  <span class="text-[var(--text-subtle)] last:hidden">•</span>
+                {/each}
+              </div>
+            </div>
+            <input
+              type="text"
+              bind:value={config.groq_model}
+              placeholder="qwen/qwen3.6-27b"
+              class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-4 py-2 text-xs text-[var(--text-main)] font-mono"
+            />
+          </div>
         </div>
 
       {:else if config.ai_provider === 'ollama'}
-        <div class="bg-[var(--bg-inner)] p-4 rounded-xl border border-[var(--border-main)] grid grid-cols-2 gap-3">
-          <div class="space-y-1.5">
-            <span class="text-xs font-bold text-[var(--text-main)]">Ollama Host URL:</span>
-            <input
-              type="text"
-              bind:value={config.ollama_url}
-              placeholder="http://localhost:11434"
-              class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-3.5 py-2 text-xs text-[var(--text-main)] font-mono"
-            />
+        <div class="bg-[var(--bg-inner)] p-4 rounded-xl border border-[var(--border-main)] space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <span class="text-xs font-bold text-[var(--text-main)]">Ollama Host URL:</span>
+              <input
+                type="text"
+                bind:value={config.ollama_url}
+                placeholder="http://localhost:11434"
+                class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-3.5 py-2 text-xs text-[var(--text-main)] font-mono"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <span class="text-xs font-bold text-[var(--text-main)]">Ollama Model Name:</span>
+              <input
+                type="text"
+                bind:value={config.ollama_model}
+                placeholder="qwen2.5:7b"
+                class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-3.5 py-2 text-xs text-[var(--text-main)] font-mono"
+              />
+            </div>
           </div>
+
+          <div class="flex items-center justify-between text-[11px] pt-1 border-t border-[var(--border-subtle)]">
+            <span class="text-[var(--text-subtle)]">Presets:</span>
+            <div class="flex items-center gap-2 text-[10px]">
+              {#each OLLAMA_MODELS as olm}
+                <button
+                  type="button"
+                  class={`hover:underline transition ${config.ollama_model === olm.id ? 'text-[var(--accent-primary)] font-bold' : 'text-[var(--text-muted)]'}`}
+                  onclick={() => config.ollama_model = olm.id}
+                >
+                  {olm.label}
+                </button>
+                <span class="text-[var(--text-subtle)] last:hidden">•</span>
+              {/each}
+            </div>
+          </div>
+        </div>
+      {/if}
+    </div>
+
+    <!-- Dedicated AI for Paragraph Translator -->
+    <div class="space-y-4 border-t border-[var(--border-main)] pt-5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-sm font-bold text-[var(--text-main)]">
+          <Languages class="w-4 h-4 text-[var(--accent-primary)]" />
+          <span>AI Paragraph Translator Engine (Bilingual EN ⇄ VI)</span>
+        </div>
+        <span class="text-[11px] font-mono text-[var(--accent-primary)] bg-[var(--accent-primary-light)] px-2.5 py-0.5 rounded-full font-semibold border border-[var(--accent-primary)]/20">
+          {config.translation_provider === 'default' ? `Shared with Main AI (${config.ai_provider})` : `Dedicated: ${config.translation_provider}`}
+        </span>
+      </div>
+      <p class="text-xs text-[var(--text-muted)] leading-relaxed">
+        Optionally dedicate a specialized AI model for paragraph translations (e.g. ultra-fast Groq Qwen 3.6 27B or offline Ollama Qwen 2.5), while keeping your primary model configured for the Writing Coach.
+      </p>
+
+      <!-- Engine Mode Selector -->
+      <div class="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onclick={() => config.translation_provider = 'default'}
+          class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
+            config.translation_provider === 'default'
+              ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary)] text-[var(--accent-primary)] shadow-sm'
+              : 'bg-[var(--bg-inner)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
+          }`}
+        >
+          <div class="text-xs font-bold text-[var(--text-main)] flex items-center gap-1.5">
+            <span>🔗 Use Global AI Engine</span>
+          </div>
+          <div class="text-[11px] text-[var(--text-muted)]">Inherits AI configuration from above ({config.ai_provider})</div>
+        </button>
+
+        <button
+          type="button"
+          onclick={() => {
+            if (config.translation_provider === 'default') config.translation_provider = 'groq';
+          }}
+          class={`p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1 ${
+            config.translation_provider !== 'default'
+              ? 'bg-[var(--accent-primary-light)] border-[var(--accent-primary)] text-[var(--accent-primary)] shadow-sm'
+              : 'bg-[var(--bg-inner)] border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
+          }`}
+        >
+          <div class="text-xs font-bold text-[var(--text-main)] flex items-center gap-1.5">
+            <span>⚡ Dedicated Translation Engine</span>
+          </div>
+          <div class="text-[11px] text-[var(--text-muted)]">Specialized for translation speed & vocabulary extraction</div>
+        </button>
+      </div>
+
+      <!-- Dedicated Translation Settings Form -->
+      {#if config.translation_provider !== 'default'}
+        <div class="bg-[var(--bg-inner)] p-4 rounded-xl border border-[var(--border-main)] space-y-3.5">
           <div class="space-y-1.5">
-            <span class="text-xs font-bold text-[var(--text-main)]">Ollama Model Name:</span>
+            <span class="text-xs font-bold text-[var(--text-main)]">Select AI Provider for Paragraph Translator:</span>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              {#each [
+                { id: 'groq', label: 'Groq ⚡', desc: 'Fastest (Qwen 3.6)' },
+                { id: 'ollama', label: 'Local Ollama 🦙', desc: 'Offline (Qwen 2.5)' },
+                { id: 'openrouter', label: 'OpenRouter 🌐', desc: 'Free Cloud' },
+                { id: 'agy', label: 'Antigravity 🛸', desc: 'Gemini Flash' },
+                { id: 'opencode', label: 'OpenCode 🤖', desc: 'Mimo 2.5 Free' },
+              ] as prov}
+                <button
+                  type="button"
+                  onclick={() => {
+                    config.translation_provider = prov.id;
+                    if (prov.id === 'groq') config.translation_model = 'qwen/qwen3.6-27b';
+                    if (prov.id === 'ollama') config.translation_model = 'qwen2.5:7b';
+                    if (prov.id === 'openrouter') config.translation_model = 'openrouter/free';
+                    if (prov.id === 'agy') config.translation_model = 'gemini-3.7-flash-low';
+                    if (prov.id === 'opencode') config.translation_model = 'opencode/mimo-v2.5-free';
+                  }}
+                  class={`p-2.5 rounded-lg border text-left transition cursor-pointer ${
+                    config.translation_provider === prov.id
+                      ? 'bg-[var(--accent-primary)] text-white font-bold border-[var(--accent-primary)] shadow-sm'
+                      : 'bg-[var(--bg-card)] text-[var(--text-main)] border-[var(--border-main)] hover:border-[var(--accent-primary)]'
+                  }`}
+                >
+                  <div class="text-xs font-bold">{prov.label}</div>
+                  <div class={`text-[10px] mt-0.5 ${config.translation_provider === prov.id ? 'text-white/80' : 'text-[var(--text-subtle)]'}`}>{prov.desc}</div>
+                </button>
+              {/each}
+            </div>
+          </div>
+
+          <!-- Dedicated Model Selection with Presets -->
+          <div class="space-y-1.5 pt-1 border-t border-[var(--border-subtle)]">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[var(--text-main)]">Dedicated Model Name:</span>
+              <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
+                {#if config.translation_provider === 'groq'}
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'qwen/qwen3.6-27b'}>qwen3.6-27b ⭐</button>
+                  <span class="text-[var(--text-subtle)]">•</span>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'qwen/qwen3.8-27b'}>qwen3.8-27b</button>
+                  <span class="text-[var(--text-subtle)]">•</span>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'openai/gpt-oss-120b'}>gpt-oss-120b</button>
+                {:else if config.translation_provider === 'ollama'}
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'qwen2.5:7b'}>qwen2.5:7b ⭐</button>
+                  <span class="text-[var(--text-subtle)]">•</span>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'qwen2.5:3b'}>qwen2.5:3b</button>
+                {:else if config.translation_provider === 'openrouter'}
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'openrouter/free'}>openrouter/free ⭐</button>
+                  <span class="text-[var(--text-subtle)]">•</span>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'google/gemma-4-31b-it:free'}>gemma-4-31b:free</button>
+                  <span class="text-[var(--text-subtle)]">•</span>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'nvidia/nemotron-3.5-lightning:free'}>nemotron-3.5:free</button>
+                {:else if config.translation_provider === 'agy'}
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'gemini-3.7-flash-low'}>gemini-3.7-flash ⭐</button>
+                  <span class="text-[var(--text-subtle)]">•</span>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'gemini-3.8-flash-low'}>gemini-3.8-flash</button>
+                  <span class="text-[var(--text-subtle)]">•</span>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'claude-sonnet-4-6'}>claude-sonnet-4-6</button>
+                {:else if config.translation_provider === 'opencode'}
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'opencode/mimo-v2.5-free'}>mimo-2.5-free ⭐</button>
+                  <span class="text-[var(--text-subtle)]">•</span>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'opencode/nemotron-3.5-lightning-free'}>nemotron-free</button>
+                {/if}
+              </div>
+            </div>
             <input
               type="text"
-              bind:value={config.ollama_model}
-              placeholder="llama3:latest"
+              bind:value={config.translation_model}
+              placeholder="qwen/qwen3.6-27b"
               class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-3.5 py-2 text-xs text-[var(--text-main)] font-mono"
             />
+            <p class="text-[11px] text-[var(--text-muted)]">
+              This model will be prioritized whenever you translate text and extract vocabulary in the Paragraph Translator tab.
+            </p>
           </div>
         </div>
       {/if}
