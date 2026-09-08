@@ -11,12 +11,15 @@ import (
 )
 
 // GetEffectiveTranslationConfig resolves the specific AI config dedicated to Paragraph Translator.
-// If TranslationProvider is set to "default" or empty, it inherits the global AiProvider and its settings.
+// GetEffectiveTranslationConfig resolves the specific AI config dedicated to Paragraph Translator.
+// If TranslationProvider is set to "default" or empty, it inherits the global AiProvider and its settings without mutation.
 func GetEffectiveTranslationConfig(cfg Config) Config {
-	transCfg := cfg
-	if cfg.TranslationProvider != "" && cfg.TranslationProvider != "default" {
-		transCfg.AiProvider = cfg.TranslationProvider
+	if cfg.TranslationProvider == "" || cfg.TranslationProvider == "default" {
+		return cfg
 	}
+
+	transCfg := cfg
+	transCfg.AiProvider = cfg.TranslationProvider
 	if cfg.TranslationModel != "" {
 		switch transCfg.AiProvider {
 		case "groq":

@@ -101,9 +101,13 @@ func TestGetEffectiveTranslationConfig(t *testing.T) {
 		AiProvider:          "agy",
 		AgyModel:            "gemini-3.7-flash",
 		TranslationProvider: "default",
+		TranslationModel:    "opencode/mimo-v2.5-free",
 	}
 	effDefault := GetEffectiveTranslationConfig(defaultCfg)
 	if effDefault.AiProvider != "agy" {
 		t.Errorf("Expected AiProvider to stay 'agy', got '%s'", effDefault.AiProvider)
+	}
+	if effDefault.AgyModel != "gemini-3.7-flash" {
+		t.Errorf("Expected AgyModel to stay 'gemini-3.7-flash', got '%s'", effDefault.AgyModel)
 	}
 }
