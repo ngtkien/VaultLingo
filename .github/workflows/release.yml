@@ -72,7 +72,7 @@ jobs:
           mkdir -p dist/${{ matrix.pkg_name }}
           cp -r build/bin/* dist/${{ matrix.pkg_name }}/
           cp vaultlingo.desktop dist/${{ matrix.pkg_name }}/ 2>/dev/null || true
-          cp frontend/src/assets/images/pegasus-logo.png dist/${{ matrix.pkg_name }}/vaultlingo.png 2>/dev/null || true
+          cp frontend/src/assets/images/vaultlingo-mark-128.png dist/${{ matrix.pkg_name }}/vaultlingo.png 2>/dev/null || true
           cp scripts/install.sh dist/${{ matrix.pkg_name }}/install.sh 2>/dev/null || true
           chmod +x dist/${{ matrix.pkg_name }}/install.sh 2>/dev/null || true
           

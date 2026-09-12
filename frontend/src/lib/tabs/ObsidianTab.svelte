@@ -8,6 +8,7 @@
     GetConfig 
   } from '../../../wailsjs/go/main/App.js';
   import { playTTS } from '../utils/audio';
+  import { markToday } from '../utils/daily';
   import { 
     ExternalLink, 
     RefreshCw, 
@@ -31,6 +32,14 @@
   let viewMode = $state<'list' | 'grid'>('list');
   let sortOrder = $state<'newest' | 'oldest' | 'alphabetical'>('newest');
   let openDropdownWord = $state<string | null>(null);
+
+  function cycleSort() {
+    sortOrder = sortOrder === 'newest' ? 'oldest' : sortOrder === 'oldest' ? 'alphabetical' : 'newest';
+  }
+
+  function sortLabel() {
+    return sortOrder === 'newest' ? 'Newest' : sortOrder === 'oldest' ? 'Oldest' : 'A-Z';
+  }
 
   let filteredItems = $derived(
     items.filter(item => {
@@ -81,6 +90,7 @@
   async function handleSrsRate(item: any, rating: number) {
     try {
       await UpdateObsidianSrsReview(item.word, item.file_path, rating);
+      markToday('review');
       await loadObsidianData();
     } catch (e) {
       console.error(e);
@@ -162,7 +172,7 @@
         </span>
       </div>
       <p class="text-xs text-[var(--text-muted)] font-mono pl-4 truncate max-w-xl">
-        Path: {config?.obsidian_vault_path || '/home/kienngo/Obsidian/ZederVault'}
+        Path: {config?.obsidian_vault_path || 'Not set — configure in Settings'}
       </p>
     </div>
 
@@ -211,12 +221,12 @@
       <!-- Sort Dropdown -->
       <div class="relative">
         <button
-          onclick={() => sortOrder = sortOrder === 'newest' ? 'alphabetical' : 'newest'}
+          onclick={cycleSort}
           class="px-3 py-1.5 rounded-xl border border-[var(--border-main)] bg-[var(--bg-card)] text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
-          title="Toggle sort order"
+          title="Cycle sort order: Newest → Oldest → A-Z"
         >
           <ArrowUpDown class="w-3.5 h-3.5" />
-          <span>Sort: {sortOrder === 'newest' ? 'Newest' : 'A-Z'}</span>
+          <span>Sort: {sortLabel()}</span>
           <ChevronDown class="w-3 h-3 opacity-60" />
         </button>
       </div>
@@ -329,6 +339,7 @@
                 <Volume2 class="w-4 h-4" />
               </button>
               <button
+                onclick={(e) => toggleDropdown(item.word, e)}
                 class="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer"
                 title="More Options"
               >

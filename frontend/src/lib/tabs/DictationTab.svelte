@@ -7,6 +7,7 @@
     GetDictationLevels 
   } from '../../../wailsjs/go/main/App.js';
   import { playTTS, stopAudio } from '../utils/audio';
+  import { markToday } from '../utils/daily';
   import { 
     Volume2, 
     RefreshCw, 
@@ -117,6 +118,7 @@
     try {
       diffResult = await CheckDictation(dictation.sentence, userInput);
       checked = true;
+      markToday('dictation');
     } catch (e) {
       console.error(e);
     }

@@ -1,30 +1,22 @@
 <script lang="ts">
-  import { 
-    Headphones, 
-    Ear, 
-    Dumbbell, 
-    PenTool, 
-    Clock, 
-    Flame, 
-    Award, 
-    Target, 
-    ArrowRight, 
-    Sparkles, 
-    CheckCircle2, 
-    History,
-    ShieldCheck
+  import {
+    Headphones,
+    Ear,
+    Dumbbell,
+    PenTool,
+    ArrowRight,
+    CheckCircle2
   } from 'lucide-svelte';
+  import { getTodayProgress, getStreak } from '../utils/daily';
 
-  let { onSelectPracticeTab } = $props<{
+  let { onSelectPracticeTab, dueCount = 0, savedCount = 0 } = $props<{
     onSelectPracticeTab: (tabId: 'dictation' | 'listening' | 'grammar' | 'writing') => void;
+    dueCount?: number;
+    savedCount?: number;
   }>();
 
-  const minutesPracticed = 78;
-  const targetMinutes = 120;
-  const dailyPercentage = 68;
-  const streakDays = 7;
-  const userXP = 1250;
-  const userLevel = 12;
+  const progress = getTodayProgress();
+  const streak = getStreak();
 
   const practiceModules = [
     {
@@ -33,7 +25,8 @@
       desc: 'Train your ear and refine your spelling with real-world audio dictation.',
       duration: '10-20 min',
       icon: Headphones,
-      cta: 'Start Dictation'
+      cta: 'Start Dictation',
+      done: progress.rec.dictation
     },
     {
       id: 'listening' as const,
@@ -41,7 +34,8 @@
       desc: 'Improve comprehension with conversational topics, transcripts, and targeted listening practice.',
       duration: '10-25 min',
       icon: Ear,
-      cta: 'Start Listening'
+      cta: 'Start Listening',
+      done: progress.rec.listening
     },
     {
       id: 'grammar' as const,
@@ -49,7 +43,8 @@
       desc: 'Strengthen grammar and usage through focused exercises and questions.',
       duration: '10-20 min',
       icon: Dumbbell,
-      cta: 'Start Grammar Gym'
+      cta: 'Start Grammar Gym',
+      done: false
     },
     {
       id: 'writing' as const,
@@ -57,15 +52,9 @@
       desc: 'Build clarity and structure with guided scenarios and AI feedback.',
       duration: '15-30 min',
       icon: PenTool,
-      cta: 'Start Writing Lab'
+      cta: 'Start Writing Lab',
+      done: false
     }
-  ];
-
-  const recentPractice = [
-    { type: 'Dictation', topic: 'Workplace Communication', level: 'B1', time: '5 min ago', tab: 'dictation' as const },
-    { type: 'Listening', topic: 'Family Dialogue', level: 'B1', time: '1 hour ago', tab: 'listening' as const },
-    { type: 'Grammar Gym', topic: 'Present Perfect & QUASM', level: 'B1', time: '1 day ago', tab: 'grammar' as const },
-    { type: 'Writing Lab', topic: 'Clarifying Requirements', level: 'B1', time: '2 days ago', tab: 'writing' as const }
   ];
 </script>
 
@@ -74,13 +63,15 @@
   <section class="journal-card p-6 sm:p-8 bg-[var(--bg-card)] border border-[var(--border-main)]">
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
       <div class="max-w-2xl space-y-2.5">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
           <span class="journal-badge text-[var(--accent-primary)] bg-[var(--accent-primary-light)] px-2.5 py-1 rounded-md">
             Welcome to Practice
           </span>
-          <span class="text-xs text-[var(--text-muted)] font-serif italic">
-            Small steps. Strong foundations. Lasting mastery.
-          </span>
+          {#if streak > 0}
+            <span class="text-xs font-mono font-bold text-amber-700 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full">
+              🔥 {streak}-day streak
+            </span>
+          {/if}
         </div>
 
         <h1 class="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text-main)]">
@@ -88,37 +79,36 @@
         </h1>
 
         <p class="text-sm text-[var(--text-muted)] leading-relaxed font-sans">
-          Practice across listening, grammar, writing, and dictation—designed for clarity, confidence, and real-world communication.
+          {dueCount} word{dueCount === 1 ? '' : 's'} due · {savedCount} saved in vault · {progress.done}/{progress.total} habits done today.
         </p>
       </div>
 
-      <!-- Quick stats overview -->
+      <!-- Quick stats overview — real -->
       <div class="p-5 rounded-2xl bg-[var(--bg-inner)] border border-[var(--border-main)] min-w-[280px] space-y-3">
         <div class="flex items-center justify-between">
           <span class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
             Today's Progress
           </span>
           <span class="text-xs font-mono font-bold text-[var(--accent-primary)]">
-            {dailyPercentage}%
+            {progress.pct}%
           </span>
         </div>
 
-        <!-- Progress bar -->
         <div class="w-full h-2 rounded-full bg-[var(--border-main)] overflow-hidden">
-          <div 
+          <div
             class="h-full bg-[var(--accent-primary)] rounded-full transition-all duration-500"
-            style="width: {dailyPercentage}%"
+            style="width: {progress.pct}%"
           ></div>
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs pt-1">
           <div>
-            <span class="text-[var(--text-subtle)] block">Practiced</span>
-            <span class="font-bold text-[var(--text-main)] font-mono">{minutesPracticed} / {targetMinutes} min</span>
+            <span class="text-[var(--text-subtle)] block">Habits</span>
+            <span class="font-bold text-[var(--text-main)] font-mono">{progress.done} / {progress.total} done</span>
           </div>
           <div>
             <span class="text-[var(--text-subtle)] block">Streak</span>
-            <span class="font-bold text-amber-600 font-mono">{streakDays} days active</span>
+            <span class="font-bold text-amber-600 font-mono">{streak} days</span>
           </div>
         </div>
       </div>
@@ -143,8 +133,13 @@
               <div class="w-10 h-10 rounded-xl bg-[var(--accent-primary-light)] text-[var(--accent-primary)] flex items-center justify-center">
                 <Icon class="w-5 h-5" />
               </div>
-              <span class="px-2 py-0.5 rounded text-[10px] font-mono text-[var(--text-subtle)] bg-[var(--bg-inner)] border border-[var(--border-main)]">
-                {mod.duration}
+              <span class="flex items-center gap-1.5">
+                {#if mod.done}
+                  <CheckCircle2 class="w-4 h-4 text-emerald-600" />
+                {/if}
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono text-[var(--text-subtle)] bg-[var(--bg-inner)] border border-[var(--border-main)]">
+                  {mod.duration}
+                </span>
               </span>
             </div>
 
@@ -170,72 +165,41 @@
     </div>
   </section>
 
-  <!-- Highlighted Focus Session -->
+  <!-- Highlighted Focus Session — honest -->
   <section class="journal-card p-5 sm:p-6 border border-[var(--border-main)] bg-[var(--bg-card)]">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div class="space-y-1.5">
         <div class="flex items-center gap-2">
           <span class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[var(--accent-primary-light)] text-[var(--accent-primary)]">
-            #5: Workplace Communication
+            {dueCount > 0 ? `${dueCount} due` : 'All clear'}
           </span>
-          <span class="text-xs text-[var(--text-muted)] font-serif italic">Recommended focus</span>
+          <span class="text-xs text-[var(--text-muted)] font-serif italic">Recommended next step</span>
         </div>
         <h3 class="text-base font-bold font-serif text-[var(--text-main)]">
-          Enhance clarity and professionalism in workplace conversations.
+          {dueCount > 0 ? 'Clear your due words first — 4 minutes.' : 'Go deeper with Writing Lab today.'}
         </h3>
         <p class="text-xs text-[var(--text-muted)]">
-          Practice phrasing requests, giving feedback, and structuring technical summaries.
+          {dueCount > 0
+            ? 'SRS works only when you show up daily. Small batch, big memory.'
+            : 'Practice phrasing requests, giving feedback, and structuring technical summaries.'}
         </p>
       </div>
 
       <button
-        onclick={() => onSelectPracticeTab('writing')}
-        class="px-4 py-2.5 rounded-xl btn-forest font-semibold text-xs flex items-center justify-center gap-1.5 shrink-0 shadow-sm"
+        onclick={() => onSelectPracticeTab(dueCount > 0 ? 'dictation' : 'writing')}
+        class="px-4 py-2.5 rounded-xl btn-forest font-semibold text-xs flex items-center justify-center gap-1.5 shrink-0 shadow-sm cursor-pointer"
       >
-        <span>Continue Focus Session</span>
+        <span>{dueCount > 0 ? 'Start Dictation' : 'Continue Focus Session'}</span>
         <ArrowRight class="w-3.5 h-3.5" />
       </button>
-    </div>
-  </section>
-
-  <!-- Recent Practice History -->
-  <section class="journal-card p-5 sm:p-6 border border-[var(--border-main)]">
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-2">
-        <History class="w-4 h-4 text-[var(--accent-primary)]" />
-        <h2 class="text-base font-semibold text-[var(--text-main)]">Recent Practice</h2>
-      </div>
-      <span class="text-xs text-[var(--text-muted)] font-mono">View All History &rarr;</span>
-    </div>
-
-    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      {#each recentPractice as item}
-        <button
-          onclick={() => onSelectPracticeTab(item.tab)}
-          class="p-3.5 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)] hover:border-[var(--accent-primary)] text-left transition cursor-pointer group"
-        >
-          <div class="flex items-center justify-between text-[11px]">
-            <span class="font-bold text-[var(--accent-primary)]">{item.type}</span>
-            <span class="font-mono text-[var(--text-subtle)]">{item.time}</span>
-          </div>
-          <p class="text-xs font-semibold text-[var(--text-main)] mt-2 line-clamp-1 group-hover:text-[var(--accent-primary)] transition">
-            {item.topic}
-          </p>
-          <div class="mt-2 flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
-            <span class="px-1.5 py-0.5 rounded bg-[var(--bg-card)] border border-[var(--border-main)]">{item.level}</span>
-            <span>Completed</span>
-          </div>
-        </button>
-      {/each}
     </div>
   </section>
 
   <!-- Vault Connected Footer Info -->
   <footer class="p-4 rounded-xl bg-[var(--bg-inner)] border border-[var(--border-main)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--text-muted)]">
     <div class="flex items-center gap-2">
-      <ShieldCheck class="w-4 h-4 text-emerald-600" />
-      <span>Vault connected</span>
-      <span class="text-[var(--text-subtle)] font-mono">Last sync: Today, 10:24 AM</span>
+      <span>📚 {savedCount} words in vault</span>
+      <span class="text-[var(--text-subtle)] font-mono">· Due: {dueCount}</span>
     </div>
 
     <div class="font-serif italic text-center sm:text-right">

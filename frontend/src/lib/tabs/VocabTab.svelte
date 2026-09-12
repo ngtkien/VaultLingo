@@ -12,6 +12,7 @@
   } from '../../../wailsjs/go/main/App.js';
   import { playTTS } from '../utils/audio';
   import { cleanString, formatExamplePairs } from '../utils/examplePairing';
+  import { markToday } from '../utils/daily';
   import WordPracticeModal from '../components/WordPracticeModal.svelte';
   import { 
     Volume2, 
@@ -272,6 +273,7 @@
   async function handleSrsRate(wordId: number, rating: number) {
     try {
       await RecordSrsReview(wordId, rating);
+      markToday('review');
       openSrsWordId = null;
       if (activeViewMode === 'flashcard' && currentCardIndex < words.length - 1) {
         nextCard();

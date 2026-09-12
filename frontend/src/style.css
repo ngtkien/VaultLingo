@@ -262,3 +262,19 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Smooth view transitions (Back / forward navigation) */
+html {
+  scroll-behavior: smooth;
+}
+.view-smooth {
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .view-smooth {
+    will-change: auto;
+  }
+}

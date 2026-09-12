@@ -1,32 +1,37 @@
 <script lang="ts">
-  import { 
-    Calendar, 
-    BookA, 
-    BookOpen, 
-    Headphones, 
-    Library, 
-    Settings, 
-    Moon, 
+  import {
+    Calendar,
+    BookA,
+    BookOpen,
+    Headphones,
+    Library,
+    Settings,
+    Moon,
     Sun,
     Search,
-    Bell
+    ArrowLeft
   } from 'lucide-svelte';
-  import pegasusLogo from '../../assets/images/pegasus-logo.png';
+  import vaultlingoMark from '../../assets/images/vaultlingo-mark-128.png';
   import type { ColorMode } from '../utils/theme';
 
-  let { 
-    activeArea, 
-    colorMode, 
-    onSelectArea, 
+  let {
+    activeArea,
+    colorMode,
+    onSelectArea,
     onToggleColorMode,
-    onOpenSearch
-  } = $props<{ 
-    activeArea: string; 
-    colorMode: ColorMode; 
+    onOpenSearch,
+    onGoBack,
+    canGoBack = false,
+    dayStreak = 0
+  } = $props<{
+    activeArea: string;
+    colorMode: ColorMode;
     dayStreak?: number;
-    onSelectArea: (area: string) => void; 
+    onSelectArea: (area: string) => void;
     onToggleColorMode: () => void;
     onOpenSearch?: () => void;
+    onGoBack?: () => void;
+    canGoBack?: boolean;
   }>();
 
   // Exactly matching the design tabs and icons
@@ -41,14 +46,24 @@
 
 <header class="theme-header sticky top-0 z-50 border-b border-[var(--border-main)] transition-colors duration-200 backdrop-blur-md bg-[var(--bg-main)]/95">
   <div class="w-full max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-    
-    <!-- Brand / Title matching design -->
-    <button 
-      onclick={() => onSelectArea('today')} 
-      class="flex items-center gap-3 shrink-0 text-left cursor-pointer group"
+    <div class="flex items-center gap-2 shrink-0">
+    <!-- Back -->
+    <button
+      onclick={() => onGoBack?.()}
+      disabled={!canGoBack}
+      class="p-2 rounded-xl transition cursor-pointer disabled:opacity-25 disabled:cursor-default text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)]"
+      title={canGoBack ? 'Back (Alt+← / Backspace / chuột nút Back)' : 'No previous view'}
+      aria-label="Go back"
     >
-      <div class="w-10 h-10 flex items-center justify-center shrink-0">
-        <img src={pegasusLogo} alt="VaultLingo" class="w-full h-full object-contain filter contrast-125" />
+      <ArrowLeft class="w-4 h-4" />
+    </button>
+    <!-- Brand / Title matching design -->
+    <button
+      onclick={() => onSelectArea('today')}
+      class="flex items-center gap-3 text-left cursor-pointer group"
+    >
+      <div class="w-10 h-10 flex items-center justify-center shrink-0 overflow-hidden rounded-2xl border border-[var(--border-main)] bg-[var(--bg-inner)] shadow-xs">
+        <img src={vaultlingoMark} alt="VaultLingo" class="w-full h-full object-cover" />
       </div>
       <div>
         <span class="font-serif text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-main)] group-hover:text-[var(--accent-primary)] transition block leading-tight">
@@ -59,6 +74,7 @@
         </p>
       </div>
     </button>
+    </div>
 
     <!-- Navigation Tabs with elegant design underline -->
     <nav class="flex items-center gap-1 sm:gap-2 h-16">
@@ -85,6 +101,11 @@
 
     <!-- Right Utility Controls matching design -->
     <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+      {#if dayStreak > 0}
+        <span class="hidden sm:flex mr-1 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 text-xs font-bold font-mono" title="Daily streak — open app every day to keep it">
+          🔥 {dayStreak}
+        </span>
+      {/if}
       <!-- Quick Search -->
       <button 
         onclick={onOpenSearch || (() => onSelectArea('dictionary'))}
@@ -92,14 +113,6 @@
         title="Search dictionary"
       >
         <Search class="w-4 h-4" />
-      </button>
-
-      <!-- Notification Bell -->
-      <button 
-        class="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-primary-light)] transition cursor-pointer" 
-        title="Notifications"
-      >
-        <Bell class="w-4 h-4" />
       </button>
 
       <!-- Theme Switcher / Mode -->
@@ -125,14 +138,6 @@
       >
         <Settings class="w-4 h-4" />
       </button>
-
-      <!-- User Profile Avatar Pill (as in design) -->
-      <div 
-        class="w-8 h-8 rounded-full bg-[var(--bg-inner)] border border-[var(--border-main)] text-[var(--text-main)] font-semibold text-xs flex items-center justify-center ml-1 shadow-xs"
-        title="Learner Profile"
-      >
-        Z
-      </div>
     </div>
 
   </div>

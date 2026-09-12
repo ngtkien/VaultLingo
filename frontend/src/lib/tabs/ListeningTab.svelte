@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
   import { playAudioUrl, playTTS, stopAudio } from '../utils/audio';
+  import { markToday } from '../utils/daily';
   import { 
     Volume2, 
     Search, 
@@ -125,6 +126,7 @@
 
   function playFullAudio(slow = false) {
     if (!currentTopic.audio) return;
+    markToday('listening');
     isFullAudioPlaying = true;
     const speed = slow ? 0.75 : 1.0;
     const transcript = currentTopic.qa.map(item => `${item.q} ${item.a}`).join(' ');
