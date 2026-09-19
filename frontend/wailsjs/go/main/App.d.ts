@@ -34,6 +34,10 @@ export function GetGrammarDrill(arg1:string,arg2:string,arg3:Array<number>):Prom
 
 export function GetListeningTopics():Promise<Array<backend.ListeningTopic>>;
 
+export function GetOpencodeModels():Promise<Array<backend.OpencodeModelItem>>;
+
+export function GetOpencodeStatus():Promise<backend.OpencodeStatus>;
+
 export function GetQuickQuiz():Promise<backend.Quiz>;
 
 export function GetQuickQuizExcluding(arg1:Array<number>):Promise<backend.Quiz>;
@@ -59,6 +63,8 @@ export function PlayTTS(arg1:string,arg2:number):Promise<void>;
 export function QueryAI(arg1:string,arg2:string):Promise<string>;
 
 export function RecordSrsReview(arg1:number,arg2:number):Promise<void>;
+
+export function RefreshOpencodeModels():Promise<backend.OpencodeStatus>;
 
 export function SaveAllWordsToObsidian(arg1:Array<backend.Word>):Promise<Array<backend.ObsidianSaveResult>>;
 

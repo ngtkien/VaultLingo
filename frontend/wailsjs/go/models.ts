@@ -367,6 +367,72 @@ export namespace backend {
 	        this.error = source["error"];
 	    }
 	}
+	export class OpencodeModelItem {
+	    id: string;
+	    name: string;
+	    provider: string;
+	    provider_name: string;
+	    is_recommended: boolean;
+	    description?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new OpencodeModelItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.provider = source["provider"];
+	        this.provider_name = source["provider_name"];
+	        this.is_recommended = source["is_recommended"];
+	        this.description = source["description"];
+	    }
+	}
+	export class OpencodeStatus {
+	    installed: boolean;
+	    version: string;
+	    has_auth: boolean;
+	    active_providers: string[];
+	    models: OpencodeModelItem[];
+	    total_count: number;
+	    last_updated: string;
+	    error?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new OpencodeStatus(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.installed = source["installed"];
+	        this.version = source["version"];
+	        this.has_auth = source["has_auth"];
+	        this.active_providers = source["active_providers"];
+	        this.models = this.convertValues(source["models"], OpencodeModelItem);
+	        this.total_count = source["total_count"];
+	        this.last_updated = source["last_updated"];
+	        this.error = source["error"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class Quiz {
 	    id: number;
 	    category: string;

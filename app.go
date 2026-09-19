@@ -208,3 +208,17 @@ func (a *App) GetWordCount() (int, error) {
 func (a *App) GetListeningTopics() ([]backend.ListeningTopic, error) {
 	return backend.GetListeningTopics()
 }
+
+// OpenCode Methods
+func (a *App) GetOpencodeStatus() backend.OpencodeStatus {
+	return backend.CheckOpencodeStatus()
+}
+
+func (a *App) RefreshOpencodeModels() (backend.OpencodeStatus, error) {
+	return backend.FetchOpencodeModels()
+}
+
+func (a *App) GetOpencodeModels() []backend.OpencodeModelItem {
+	return backend.GetOpencodeModels()
+}
+

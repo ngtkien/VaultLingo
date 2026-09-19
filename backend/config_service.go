@@ -58,8 +58,10 @@ func LoadConfig() Config {
 	if cfg.OpenrouterModel == "" || cfg.OpenrouterModel == "meta-llama/llama-3.3-70b-instruct:free" {
 		cfg.OpenrouterModel = "openrouter/free"
 	}
-	if cfg.OpencodeModel == "" || cfg.OpencodeModel == "openrouter/free" || cfg.OpencodeModel == "deepseek-v4-flash" {
+	if cfg.OpencodeModel == "" || cfg.OpencodeModel == "openrouter/free" {
 		cfg.OpencodeModel = "opencode/mimo-v2.5-free"
+	} else if cfg.OpencodeModel == "deepseek-v4-flash" {
+		cfg.OpencodeModel = "opencode-go/deepseek-v4-flash"
 	}
 	if cfg.GroqModel == "" || cfg.GroqModel == "llama-3.3-70b-versatile" || cfg.GroqModel == "llama-3.1-8b-instant" {
 		cfg.GroqModel = "qwen/qwen3.6-27b"

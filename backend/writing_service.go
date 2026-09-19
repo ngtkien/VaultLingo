@@ -2,6 +2,7 @@ package backend
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -75,18 +76,18 @@ func GetWritingPrompt(level string) (WritingPrompt, error) {
 
 // CallAI handles arbitrary prompt execution across configured providers (OpenCode, AGY, OpenRouter, Groq, Ollama)
 func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
-	// 1. OpenCode CLI (Local Free AI Agent)
+	// 1. OpenCode CLI (Local AI Agent - OpenCode Go, Zen, Free)
 	if cfg.AiProvider == "opencode" {
 		fullPrompt := userContent
 		if systemInstruction != "" {
 			fullPrompt = fmt.Sprintf("%s\n\n%s", systemInstruction, userContent)
 		}
-		cmdPath, err := exec.LookPath("opencode")
+		cmdPath, err := findOpencodeBinary()
 		if err != nil {
 			cmdPath = "/usr/bin/opencode"
 		}
 		var args []string
-		args = append(args, "run", "--title", "VaultLingo")
+		args = append(args, "run", "--title", "VaultLingo", "--pure")
 		model := cfg.OpencodeModel
 		if model == "" {
 			model = "opencode/mimo-v2.5-free"
@@ -95,13 +96,19 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 			args = append(args, "-m", model)
 		}
 		args = append(args, fullPrompt)
-		cmd := exec.Command(cmdPath, args...)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 75*time.Second)
+		defer cancel()
+
+		cmd := exec.CommandContext(ctx, cmdPath, args...)
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			return "", fmt.Errorf("opencode execution failed: %s (%w)", string(out), err)
 		}
 		// Strip opencode banner line (e.g. "> build · ...")
 		cleanOut := regexp.MustCompile(`(?m)^>\s*(build|chat|plan|agent).*$\n?`).ReplaceAllString(string(out), "")
+		// Strip ANSI escape codes (colors/formatting)
+		cleanOut = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`).ReplaceAllString(cleanOut, "")
 		return strings.TrimSpace(cleanOut), nil
 	}
 

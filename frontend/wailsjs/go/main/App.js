@@ -66,6 +66,14 @@ export function GetListeningTopics() {
   return window['go']['main']['App']['GetListeningTopics']();
 }
 
+export function GetOpencodeModels() {
+  return window['go']['main']['App']['GetOpencodeModels']();
+}
+
+export function GetOpencodeStatus() {
+  return window['go']['main']['App']['GetOpencodeStatus']();
+}
+
 export function GetQuickQuiz() {
   return window['go']['main']['App']['GetQuickQuiz']();
 }
@@ -116,6 +124,10 @@ export function QueryAI(arg1, arg2) {
 
 export function RecordSrsReview(arg1, arg2) {
   return window['go']['main']['App']['RecordSrsReview'](arg1, arg2);
+}
+
+export function RefreshOpencodeModels() {
+  return window['go']['main']['App']['RefreshOpencodeModels']();
 }
 
 export function SaveAllWordsToObsidian(arg1) {
