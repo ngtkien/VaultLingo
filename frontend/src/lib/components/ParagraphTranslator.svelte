@@ -16,10 +16,12 @@
     Plus,
     BookOpen,
     Code2,
-    Cpu
+    Cpu,
+    PenLine
   } from "lucide-svelte";
   import {
     TranslateParagraph,
+    EnhanceWriting,
     SaveTranslationToObsidian,
     SaveWordToDB,
     GetConfig
@@ -27,6 +29,8 @@
   import { backend } from "../../../wailsjs/go/models";
   import { playTTS } from "../utils/audio";
   import { renderMarkdown } from "../utils/markdown";
+  import { parseAiFeedback } from "../utils/writingFeedbackParser";
+  import WritingFeedbackCards from "./WritingFeedbackCards.svelte";
 
   let appConfig = $state<backend.Config | null>(null);
 
@@ -73,6 +77,26 @@
   let isSavedToObsidian = $state(false);
   let showRawTranslation = $state(false);
   let savedWords = $state<Record<string, boolean>>({});
+
+  // Writing Enhancer mode (Translate | Enhance toggle)
+  let translatorMode = $state<"translate" | "enhance">("translate");
+  let enhanceRaw = $state("");
+  let enhanceFeedback = $derived(enhanceRaw.trim() ? parseAiFeedback(enhanceRaw) : null);
+  let resultText = $derived(
+    translatorMode === "enhance"
+      ? enhanceFeedback?.enhancedText || enhanceFeedback?.alternatives?.[0]?.text || ""
+      : translationResult?.translated_text || ""
+  );
+
+  function setTranslatorMode(mode: "translate" | "enhance") {
+    if (translatorMode === mode) return;
+    translatorMode = mode;
+    errorMsg = "";
+    if (mode === "enhance") {
+      sourceLang = "English";
+      targetLang = "English";
+    }
+  }
 
   const toneOptions = [
     { label: "Editorial & Journalistic", desc: "Sharp, journalistic publication style" },
@@ -123,7 +147,7 @@
     errorMsg = "";
   }
 
-  async function handleTranslate() {
+  async function handleSubmit() {
     if (!sourceText.trim()) return;
 
     isTranslating = true;
@@ -131,19 +155,24 @@
     isSavedToObsidian = false;
 
     try {
-      const res = await TranslateParagraph(sourceText.trim(), sourceLang, targetLang, tone);
-      translationResult = res;
+      if (translatorMode === "enhance") {
+        enhanceRaw = await EnhanceWriting(sourceText.trim(), tone);
+      } else {
+        translationResult = await TranslateParagraph(sourceText.trim(), sourceLang, targetLang, tone);
+      }
     } catch (err: any) {
-      errorMsg = err?.toString() || "AI translation encountered an issue. Please try again.";
+      errorMsg = err?.toString() || (translatorMode === "enhance"
+        ? "AI enhancement encountered an issue. Please try again."
+        : "AI translation encountered an issue. Please try again.");
     } finally {
       isTranslating = false;
     }
   }
 
   async function handleCopy() {
-    if (!translationResult?.translated_text) return;
+    if (!resultText) return;
     try {
-      await navigator.clipboard.writeText(translationResult.translated_text);
+      await navigator.clipboard.writeText(resultText);
       isCopied = true;
       setTimeout(() => (isCopied = false), 2000);
     } catch {
@@ -152,17 +181,34 @@
   }
 
   async function handleSaveToObsidian() {
-    if (!translationResult?.translated_text || !sourceText.trim()) return;
+    if (!resultText || !sourceText.trim()) return;
 
     try {
-      await SaveTranslationToObsidian(
-        sourceText.trim(),
-        translationResult.translated_text,
-        sourceLang,
-        targetLang,
-        tone,
-        translationResult.key_vocabulary || []
-      );
+      if (translatorMode === "enhance") {
+        const vocab = (enhanceFeedback?.vocabularyHighlights || []).map((v) => ({
+          word: v.term,
+          pos: "",
+          phonetic: "",
+          meaning: v.meaning || ""
+        })) as backend.ExtractedVocab[];
+        await SaveTranslationToObsidian(
+          sourceText.trim(),
+          resultText,
+          "English",
+          "English",
+          `Enhancement (${tone})`,
+          vocab
+        );
+      } else {
+        await SaveTranslationToObsidian(
+          sourceText.trim(),
+          resultText,
+          sourceLang,
+          targetLang,
+          tone,
+          translationResult?.key_vocabulary || []
+        );
+      }
       isSavedToObsidian = true;
     } catch (err) {
       console.error("Failed to save translation to Obsidian:", err);
@@ -171,7 +217,9 @@
 
   function handlePlayAudio() {
     // Play English portion
-    const englishText = sourceLang === "English" ? sourceText : translationResult?.translated_text;
+    const englishText = translatorMode === "enhance"
+      ? resultText || sourceText
+      : sourceLang === "English" ? sourceText : translationResult?.translated_text;
     if (englishText) {
       playTTS(englishText.trim(), 1.0);
     }
@@ -211,22 +259,32 @@
       <div>
         <div class="flex items-center gap-2">
           <span class="p-1.5 rounded-lg bg-[var(--accent-primary-light)] text-[var(--accent-primary)]">
-            <Languages class="w-4 h-4" />
+            {#if translatorMode === "enhance"}
+              <PenLine class="w-4 h-4" />
+            {:else}
+              <Languages class="w-4 h-4" />
+            {/if}
           </span>
-          <h2 class="font-serif text-lg font-bold text-[var(--text-main)]">AI Paragraph Translator</h2>
+          <h2 class="font-serif text-lg font-bold text-[var(--text-main)]">
+            {translatorMode === "enhance" ? "AI Writing Enhancer" : "AI Paragraph Translator"}
+          </h2>
           <span class="journal-badge text-xs font-mono flex items-center gap-1.5">
             <Cpu class="w-3 h-3 text-[var(--accent-primary)]" />
             <span>{activeEngineLabel()}</span>
           </span>
         </div>
         <p class="text-xs text-[var(--text-muted)] mt-1 font-sans">
-          Deep contextual translation with grammatical breakdowns and Obsidian vocabulary extraction.
+          {translatorMode === "enhance"
+            ? "Paste your English draft — AI scores it, fixes errors, and suggests polished native versions."
+            : "Deep contextual translation with grammatical breakdowns and Obsidian vocabulary extraction."}
         </p>
       </div>
 
       <!-- Tone Style Selector -->
       <div class="flex items-center gap-2">
-        <span class="text-xs font-medium text-[var(--text-subtle)] font-mono uppercase tracking-wider hidden sm:inline">Tone:</span>
+        <span class="text-xs font-medium text-[var(--text-subtle)] font-mono uppercase tracking-wider hidden sm:inline">
+          {translatorMode === "enhance" ? "Style:" : "Tone:"}
+        </span>
         <select
           bind:value={tone}
           class="journal-input text-xs py-1.5 px-3 rounded-lg border border-[var(--border-main)] bg-[var(--bg-inner)] text-[var(--text-main)] font-medium cursor-pointer focus:border-[var(--accent-primary)] focus:outline-none"
@@ -238,18 +296,52 @@
       </div>
     </div>
 
-    <!-- Quick Sample Snippets -->
+    <!-- Mode Switcher + Quick Sample Snippets -->
     <div class="flex flex-wrap items-center gap-2 pt-1">
-      <span class="text-[11px] font-mono text-[var(--text-subtle)] uppercase tracking-wider">Samples:</span>
-      {#each sampleSnippets as snip}
+      <!-- Translate | Enhance segmented control -->
+      <div class="inline-flex items-center rounded-lg border border-[var(--border-main)] bg-[var(--bg-inner)] overflow-hidden divide-x divide-[var(--border-main)] shadow-2xs">
         <button
           type="button"
-          onclick={() => applySnippet(snip)}
-          class="px-2.5 py-1 rounded-md text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] hover:text-[var(--accent-primary)] text-[var(--text-muted)] border border-[var(--border-main)] transition cursor-pointer"
+          onclick={() => setTranslatorMode("translate")}
+          class={`px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+            translatorMode === "translate"
+              ? "bg-[var(--accent-primary-light)] text-[var(--accent-primary)]"
+              : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)]"
+          }`}
         >
-          {snip.title} ({snip.lang === "English" ? "EN ➔ VI" : "VI ➔ EN"})
+          <ArrowLeftRight class="w-3.5 h-3.5" />
+          <span>Translate</span>
         </button>
-      {/each}
+        <button
+          type="button"
+          onclick={() => setTranslatorMode("enhance")}
+          class={`px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+            translatorMode === "enhance"
+              ? "bg-[var(--accent-primary-light)] text-[var(--accent-primary)]"
+              : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)]"
+          }`}
+        >
+          <PenLine class="w-3.5 h-3.5" />
+          <span>Enhance Writing</span>
+        </button>
+      </div>
+
+      {#if translatorMode === "translate"}
+        <span class="text-[11px] font-mono text-[var(--text-subtle)] uppercase tracking-wider">Samples:</span>
+        {#each sampleSnippets as snip}
+          <button
+            type="button"
+            onclick={() => applySnippet(snip)}
+            class="px-2.5 py-1 rounded-md text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] hover:text-[var(--accent-primary)] text-[var(--text-muted)] border border-[var(--border-main)] transition cursor-pointer"
+          >
+            {snip.title} ({snip.lang === "English" ? "EN ➔ VI" : "VI ➔ EN"})
+          </button>
+        {/each}
+      {:else}
+        <span class="text-[11px] font-mono text-[var(--text-subtle)] uppercase tracking-wider">
+          EN draft → score + fixes + polished versions
+        </span>
+      {/if}
     </div>
   </div>
 
@@ -262,20 +354,22 @@
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-[var(--accent-primary)]"></span>
           <span class="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider font-mono">
-            Source Text ({sourceLang})
+            {translatorMode === "enhance" ? "Your Draft (English)" : `Source Text (${sourceLang})`}
           </span>
         </div>
 
         <div class="flex items-center gap-2">
           <!-- Swap Button -->
-          <button
-            type="button"
-            onclick={swapLanguages}
-            class="p-1.5 rounded-lg text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center justify-center active:scale-95 shadow-2xs"
-            title="Swap source and target languages"
-          >
-            <ArrowLeftRight class="w-3.5 h-3.5" />
-          </button>
+          {#if translatorMode === "translate"}
+            <button
+              type="button"
+              onclick={swapLanguages}
+              class="p-1.5 rounded-lg text-xs bg-[var(--bg-inner)] hover:bg-[var(--accent-primary-light)] text-[var(--text-muted)] hover:text-[var(--accent-primary)] border border-[var(--border-main)] transition cursor-pointer flex items-center justify-center active:scale-95 shadow-2xs"
+              title="Swap source and target languages"
+            >
+              <ArrowLeftRight class="w-3.5 h-3.5" />
+            </button>
+          {/if}
 
           <!-- Clear Button -->
           {#if sourceText}
@@ -295,9 +389,11 @@
       <div class="flex-1 flex flex-col min-h-0 py-3">
         <textarea
           bind:value={sourceText}
-          placeholder={sourceLang === "English" 
-            ? "Enter or paste English text/paragraph here..." 
-            : "Enter or paste Vietnamese text/paragraph here..."}
+          placeholder={translatorMode === "enhance"
+            ? "Write or paste your English draft here — AI will fix errors, score it, and polish it..."
+            : sourceLang === "English"
+              ? "Enter or paste English text/paragraph here..."
+              : "Enter or paste Vietnamese text/paragraph here..."}
           class="w-full flex-1 min-h-[220px] bg-transparent border-0 focus:outline-none resize-none text-sm text-[var(--text-main)] font-sans leading-relaxed placeholder:text-[var(--text-muted)] placeholder:italic focus:ring-0 overflow-y-auto"
         ></textarea>
       </div>
@@ -309,13 +405,16 @@
         <!-- Action Button -->
         <button
           type="button"
-          onclick={handleTranslate}
+          onclick={handleSubmit}
           disabled={isTranslating || !sourceText.trim()}
           class="btn-forest px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {#if isTranslating}
             <RefreshCw class="w-3.5 h-3.5 animate-spin" />
-            <span>Translating...</span>
+            <span>{translatorMode === "enhance" ? "Enhancing..." : "Translating..."}</span>
+          {:else if translatorMode === "enhance"}
+            <PenLine class="w-3.5 h-3.5" />
+            <span>Enhance Writing ✨</span>
           {:else}
             <Sparkles class="w-3.5 h-3.5" />
             <span>Translate Paragraph ✨</span>
@@ -331,14 +430,19 @@
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-amber-500"></span>
           <span class="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider font-mono">
-            Target Translation ({targetLang})
+            {translatorMode === "enhance" ? "Enhanced Version" : `Target Translation (${targetLang})`}
           </span>
+          {#if translatorMode === "enhance" && enhanceFeedback}
+            <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-[var(--accent-primary-light)] text-[var(--accent-primary)] border border-[var(--accent-primary-border)]">
+              {enhanceFeedback.score}/10
+            </span>
+          {/if}
         </div>
 
         <!-- Target Tools -->
         <div class="flex items-center gap-1.5">
           <!-- Toggle Formatted / Raw View -->
-          {#if translationResult?.translated_text}
+          {#if resultText}
             <button
               type="button"
               onclick={() => (showRawTranslation = !showRawTranslation)}
@@ -355,7 +459,7 @@
           {/if}
 
           <!-- Audio Playback Button (for English) -->
-          {#if (sourceLang === "English" && sourceText) || (targetLang === "English" && translationResult?.translated_text)}
+          {#if (translatorMode === "enhance" && (sourceText || resultText)) || (sourceLang === "English" && sourceText) || (targetLang === "English" && resultText)}
             <button
               type="button"
               onclick={handlePlayAudio}
@@ -368,7 +472,7 @@
           {/if}
 
           <!-- Copy Button -->
-          {#if translationResult?.translated_text}
+          {#if resultText}
             <button
               type="button"
               onclick={handleCopy}
@@ -413,24 +517,32 @@
         {#if isTranslating}
           <div class="py-12 flex-1 flex flex-col items-center justify-center space-y-3 text-[var(--text-muted)]">
             <RefreshCw class="w-6 h-6 animate-spin text-[var(--accent-primary)]" />
-            <p class="text-xs font-serif italic">AI is analyzing linguistic context and composing translation...</p>
+            <p class="text-xs font-serif italic">
+              {translatorMode === "enhance"
+                ? "AI is scoring your draft and composing polished versions..."
+                : "AI is analyzing linguistic context and composing translation..."}
+            </p>
           </div>
         {:else if errorMsg}
           <div class="p-3.5 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-600 dark:text-red-400">
             {errorMsg}
           </div>
-        {:else if translationResult?.translated_text}
+        {:else if resultText}
           {#if showRawTranslation}
-            <pre class="w-full flex-1 p-3 rounded-lg bg-[var(--bg-inner)] border border-[var(--border-main)] font-mono text-xs text-[var(--text-main)] whitespace-pre-wrap leading-relaxed select-text overflow-y-auto">{translationResult.translated_text}</pre>
+            <pre class="w-full flex-1 p-3 rounded-lg bg-[var(--bg-inner)] border border-[var(--border-main)] font-mono text-xs text-[var(--text-main)] whitespace-pre-wrap leading-relaxed select-text overflow-y-auto">{resultText}</pre>
           {:else}
             <div class="text-sm font-normal text-[var(--text-main)] leading-relaxed font-sans select-text overflow-y-auto pr-1">
-              {@html renderMarkdown(translationResult.translated_text)}
+              {@html renderMarkdown(resultText)}
             </div>
           {/if}
         {:else}
           <div class="py-12 flex-1 flex flex-col items-center justify-center space-y-2 text-[var(--text-muted)] opacity-60">
             <FileText class="w-8 h-8 stroke-[1.25]" />
-            <p class="text-xs font-serif italic">Translation output and linguistic analysis will appear here.</p>
+            <p class="text-xs font-serif italic">
+              {translatorMode === "enhance"
+                ? "Your enhanced draft and writing score will appear here."
+                : "Translation output and linguistic analysis will appear here."}
+            </p>
           </div>
         {/if}
       </div>
@@ -438,7 +550,7 @@
       <!-- Target Footer -->
       <div class="pt-3 border-t border-[var(--border-main)] flex items-center justify-between text-xs text-[var(--text-subtle)] flex-shrink-0 mt-auto">
         <span class="font-mono">
-          {translationResult?.translated_text ? `${translationResult.translated_text.length} characters` : "Ready"}
+          {resultText ? `${resultText.length} characters` : "Ready"}
         </span>
         <span class="font-mono text-[11px] italic text-[var(--text-muted)]">{tone}</span>
       </div>
@@ -446,7 +558,7 @@
   </div>
 
   <!-- Linguistic Insights: Extracted Vocab & Grammar Nuances (Shows after translation) -->
-  {#if translationResult && ((translationResult.key_vocabulary && translationResult.key_vocabulary.length > 0) || (translationResult.nuance_notes && translationResult.nuance_notes.length > 0))}
+  {#if translatorMode === "translate" && translationResult && ((translationResult.key_vocabulary && translationResult.key_vocabulary.length > 0) || (translationResult.nuance_notes && translationResult.nuance_notes.length > 0))}
     <div class="journal-card p-5 space-y-4">
       <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-3">
         <div class="flex items-center gap-2">
@@ -524,6 +636,27 @@
           </ul>
         </div>
       {/if}
+    </div>
+  {/if}
+
+  <!-- Writing Enhancement Feedback (Shows after enhance) -->
+  {#if translatorMode === "enhance" && enhanceFeedback}
+    <div class="journal-card p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-3">
+        <div class="flex items-center gap-2">
+          <span class="p-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <PenLine class="w-4 h-4" />
+          </span>
+          <h3 class="font-serif text-sm font-bold text-[var(--text-main)]">Enhancement Analysis & Corrections</h3>
+        </div>
+        <span class="text-[10px] font-mono uppercase text-[var(--text-subtle)] tracking-wider">AI Coach</span>
+      </div>
+
+      <WritingFeedbackCards
+        feedback={enhanceFeedback}
+        applyLabel="Use as Draft"
+        onApplyAlternative={(text) => (sourceText = text)}
+      />
     </div>
   {/if}
 </div>

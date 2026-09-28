@@ -90,7 +90,7 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 		args = append(args, "run", "--title", "VaultLingo", "--pure")
 		model := cfg.OpencodeModel
 		if model == "" {
-			model = "opencode/mimo-v2.5-free"
+			model = "opencode/nemotron-3-ultra-free"
 		}
 		if model != "default" {
 			args = append(args, "-m", model)
@@ -263,6 +263,67 @@ If you cannot format as JSON, provide clear labeled markdown in English.`
 "%s"`, situationVi, prompt, text)
 
 	return CallAI(systemInstruction, userContent, cfg)
+}
+
+// EnhanceWritingAI evaluates and polishes a free-form English draft (no scenario prompt).
+// Returns the same JSON schema as EvaluateWritingAI plus an "enhanced_text" field so the
+// frontend parser (parseAiFeedback) can render it identically.
+func EnhanceWritingAI(text, targetStyle string, cfg Config) (string, error) {
+	if strings.TrimSpace(text) == "" {
+		return "Please write something before submitting for enhancement!", nil
+	}
+
+	if targetStyle == "" {
+		targetStyle = "Natural & Polished"
+	}
+
+	systemInstruction := fmt.Sprintf(`You are an expert English editor and writing coach for Vietnamese learners.
+The user submits a free-form English draft. Your job is to:
+1. Fix all spelling, grammar, punctuation, word choice, and register issues.
+2. Score the ORIGINAL draft honestly (0-10).
+3. Produce a polished "enhanced_text" version in the requested target style: %s.
+4. Suggest alternative phrasings.
+
+Return all feedback strictly in clear English as a valid JSON object matching this schema:
+{
+  "score": 7.5,
+  "score_label": "Great Effort | Excellent | Good | Needs Improvement",
+  "overall_feedback": "A concise 1-2 sentence summary praising strengths and naming the biggest improvement area.",
+  "enhanced_text": "The single best polished version of the full draft in the target style. Preserve the user's meaning; elevate vocabulary, flow, and grammar.",
+  "corrections": [
+    {
+      "category": "spelling | grammar | word_choice | register | punctuation",
+      "original": "exact original mistake",
+      "correction": "exact corrected version",
+      "reason": "Brief grammatical explanation in English"
+    }
+  ],
+  "alternatives": [
+    {
+      "style": "Professional / Formal",
+      "text": "A polished native version suitable for workplace or formal communication."
+    },
+    {
+      "style": "Casual / Conversational",
+      "text": "A natural, relaxed native version suitable for casual messaging."
+    }
+  ],
+  "vocabulary_highlights": [
+    {
+      "term": "useful upgraded phrase / collocation used in enhanced_text",
+      "meaning": "English explanation and usage guidance"
+    }
+  ]
+}
+
+If you cannot format as JSON, provide clear labeled markdown in English.`, targetStyle)
+
+	userContent := fmt.Sprintf(`[Target Style]: %s
+[User Draft]:
+"%s"`, targetStyle, text)
+
+	effectiveCfg := GetEffectiveTranslationConfig(cfg)
+	return CallAI(systemInstruction, userContent, effectiveCfg)
 }
 
 func callOpenAICompatible(client *http.Client, endpoint, apiKey, model, systemPrompt, userPrompt string, extraHeaders map[string]string) (string, error) {

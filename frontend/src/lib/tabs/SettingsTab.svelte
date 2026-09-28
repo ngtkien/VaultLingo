@@ -16,7 +16,7 @@
     groq_model: 'qwen/qwen3.6-27b',
     ollama_url: 'http://localhost:11434',
     ollama_model: 'qwen2.5:7b',
-    opencode_model: 'opencode-go/deepseek-v4-flash',
+    opencode_model: 'opencode/nemotron-3-ultra-free',
     auto_play_audio: true,
     default_audio_speed: 1.0,
     tts_provider: 'edge',
@@ -63,9 +63,10 @@
   ];
 
   const OPENCODE_RECOMMENDED = [
-    { id: 'opencode/mimo-v2.5-free', label: 'Mimo 2.5 Free ⭐', badge: 'Free', desc: '100% Free - Verified Zero Cost' },
-    { id: 'opencode/nemotron-3.5-lightning-free', label: 'Nemotron 3.5 Free ⭐', badge: 'Free', desc: 'Fast Free Agent' },
-    { id: 'opencode/ling-3.0-flash-fin-free', label: 'Ling 3.0 Flash Free', badge: 'Free', desc: 'Free Tier Model' },
+    { id: 'opencode/nemotron-3-ultra-free', label: 'Nemotron 3 Ultra ⭐', badge: 'Free', desc: 'Best Free: Reliable JSON + Strong EN/VI' },
+    { id: 'opencode/space-bunny-free', label: 'Space Bunny ⭐', badge: 'Free', desc: 'Fastest Consistent Free Model' },
+    { id: 'opencode/nemotron-3.5-lightning-free', label: 'Nemotron 3.5 Free', badge: 'Free', desc: 'Fast but Unstable Latency' },
+    { id: 'opencode/mimo-v2.6-flash-free', label: 'Mimo 2.6 Flash Free', badge: 'Free', desc: 'Quick but Flaky on Long Prompts' },
     { id: 'opencode-go/deepseek-v4-flash', label: 'DeepSeek V4 Flash ⭐', badge: 'Go', desc: 'Fast & High Reasoning' },
     { id: 'opencode-go/qwen3.8-flash', label: 'Qwen 3.8 Flash ⭐', badge: 'Go', desc: 'Bilingual EN/VI Specialist' },
     { id: 'opencode-go/kimi-k3', label: 'Kimi K3 ⭐', badge: 'Go', desc: 'Rich Context & Natural Flow' },
@@ -132,8 +133,8 @@
       if (!config.openrouter_model || config.openrouter_model === 'meta-llama/llama-3.3-70b-instruct:free') {
         config.openrouter_model = 'openrouter/free';
       }
-      if (!config.opencode_model || config.opencode_model === 'openrouter/free' || config.opencode_model === 'deepseek-v4-flash') {
-        config.opencode_model = 'opencode/mimo-v2.5-free';
+      if (!config.opencode_model || config.opencode_model === 'openrouter/free' || config.opencode_model === 'deepseek-v4-flash' || config.opencode_model === 'opencode/mimo-v2.5-free') {
+        config.opencode_model = 'opencode/nemotron-3-ultra-free';
       }
       if (!config.ollama_model) config.ollama_model = 'qwen2.5:7b';
     } catch (e) {
@@ -825,7 +826,7 @@
               <input
                 type="text"
                 bind:value={config.opencode_model}
-                placeholder="opencode/mimo-v2.5-free"
+                placeholder="opencode/nemotron-3-ultra-free"
                 class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-4 py-2 text-xs text-[var(--text-main)] font-mono"
               />
               <p class="text-[11px] text-[var(--text-muted)] flex items-center justify-between">
@@ -1090,9 +1091,11 @@
                   <span class="text-[var(--text-subtle)]">•</span>
                   <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'claude-sonnet-4-6'}>claude-sonnet-4-6</button>
                 {:else if config.translation_provider === 'opencode'}
-                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'opencode/mimo-v2.5-free'}>mimo-2.5-free ⭐ (Free)</button>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'opencode/nemotron-3-ultra-free'}>nemotron-3-ultra ⭐ (Free)</button>
                   <span class="text-[var(--text-subtle)]">•</span>
-                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'opencode/nemotron-3.5-lightning-free'}>nemotron-free (Free)</button>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'opencode/space-bunny-free'}>space-bunny (Free)</button>
+                  <span class="text-[var(--text-subtle)]">•</span>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'opencode/nemotron-3.5-lightning-free'}>nemotron-3.5 (Free)</button>
                   <span class="text-[var(--text-subtle)]">•</span>
                   <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'opencode-go/qwen3.8-flash'}>qwen3.8-flash (Go)</button>
                   <span class="text-[var(--text-subtle)]">•</span>

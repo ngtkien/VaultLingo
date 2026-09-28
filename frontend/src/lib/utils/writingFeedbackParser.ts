@@ -2,6 +2,7 @@ export interface WritingCorrection {
   original: string;
   correction: string;
   reason?: string;
+  category?: string;
 }
 
 export interface WritingAlternative {
@@ -21,6 +22,7 @@ export interface AiFeedbackData {
   scoreLabel: string;
   overallFeedback: string;
   promptAlignment?: string;
+  enhancedText?: string;
   corrections: WritingCorrection[];
   alternatives: WritingAlternative[];
   vocabularyHighlights: WritingVocabHighlight[];
@@ -40,6 +42,7 @@ export function parseAiFeedback(rawText: string): AiFeedbackData {
     scoreLabel: 'Good Effort',
     overallFeedback: '',
     promptAlignment: '',
+    enhancedText: '',
     corrections: [],
     alternatives: [],
     vocabularyHighlights: []
@@ -75,10 +78,12 @@ export function parseAiFeedback(rawText: string): AiFeedbackData {
         scoreLabel: data.score_label || getScoreLabel(scoreNum),
         overallFeedback: data.overall_feedback || 'AI Coach evaluation and feedback for your response.',
         promptAlignment: data.prompt_alignment || '',
+        enhancedText: cleanMarkdownQuotes(data.enhanced_text || ''),
         corrections: Array.isArray(data.corrections) ? data.corrections.map((c: any) => ({
           original: cleanMarkdownPunct(c.original || ''),
           correction: cleanMarkdownPunct(c.correction || ''),
-          reason: c.reason || ''
+          reason: c.reason || '',
+          category: c.category || ''
         })) : [],
         alternatives: Array.isArray(data.alternatives) ? data.alternatives.map((a: any) => ({
           style: cleanMarkdownPunct(a.style || 'Alternative'),
@@ -217,6 +222,7 @@ function parseMarkdownFeedback(md: string): AiFeedbackData {
     scoreLabel,
     overallFeedback,
     promptAlignment: promptAlignment.trim(),
+    enhancedText: '',
     corrections,
     alternatives,
     vocabularyHighlights

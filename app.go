@@ -127,6 +127,11 @@ func (a *App) EvaluateWriting(prompt, text, situationVi string) (string, error) 
 	return backend.EvaluateWritingAI(prompt, text, situationVi, cfg)
 }
 
+func (a *App) EnhanceWriting(text, targetStyle string) (string, error) {
+	cfg := backend.LoadConfig()
+	return backend.EnhanceWritingAI(text, targetStyle, cfg)
+}
+
 
 // Translation Methods
 func (a *App) TranslateParagraph(text, sourceLang, targetLang, tone string) (backend.TranslationResult, error) {

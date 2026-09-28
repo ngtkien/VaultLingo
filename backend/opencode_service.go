@@ -229,6 +229,16 @@ func classifyOpencodeModel(modelID string) OpencodeModelItem {
 
 	// Highlight best recommended models for language learning & reasoning
 	switch {
+	case strings.Contains(modelName, "nemotron-3-ultra-free"):
+		isRec = true
+		desc = "Best Free: Reliable JSON + Strong Bilingual EN/VI ⭐"
+	case strings.Contains(modelName, "space-bunny-free"):
+		isRec = true
+		desc = "Fastest Consistent Free Model ⭐"
+	case strings.Contains(modelName, "nemotron-3.5-lightning-free"):
+		desc = "Free - Fast but Unstable Latency"
+	case strings.Contains(modelName, "mimo-v2.6-flash-free"):
+		desc = "Free - Quick but Flaky on Long Prompts"
 	case strings.Contains(modelName, "deepseek-v4-flash"):
 		isRec = true
 		desc = "Ultra-Fast, Premier Reasoning & Code ⭐"
@@ -250,11 +260,6 @@ func classifyOpencodeModel(modelID string) OpencodeModelItem {
 	case strings.Contains(modelName, "gpt-5.6-luna"):
 		isRec = true
 		desc = "Next-gen Advanced Assistant"
-	case strings.Contains(modelName, "mimo-v2.5-free"):
-		isRec = true
-		desc = "Verified 100% Free - Zero Subscription ⭐"
-	case strings.Contains(modelName, "nemotron-3.5-lightning-free"):
-		desc = "Fast Free Inference"
 	}
 
 	return OpencodeModelItem{
@@ -270,9 +275,10 @@ func classifyOpencodeModel(modelID string) OpencodeModelItem {
 // DefaultOpencodeModels provides immediate fallback options if CLI hasn't refreshed yet (prioritizing Free models)
 func DefaultOpencodeModels() []OpencodeModelItem {
 	presets := []string{
-		"opencode/mimo-v2.5-free",
+		"opencode/nemotron-3-ultra-free",
+		"opencode/space-bunny-free",
 		"opencode/nemotron-3.5-lightning-free",
-		"opencode/ling-3.0-flash-fin-free",
+		"opencode/mimo-v2.6-flash-free",
 		"opencode-go/deepseek-v4-flash",
 		"opencode-go/qwen3.8-flash",
 		"opencode-go/kimi-k3",

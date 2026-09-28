@@ -8,6 +8,8 @@ export function CheckGrammarAnswer(arg1:string,arg2:string):Promise<backend.Dict
 
 export function DeleteWordFromObsidian(arg1:string):Promise<boolean>;
 
+export function EnhanceWriting(arg1:string,arg2:string):Promise<string>;
+
 export function EvaluateWriting(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function GetAvailableTopics():Promise<Array<Record<string, string>>>;

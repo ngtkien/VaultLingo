@@ -30,7 +30,7 @@ func LoadConfig() Config {
 		DefaultAudioSpeed:   1.0,
 		TTSProvider:         "edge",
 		TTSVoice:            "en-US-JennyNeural",
-		OpencodeModel:       "opencode/mimo-v2.5-free",
+		OpencodeModel:       "opencode/nemotron-3-ultra-free",
 		TranslationProvider: "default",
 		TranslationModel:    "qwen/qwen3.6-27b",
 	}
@@ -58,8 +58,8 @@ func LoadConfig() Config {
 	if cfg.OpenrouterModel == "" || cfg.OpenrouterModel == "meta-llama/llama-3.3-70b-instruct:free" {
 		cfg.OpenrouterModel = "openrouter/free"
 	}
-	if cfg.OpencodeModel == "" || cfg.OpencodeModel == "openrouter/free" {
-		cfg.OpencodeModel = "opencode/mimo-v2.5-free"
+	if cfg.OpencodeModel == "" || cfg.OpencodeModel == "openrouter/free" || cfg.OpencodeModel == "opencode/mimo-v2.5-free" {
+		cfg.OpencodeModel = "opencode/nemotron-3-ultra-free"
 	} else if cfg.OpencodeModel == "deepseek-v4-flash" {
 		cfg.OpencodeModel = "opencode-go/deepseek-v4-flash"
 	}

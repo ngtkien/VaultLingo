@@ -27,7 +27,7 @@ func TestClassifyOpencodeModel(t *testing.T) {
 			wantRec:      true,
 		},
 		{
-			modelID:      "opencode/mimo-v2.5-free",
+			modelID:      "opencode/nemotron-3-ultra-free",
 			wantProvider: "opencode",
 			wantRec:      true,
 		},
