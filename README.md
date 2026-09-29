@@ -35,6 +35,10 @@
   - Interactive tense transformation and question formation drills.
 - ✍️ **AI Writing Coach:**
   - Micro-scenario prompts across difficulty levels, live stopwatch & word counter, and structured before/after grammar correction cards.
+  - Dedicated **IELTS Writing** modes: Task 1 report prompts (line/bar/pie/process with inline data) and Task 2 essay prompts (opinion, discussion, advantage, problem/solution, two-part).
+- 🗺️ **IELTS Roadmap Tracker:**
+  - 24-week, 96-session adaptive plan covering all 4 skills — Mon Reading · Wed Listening · Sat Writing · Sun Review, plus a Speaking block every session.
+  - Auto-rescheduling for missed sessions, per-session notes, phase milestones, L/R/W/S mock band tracking, and deep links into every practice lab.
 - 🔊 **Multi-Engine Neural TTS:**
   - **Microsoft Edge TTS:** High-fidelity cloud neural voices (*Jenny, Guy, Sonia, Ryan, etc.*).
   - **Piper TTS:** 100% offline, local neural voice synthesis with zero cloud latency.

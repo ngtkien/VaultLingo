@@ -85,15 +85,15 @@ func TestGetEffectiveTranslationConfig(t *testing.T) {
 		AgyModel:            "gemini-3.7-flash",
 		GroqModel:           "llama-3.1-8b-instant",
 		TranslationProvider: "groq",
-		TranslationModel:    "qwen/qwen3.6-27b",
+		TranslationModel:    "qwen/qwen3.8-27b",
 	}
 
 	eff := GetEffectiveTranslationConfig(baseCfg)
 	if eff.AiProvider != "groq" {
 		t.Errorf("Expected AiProvider to be 'groq', got '%s'", eff.AiProvider)
 	}
-	if eff.GroqModel != "qwen/qwen3.6-27b" {
-		t.Errorf("Expected GroqModel to be 'qwen/qwen3.6-27b', got '%s'", eff.GroqModel)
+	if eff.GroqModel != "qwen/qwen3.8-27b" {
+		t.Errorf("Expected GroqModel to be 'qwen/qwen3.8-27b', got '%s'", eff.GroqModel)
 	}
 
 	// Default fallback to global

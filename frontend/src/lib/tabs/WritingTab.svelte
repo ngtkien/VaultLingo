@@ -18,6 +18,7 @@
     LayoutGrid
   } from 'lucide-svelte';
   import { parseAiFeedback } from '../utils/writingFeedbackParser';
+  import { markToday } from '../utils/daily';
   import WritingFeedbackCards from '../components/WritingFeedbackCards.svelte';
 
   let { onNavigateTab } = $props<{ onNavigateTab?: (tab: string) => void }>();
@@ -98,6 +99,7 @@
     if (!promptItem || !userText.trim() || evaluating) return;
     evaluating = true;
     pauseTimer();
+    markToday('writing');
     try {
       aiEvaluation = await EvaluateWriting(promptItem.prompt, userText, promptItem.situation_vi);
     } catch (e) {
@@ -194,6 +196,18 @@
       class={`pill-filter ${currentLevel === 'medium' ? 'active' : ''}`}
     >
       Medium Essay (120-180w)
+    </button>
+    <button
+      onclick={() => loadPrompt('ielts_t1')}
+      class={`pill-filter ${currentLevel === 'ielts_t1' ? 'active' : ''}`}
+    >
+      IELTS Task 1 (150w+)
+    </button>
+    <button
+      onclick={() => loadPrompt('ielts')}
+      class={`pill-filter ${currentLevel === 'ielts' ? 'active' : ''}`}
+    >
+      IELTS Task 2 (250w+)
     </button>
   </div>
 

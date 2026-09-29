@@ -304,6 +304,16 @@
       <RefreshCw class="w-8 h-8 animate-spin text-[var(--accent-primary)]" />
       <p class="text-sm font-medium font-serif italic">Selecting audio sentence...</p>
     </div>
+  {:else if !dictation}
+    <div class="journal-card p-10 border border-[var(--border-main)] text-center space-y-3">
+      <p class="text-sm text-[var(--text-muted)] font-serif italic">No sentences match this filter combination.</p>
+      <button
+        onclick={() => { selectedCategory = 'all'; selectedLevel = 'all'; seenIds = []; loadSentence('all', 'all'); }}
+        class="px-4 py-2 rounded-xl btn-forest text-xs font-semibold cursor-pointer"
+      >
+        Reset filters
+      </button>
+    </div>
   {:else if dictation}
     <!-- Main Dictation Practice Card -->
     <article class="journal-card p-6 sm:p-8 border border-[var(--border-main)] bg-[var(--bg-card)] space-y-6">
@@ -446,6 +456,14 @@
               </div>
             {/if}
           </div>
+
+          <button
+            onclick={() => loadSentence(selectedCategory, selectedLevel)}
+            class="w-full py-2.5 rounded-xl btn-forest font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <RefreshCw class="w-4 h-4" />
+            <span>Next sentence</span>
+          </button>
         </div>
       {/if}
     </article>

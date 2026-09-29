@@ -13,8 +13,8 @@
   } from 'lucide-svelte';
   import { GetSavedObsidianVocab, GetRoadmapProgress } from '../../../wailsjs/go/main/App.js';
   import { getStreak, getTodayProgress, markToday } from '../utils/daily';
-  import { SESSIONS, projectedDates, formatDate } from '../data/roadmap';
-  import { Map } from 'lucide-svelte';
+  import { SESSIONS, TOTAL_SESSIONS, SKILL_META, projectedDates, formatDate } from '../data/roadmap';
+  import { Map, Play } from 'lucide-svelte';
 
   let {
     dueCount = 0,
@@ -33,8 +33,14 @@
   }>();
 
   let recent = $state<any[]>([]);
-  let streak = $state(dayStreak);
-  let progress = $state({ done: 0, total: 3, pct: 0, rec: { visited: false, review: false, dictation: false, listening: false } });
+  let streak = $state(0);
+  let progress = $state<ReturnType<typeof getTodayProgress>>({
+    done: 0, total: 3, pct: 0,
+    rec: {
+      visited: false, review: false, dictation: false, listening: false,
+      grammar: false, speaking: false, reading: false, writing: false, roadmap: false,
+    }
+  });
   let nextSession = $state<any>(null);
   let nextSessionDate = $state<Date | null>(null);
   let sessionsDone = $state(0);
@@ -208,8 +214,11 @@
 
   <!-- Roadmap: next study session -->
   {#if nextSession}
-    <button
+    <div
+      role="button"
+      tabindex="0"
       onclick={() => onNavigate('learn', 'roadmap')}
+      onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') onNavigate('learn', 'roadmap'); }}
       class="w-full journal-card p-4 sm:p-5 border border-[var(--accent-primary)]/40 bg-[var(--accent-primary-light)]/20 text-left hover:border-[var(--accent-primary)] transition cursor-pointer group"
     >
       <div class="flex items-center justify-between gap-3 flex-wrap">
@@ -218,8 +227,20 @@
             <Map class="w-4.5 h-4.5" />
           </span>
           <div class="min-w-0">
-            <div class="text-[10px] font-mono font-semibold text-[var(--accent-primary)] uppercase tracking-wider">
-              Roadmap · Session {nextSession.id}/64 · {nextSession.dayLabel} {nextSessionDate ? formatDate(nextSessionDate) : ''}
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-[10px] font-mono font-semibold text-[var(--accent-primary)] uppercase tracking-wider">
+                Roadmap · Session {nextSession.id}/{TOTAL_SESSIONS} · {nextSession.dayLabel} {nextSessionDate ? formatDate(nextSessionDate) : ''}
+              </span>
+              {#if nextSession.skill}
+                <span class="text-[9px] px-1.5 py-px rounded bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] font-bold uppercase tracking-wide">
+                  {SKILL_META[nextSession.skill as keyof typeof SKILL_META]?.label ?? nextSession.skill}
+                </span>
+              {/if}
+              {#if progress.rec.roadmap}
+                <span class="text-[9px] px-1.5 py-px rounded bg-emerald-500/15 text-emerald-700 font-bold uppercase tracking-wide inline-flex items-center gap-0.5">
+                  <CheckCircle2 class="w-2.5 h-2.5" /> done today
+                </span>
+              {/if}
             </div>
             <h3 class="font-serif font-bold text-sm sm:text-base text-[var(--text-main)] truncate group-hover:text-[var(--accent-primary)] transition">
               {nextSession.blockA}
@@ -227,11 +248,21 @@
             <p class="text-[11px] text-[var(--text-muted)] truncate">Speaking: {nextSession.blockB}</p>
           </div>
         </div>
-        <span class="text-xs font-semibold text-[var(--accent-primary)] flex items-center gap-1 shrink-0">
-          {sessionsDone} done <ArrowRight class="w-3.5 h-3.5" />
-        </span>
+        <div class="flex items-center gap-2.5 shrink-0">
+          {#if nextSession.appView}
+            <button
+              onclick={(e) => { e.stopPropagation(); onNavigate(nextSession.appView === 'vocab' ? 'learn' : 'practice', nextSession.appView); }}
+              class="px-3 py-1.5 rounded-lg border border-[var(--accent-primary)]/50 text-[var(--accent-primary)] text-[11px] font-semibold flex items-center gap-1 hover:bg-[var(--accent-primary-light)] transition cursor-pointer"
+            >
+              <Play class="w-3 h-3" /> Practice
+            </button>
+          {/if}
+          <span class="text-xs font-semibold text-[var(--accent-primary)] flex items-center gap-1">
+            {sessionsDone} done <ArrowRight class="w-3.5 h-3.5" />
+          </span>
+        </div>
       </div>
-    </button>
+    </div>
   {/if}
 
   <!-- Middle Grid: Real status -->

@@ -218,6 +218,10 @@ export function SearchWordsInDB(arg1, arg2) {
   return window['go']['main']['App']['SearchWordsInDB'](arg1, arg2);
 }
 
+export function SetSessionNote(arg1, arg2) {
+  return window['go']['main']['App']['SetSessionNote'](arg1, arg2);
+}
+
 export function StartSpeakingRecording() {
   return window['go']['main']['App']['StartSpeakingRecording']();
 }
@@ -232,6 +236,10 @@ export function StopSpeakingRecording() {
 
 export function TranslateParagraph(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['TranslateParagraph'](arg1, arg2, arg3, arg4);
+}
+
+export function TranslateParagraphQuick(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['TranslateParagraphQuick'](arg1, arg2, arg3, arg4);
 }
 
 export function UpdateObsidianSrsReview(arg1, arg2, arg3) {

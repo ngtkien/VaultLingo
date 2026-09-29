@@ -48,6 +48,16 @@ func MarkSession(sessionID int, status string, note string) error {
 	}
 }
 
+// SetSessionNote upserts only the note, preserving any existing status/date.
+// Allows annotating a session before it is done or missed.
+func SetSessionNote(sessionID int, note string) error {
+	_, err := DB.Exec(`INSERT INTO roadmap_progress(session_id, status, actual_date, note)
+		VALUES(?, 'pending', '', ?)
+		ON CONFLICT(session_id) DO UPDATE SET note=excluded.note`,
+		sessionID, note)
+	return err
+}
+
 func AddMockScore(skill string, band float64, note string) error {
 	_, err := DB.Exec(`INSERT INTO mock_scores(skill, band, taken_at, note) VALUES(?, ?, ?, ?)`,
 		skill, band, time.Now().Format("2006-01-02 15:04"), note)

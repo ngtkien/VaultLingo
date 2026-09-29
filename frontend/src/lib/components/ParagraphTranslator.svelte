@@ -17,10 +17,12 @@
     BookOpen,
     Code2,
     Cpu,
-    PenLine
+    PenLine,
+    Zap
   } from "lucide-svelte";
   import {
     TranslateParagraph,
+    TranslateParagraphQuick,
     EnhanceWriting,
     SaveTranslationToObsidian,
     SaveWordToDB,
@@ -71,6 +73,9 @@
   let tone = $state("Editorial & Journalistic");
   
   let isTranslating = $state(false);
+  let quickMode = $state(true);
+  let resultIsQuick = $state(false);
+  let loadingDeep = $state(false);
   let translationResult = $state<backend.TranslationResult | null>(null);
   let errorMsg = $state("");
   let isCopied = $state(false);
@@ -157,7 +162,11 @@
     try {
       if (translatorMode === "enhance") {
         enhanceRaw = await EnhanceWriting(sourceText.trim(), tone);
+      } else if (quickMode) {
+        resultIsQuick = true;
+        translationResult = await TranslateParagraphQuick(sourceText.trim(), sourceLang, targetLang, tone);
       } else {
+        resultIsQuick = false;
         translationResult = await TranslateParagraph(sourceText.trim(), sourceLang, targetLang, tone);
       }
     } catch (err: any) {
@@ -166,6 +175,21 @@
         : "AI translation encountered an issue. Please try again.");
     } finally {
       isTranslating = false;
+    }
+  }
+
+  // Fetch the deep analysis (key vocabulary + nuance notes) for a quick result.
+  async function loadDeepAnalysis() {
+    if (!sourceText.trim() || loadingDeep) return;
+    loadingDeep = true;
+    errorMsg = "";
+    try {
+      translationResult = await TranslateParagraph(sourceText.trim(), sourceLang, targetLang, tone);
+      resultIsQuick = false;
+    } catch (err: any) {
+      errorMsg = err?.toString() || "Could not load deep analysis.";
+    } finally {
+      loadingDeep = false;
     }
   }
 
@@ -402,24 +426,45 @@
       <div class="pt-3 border-t border-[var(--border-main)] flex items-center justify-between text-xs text-[var(--text-subtle)] flex-shrink-0 mt-auto">
         <span class="font-mono">{sourceText.length} characters</span>
 
-        <!-- Action Button -->
-        <button
-          type="button"
-          onclick={handleSubmit}
-          disabled={isTranslating || !sourceText.trim()}
-          class="btn-forest px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-        >
-          {#if isTranslating}
-            <RefreshCw class="w-3.5 h-3.5 animate-spin" />
-            <span>{translatorMode === "enhance" ? "Enhancing..." : "Translating..."}</span>
-          {:else if translatorMode === "enhance"}
-            <PenLine class="w-3.5 h-3.5" />
-            <span>Enhance Writing ✨</span>
-          {:else}
-            <Sparkles class="w-3.5 h-3.5" />
-            <span>Translate Paragraph ✨</span>
+        <div class="flex items-center gap-2">
+          <!-- Quick mode: translation only, no vocab/notes — much faster -->
+          {#if translatorMode === "translate"}
+            <button
+              type="button"
+              onclick={() => (quickMode = !quickMode)}
+              title={quickMode
+                ? "Quick mode ON — returns the translation only. Turn off for vocabulary + nuance analysis in one call."
+                : "Quick mode OFF — deep analysis included (slower). Turn on for speed."}
+              class={`px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border ${
+                quickMode
+                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/40"
+                  : "bg-[var(--bg-inner)] text-[var(--text-muted)] border-[var(--border-main)] hover:text-[var(--text-main)]"
+              }`}
+            >
+              <Zap class="w-3.5 h-3.5" />
+              <span>Quick</span>
+            </button>
           {/if}
-        </button>
+
+          <!-- Action Button -->
+          <button
+            type="button"
+            onclick={handleSubmit}
+            disabled={isTranslating || !sourceText.trim()}
+            class="btn-forest px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {#if isTranslating}
+              <RefreshCw class="w-3.5 h-3.5 animate-spin" />
+              <span>{translatorMode === "enhance" ? "Enhancing..." : "Translating..."}</span>
+            {:else if translatorMode === "enhance"}
+              <PenLine class="w-3.5 h-3.5" />
+              <span>Enhance Writing ✨</span>
+            {:else}
+              <Sparkles class="w-3.5 h-3.5" />
+              <span>Translate Paragraph ✨</span>
+            {/if}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -556,6 +601,29 @@
       </div>
     </div>
   </div>
+
+  <!-- Deep analysis loader for quick results -->
+  {#if translatorMode === "translate" && translationResult && resultIsQuick}
+    <div class="journal-card p-4 border border-[var(--border-main)] flex items-center justify-between gap-3 flex-wrap">
+      <p class="text-xs text-[var(--text-muted)] font-sans">
+        <b class="text-[var(--text-main)]">Quick result.</b> Want key vocabulary and grammar notes?
+      </p>
+      <button
+        type="button"
+        onclick={loadDeepAnalysis}
+        disabled={loadingDeep}
+        class="px-3.5 py-2 rounded-xl border border-[var(--accent-primary)]/50 text-[var(--accent-primary)] text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer hover:bg-[var(--accent-primary-light)] disabled:opacity-50"
+      >
+        {#if loadingDeep}
+          <RefreshCw class="w-3.5 h-3.5 animate-spin" />
+          <span>Analyzing…</span>
+        {:else}
+          <Lightbulb class="w-3.5 h-3.5" />
+          <span>Load vocabulary & notes</span>
+        {/if}
+      </button>
+    </div>
+  {/if}
 
   <!-- Linguistic Insights: Extracted Vocab & Grammar Nuances (Shows after translation) -->
   {#if translatorMode === "translate" && translationResult && ((translationResult.key_vocabulary && translationResult.key_vocabulary.length > 0) || (translationResult.nuance_notes && translationResult.nuance_notes.length > 0))}

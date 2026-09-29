@@ -110,6 +110,8 @@ export function SaveWritingToObsidian(arg1:string,arg2:string,arg3:string,arg4:s
 
 export function SearchWordsInDB(arg1:string,arg2:number):Promise<Array<backend.Word>>;
 
+export function SetSessionNote(arg1:number,arg2:string):Promise<void>;
+
 export function StartSpeakingRecording():Promise<backend.RecordingStatus>;
 
 export function StopAudio():Promise<void>;
@@ -117,5 +119,7 @@ export function StopAudio():Promise<void>;
 export function StopSpeakingRecording():Promise<backend.RecordingStatus>;
 
 export function TranslateParagraph(arg1:string,arg2:string,arg3:string,arg4:string):Promise<backend.TranslationResult>;
+
+export function TranslateParagraphQuick(arg1:string,arg2:string,arg3:string,arg4:string):Promise<backend.TranslationResult>;
 
 export function UpdateObsidianSrsReview(arg1:string,arg2:string,arg3:number):Promise<void>;

@@ -87,7 +87,8 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 			cmdPath = "/usr/bin/opencode"
 		}
 		var args []string
-		args = append(args, "run", "--title", "VaultLingo", "--pure")
+		// `run` is already non-interactive in opencode v2 (the old --pure flag was removed).
+		args = append(args, "run", "--title", "VaultLingo")
 		model := cfg.OpencodeModel
 		if model == "" {
 			model = "opencode/nemotron-3-ultra-free"
@@ -141,7 +142,10 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 			}
 		}
 
-		cmd := exec.Command(cmdPath, args...)
+		ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+		defer cancel()
+
+		cmd := exec.CommandContext(ctx, cmdPath, args...)
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			return "", fmt.Errorf("Antigravity (agy) execution failed: %s (%w)", string(out), err)
@@ -172,8 +176,8 @@ func CallAI(systemInstruction, userContent string, cfg Config) (string, error) {
 			return generateLocalMockEvaluation(userContent), nil
 		}
 		model := cfg.GroqModel
-		if model == "" || model == "llama-3.3-70b-versatile" || model == "llama-3.1-8b-instant" {
-			model = "qwen/qwen3.6-27b"
+		if model == "" || model == "llama-3.3-70b-versatile" || model == "llama-3.1-8b-instant" || model == "qwen/qwen3.6-27b" {
+			model = "qwen/qwen3.8-27b"
 		}
 		return callOpenAICompatible(client, "https://api.groq.com/openai/v1/chat/completions", cfg.GroqApiKey, model, systemInstruction, userContent, nil)
 	}

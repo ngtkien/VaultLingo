@@ -112,14 +112,28 @@
     smoothTop();
   }
 
+  // Visiting a practice view counts as engaging with that habit for the day.
+  const VIEW_HABITS: Record<string, 'dictation' | 'listening' | 'review' | 'grammar' | 'speaking' | 'reading' | 'writing'> = {
+    dictation: 'dictation',
+    listening: 'listening',
+    vocab: 'review',
+    grammar: 'grammar',
+    speaking: 'speaking',
+    reading: 'reading',
+    writing: 'writing',
+  };
+
+  function markViewHabit(view: string) {
+    const habit = VIEW_HABITS[view];
+    if (habit) markToday(habit);
+  }
+
   function selectView(view: string) {
     if (view === currentView) return;
     pushHistory();
     viewDirection = 1;
     currentView = view;
-    if (view === 'dictation') markToday('dictation');
-    if (view === 'listening') markToday('listening');
-    if (view === 'vocab') markToday('review');
+    markViewHabit(view);
     smoothTop();
   }
 
@@ -131,9 +145,7 @@
     activeArea = area as Area;
     currentView = nextView;
     markToday();
-    if (currentView === 'dictation') markToday('dictation');
-    if (currentView === 'listening') markToday('listening');
-    if (currentView === 'vocab') markToday('review');
+    markViewHabit(currentView);
     dayStreak = getStreak();
     smoothTop();
   }
@@ -324,10 +336,11 @@
       <PracticeHubTab 
         {dueCount}
         {savedCount}
-        onSelectPracticeTab={(tabId) => selectView(tabId)} 
+        onSelectPracticeTab={(tabId) => selectView(tabId)}
+        onNavigate={navigateTo}
       />
     {:else if currentView === 'roadmap'}
-      <RoadmapTab />
+      <RoadmapTab onNavigate={navigateTo} />
     {:else if currentView === 'vocab'}
       <VocabTab onNavigateToDictionary={openDictionary} />
     {:else if currentView === 'dictionary'}

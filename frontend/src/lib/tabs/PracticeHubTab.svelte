@@ -5,12 +5,15 @@
     Dumbbell,
     PenTool,
     ArrowRight,
-    CheckCircle2
+    CheckCircle2,
+    Mic,
+    BookOpen
   } from 'lucide-svelte';
   import { getTodayProgress, getStreak } from '../utils/daily';
 
-  let { onSelectPracticeTab, dueCount = 0, savedCount = 0 } = $props<{
-    onSelectPracticeTab: (tabId: 'dictation' | 'listening' | 'grammar' | 'writing') => void;
+  let { onSelectPracticeTab, onNavigate, dueCount = 0, savedCount = 0 } = $props<{
+    onSelectPracticeTab: (tabId: 'dictation' | 'listening' | 'grammar' | 'writing' | 'speaking' | 'reading') => void;
+    onNavigate?: (area: string, view?: string) => void;
     dueCount?: number;
     savedCount?: number;
   }>();
@@ -44,7 +47,16 @@
       duration: '10-20 min',
       icon: Dumbbell,
       cta: 'Start Grammar Gym',
-      done: false
+      done: progress.rec.grammar
+    },
+    {
+      id: 'reading' as const,
+      title: 'Reading Lab',
+      desc: 'IELTS-style academic passages with TFNG, MCQ, and matching headings — scored by band.',
+      duration: '20-30 min',
+      icon: BookOpen,
+      cta: 'Start Reading Lab',
+      done: progress.rec.reading
     },
     {
       id: 'writing' as const,
@@ -53,7 +65,16 @@
       duration: '15-30 min',
       icon: PenTool,
       cta: 'Start Writing Lab',
-      done: false
+      done: progress.rec.writing
+    },
+    {
+      id: 'speaking' as const,
+      title: 'Speaking Lab',
+      desc: 'IELTS Part 1/2/3 practice — record answers, then get AI band feedback on your transcript.',
+      duration: '15-25 min',
+      icon: Mic,
+      cta: 'Start Speaking Lab',
+      done: progress.rec.speaking
     }
   ];
 </script>
@@ -124,7 +145,7 @@
       </div>
     </div>
 
-    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {#each practiceModules as mod}
         {@const Icon = mod.icon}
         <div class="journal-card p-5 border border-[var(--border-main)] flex flex-col justify-between hover:border-[var(--accent-primary)] hover:shadow-md transition-all group">
@@ -176,20 +197,22 @@
           <span class="text-xs text-[var(--text-muted)] font-serif italic">Recommended next step</span>
         </div>
         <h3 class="text-base font-bold font-serif text-[var(--text-main)]">
-          {dueCount > 0 ? 'Clear your due words first — 4 minutes.' : 'Go deeper with Writing Lab today.'}
+          {dueCount > 0 ? 'Clear your due words first — 4 minutes.' : 'Follow your IELTS roadmap session for today.'}
         </h3>
         <p class="text-xs text-[var(--text-muted)]">
           {dueCount > 0
             ? 'SRS works only when you show up daily. Small batch, big memory.'
-            : 'Practice phrasing requests, giving feedback, and structuring technical summaries.'}
+            : 'Each roadmap session maps to one of these labs — stay on plan and the skills compound.'}
         </p>
       </div>
 
       <button
-        onclick={() => onSelectPracticeTab(dueCount > 0 ? 'dictation' : 'writing')}
+        onclick={() => dueCount > 0
+          ? (onNavigate ? onNavigate('learn', 'vocab') : onSelectPracticeTab('dictation'))
+          : (onNavigate ? onNavigate('learn', 'roadmap') : onSelectPracticeTab('writing'))}
         class="px-4 py-2.5 rounded-xl btn-forest font-semibold text-xs flex items-center justify-center gap-1.5 shrink-0 shadow-sm cursor-pointer"
       >
-        <span>{dueCount > 0 ? 'Start Dictation' : 'Continue Focus Session'}</span>
+        <span>{dueCount > 0 ? 'Review Due Words' : 'Open Roadmap'}</span>
         <ArrowRight class="w-3.5 h-3.5" />
       </button>
     </div>

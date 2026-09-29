@@ -1,11 +1,16 @@
 // Daily Pull tracker — 100% local, honest, no fake stats.
 // Stores one entry per day in localStorage:
-//   vaultlingo_day_YYYY-MM-DD = { visited, review, dictation, listening }
+//   vaultlingo_day_YYYY-MM-DD = { visited, review, dictation, listening, grammar, speaking, reading, writing, roadmap }
 export interface DayRecord {
   visited: boolean;
   review: boolean;
   dictation: boolean;
   listening: boolean;
+  grammar: boolean;
+  speaking: boolean;
+  reading: boolean;
+  writing: boolean;
+  roadmap: boolean;
 }
 
 const DAY_PREFIX = 'vaultlingo_day_';
@@ -34,10 +39,18 @@ export function getDayRecord(key?: string): DayRecord {
         review: !!p.review,
         dictation: !!p.dictation,
         listening: !!p.listening,
+        grammar: !!p.grammar,
+        speaking: !!p.speaking,
+        reading: !!p.reading,
+        writing: !!p.writing,
+        roadmap: !!p.roadmap,
       };
     }
   } catch {}
-  return { visited: false, review: false, dictation: false, listening: false };
+  return {
+    visited: false, review: false, dictation: false, listening: false,
+    grammar: false, speaking: false, reading: false, writing: false, roadmap: false,
+  };
 }
 
 export function markToday(task?: keyof DayRecord): DayRecord {

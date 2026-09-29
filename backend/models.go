@@ -156,7 +156,7 @@ type Config struct {
 	PiperModelPath      string  `json:"piper_model_path,omitempty"`
 	OpencodeModel       string  `json:"opencode_model,omitempty"`
 	TranslationProvider string  `json:"translation_provider,omitempty"` // "default", "groq", "ollama", "openrouter", "agy", "opencode"
-	TranslationModel    string  `json:"translation_model,omitempty"`    // e.g. "qwen/qwen3.6-27b"
+	TranslationModel    string  `json:"translation_model,omitempty"`    // e.g. "qwen/qwen3.8-27b"
 }
 
 type DiffToken struct {

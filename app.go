@@ -139,6 +139,13 @@ func (a *App) TranslateParagraph(text, sourceLang, targetLang, tone string) (bac
 	return backend.TranslateParagraph(text, sourceLang, targetLang, tone, cfg)
 }
 
+// TranslateParagraphQuick is the fast path: lean prompt that returns only the
+// translated text (no vocabulary/notes), so it completes much sooner.
+func (a *App) TranslateParagraphQuick(text, sourceLang, targetLang, tone string) (backend.TranslationResult, error) {
+	cfg := backend.LoadConfig()
+	return backend.TranslateParagraphQuick(text, sourceLang, targetLang, tone, cfg)
+}
+
 func (a *App) SaveTranslationToObsidian(sourceText, targetText, sourceLang, targetLang, tone string, vocab []backend.ExtractedVocab) (backend.ObsidianSaveResult, error) {
 	cfg := backend.LoadConfig()
 	return backend.SaveTranslationToObsidian(sourceText, targetText, sourceLang, targetLang, tone, vocab, cfg.ObsidianVaultPath)
@@ -221,6 +228,10 @@ func (a *App) GetRoadmapProgress() (map[int]backend.RoadmapProgress, error) {
 
 func (a *App) MarkSession(sessionID int, status string, note string) error {
 	return backend.MarkSession(sessionID, status, note)
+}
+
+func (a *App) SetSessionNote(sessionID int, note string) error {
+	return backend.SetSessionNote(sessionID, note)
 }
 
 func (a *App) AddMockScore(skill string, band float64, note string) error {

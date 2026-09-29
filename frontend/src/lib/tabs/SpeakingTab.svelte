@@ -10,6 +10,7 @@
     EvaluateSpeaking, SaveSpeakingAttempt, GetSpeakingAttempts,
     PlayAudioUrl
   } from '../../../wailsjs/go/main/App.js';
+  import { markToday } from '../utils/daily';
 
   let { } = $props();
 
@@ -52,14 +53,24 @@
   let checks = $state<boolean[]>(CHECKLIST.map(() => false));
 
   async function loadPrompts() {
-    prompts = (await GetSpeakingPrompts(part, topic)) as Prompt[];
+    try {
+      prompts = (await GetSpeakingPrompts(part, topic)) as Prompt[];
+    } catch (e) {
+      console.warn(e);
+      prompts = [];
+    }
     seenIds = [];
     pickNext();
   }
 
-  function pickNext() {
+  async function pickNext() {
+    if (recording) await stopRecord();
     const fresh = prompts.filter(p => !seenIds.includes(p.id));
-    if (fresh.length === 0) { seenIds = []; return pickNext(); }
+    if (fresh.length === 0) {
+      if (prompts.length === 0) { current = null; return; }
+      seenIds = [];
+      return pickNext();
+    }
     current = fresh[Math.floor(Math.random() * fresh.length)];
     seenIds = [...seenIds, current.id];
     resetAttempt();
@@ -91,6 +102,7 @@
       if (!recording) {
         await StartSpeakingRecording();
         recording = true;
+        markToday('speaking');
         elapsed = 0;
         if (current?.part === 2) talkLeft = 120;
         timerId = setInterval(() => {
@@ -109,10 +121,16 @@
   }
 
   async function stopRecord() {
-    const st = await StopSpeakingRecording();
-    recording = false;
-    if (timerId) { clearInterval(timerId); timerId = null; }
-    audioPath = st.audio_path || '';
+    try {
+      const st = await StopSpeakingRecording();
+      audioPath = st.audio_path || '';
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      recording = false;
+      talkLeft = 0;
+      if (timerId) { clearInterval(timerId); timerId = null; }
+    }
   }
 
   function playRecording() {
@@ -122,6 +140,7 @@
   async function evaluate() {
     if (!current || !transcript.trim()) return;
     evaluating = true;
+    markToday('speaking');
     feedback = null; feedbackRaw = '';
     try {
       const res = await EvaluateSpeaking(transcript, current.part, current.question, audioPath, elapsed);
@@ -141,8 +160,12 @@
   }
 
   async function loadAttempts() {
-    if (!current) return;
-    try { attempts = (await GetSpeakingAttempts(current.id)) || []; } catch { attempts = []; }
+    const cur = current;
+    if (!cur) return;
+    try {
+      const res = (await GetSpeakingAttempts(cur.id)) || [];
+      if (current?.id === cur.id) attempts = res;
+    } catch { attempts = []; }
   }
 
   function fmtTime(s: number) {

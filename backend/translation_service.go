@@ -1,12 +1,14 @@
 package backend
 
 import (
+	"crypto/sha1"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -35,6 +37,82 @@ func GetEffectiveTranslationConfig(cfg Config) Config {
 		}
 	}
 	return transCfg
+}
+
+// In-memory translation cache: identical requests resolve instantly.
+var (
+	transCache   = map[string]TranslationResult{}
+	transCacheMu sync.Mutex
+)
+
+func transCacheKey(mode, text, sourceLang, targetLang, tone string, cfg Config) string {
+	eff := GetEffectiveTranslationConfig(cfg)
+	cfgBytes, _ := json.Marshal(eff)
+	sum := sha1.Sum([]byte(text))
+	cfgSum := sha1.Sum(cfgBytes)
+	return fmt.Sprintf("%s|%s|%s|%s|%x|%x", mode, sourceLang, targetLang, tone, sum, cfgSum)
+}
+
+func cacheGet(key string) (TranslationResult, bool) {
+	transCacheMu.Lock()
+	defer transCacheMu.Unlock()
+	r, ok := transCache[key]
+	return r, ok
+}
+
+func cachePut(key string, r TranslationResult) {
+	transCacheMu.Lock()
+	defer transCacheMu.Unlock()
+	if len(transCache) >= 256 {
+		transCache = map[string]TranslationResult{}
+	}
+	transCache[key] = r
+}
+
+// TranslateParagraphQuick returns only the translated text — a lean prompt that
+// produces far fewer output tokens, so it is several times faster than the deep
+// variant on CLI-backed providers. Use it for the instant result, then call
+// TranslateParagraph to fetch vocabulary/notes on demand.
+func TranslateParagraphQuick(text, sourceLang, targetLang, tone string, cfg Config) (TranslationResult, error) {
+	trimmed := strings.TrimSpace(text)
+	if trimmed == "" {
+		return TranslationResult{}, fmt.Errorf("text cannot be empty")
+	}
+	if sourceLang == "" {
+		sourceLang = "English"
+	}
+	if targetLang == "" {
+		targetLang = "Vietnamese"
+	}
+	if tone == "" {
+		tone = "Editorial / Natural"
+	}
+
+	key := transCacheKey("quick", trimmed, sourceLang, targetLang, tone, cfg)
+	if cached, ok := cacheGet(key); ok {
+		return cached, nil
+	}
+
+	systemPrompt := fmt.Sprintf(`You are a precise bilingual translator (English <-> Vietnamese).
+Translate the text faithfully and naturally. Tone style: %s.
+Respond STRICTLY with a single valid JSON object — no markdown, no commentary:
+{"translated_text": "..."}`, tone)
+
+	userPrompt := fmt.Sprintf("Translate from %s to %s:\n\n%s", sourceLang, targetLang, trimmed)
+
+	effectiveCfg := GetEffectiveTranslationConfig(cfg)
+	responseRaw, err := CallAI(systemPrompt, userPrompt, effectiveCfg)
+	if err != nil {
+		return TranslationResult{}, fmt.Errorf("AI translation failed: %w", err)
+	}
+
+	result := parseTranslationResponse(responseRaw, sourceLang, targetLang, tone)
+	result.KeyVocabulary = []ExtractedVocab{}
+	result.NuanceNotes = []string{}
+	if strings.TrimSpace(result.TranslatedText) != "" {
+		cachePut(key, result)
+	}
+	return result, nil
 }
 
 // TranslateParagraph handles bidirectional translation (EN <-> VI) with deep linguistic analysis
@@ -78,6 +156,11 @@ Required JSON schema:
   ]
 }`, tone, sourceLang, targetLang, tone)
 
+	key := transCacheKey("deep", trimmed, sourceLang, targetLang, tone, cfg)
+	if cached, ok := cacheGet(key); ok {
+		return cached, nil
+	}
+
 	userPrompt := fmt.Sprintf("Translate the following text from %s to %s with %s tone:\n\n%s", sourceLang, targetLang, tone, trimmed)
 
 	// Resolve dedicated Translation AI config (allows separating Translation AI from Writing AI)
@@ -89,6 +172,9 @@ Required JSON schema:
 	}
 
 	result := parseTranslationResponse(responseRaw, sourceLang, targetLang, tone)
+	if strings.TrimSpace(result.TranslatedText) != "" {
+		cachePut(key, result)
+	}
 	return result, nil
 }
 

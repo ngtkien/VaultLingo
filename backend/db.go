@@ -135,7 +135,7 @@ func InitDB() (*sql.DB, error) {
 	return db, nil
 }
 
-const bundledContentVersion = 4
+const bundledContentVersion = 5
 
 func migrateBundledContent(db *sql.DB, appDataDir string) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS content_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`)
@@ -172,6 +172,9 @@ func migrateBundledContent(db *sql.DB, appDataDir string) error {
 	// Quizzes deduplication
 	_, _ = db.Exec(`DELETE FROM quizzes WHERE id NOT IN (SELECT MIN(id) FROM quizzes GROUP BY question)`)
 	_, _ = db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_quizzes_question_unique ON quizzes(question)`)
+
+	// Writing prompts deduplication (earlier seeds inserted 8 prompts twice)
+	_, _ = db.Exec(`DELETE FROM writing_prompts WHERE id NOT IN (SELECT MIN(id) FROM writing_prompts GROUP BY title)`)
 
 	// Refresh system words and bundled learning corpus with clean content
 	// Preserves user's dictionary lookups (source = 'dictionary') and srs_reviews

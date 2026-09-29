@@ -4,6 +4,7 @@
     BookOpen, Timer, CheckCircle2, XCircle, ArrowLeft, Clock
   } from 'lucide-svelte';
   import { GetReadingPassages, GetReadingPassage, CheckReadingAnswers, AddMockScore } from '../../../wailsjs/go/main/App.js';
+  import { markToday } from '../utils/daily';
 
   interface Meta { id: number; title: string; band_level: number; topic: string; word_count: number; question_count: number }
   interface Item { id: number; question: string; options?: string[]; answer: string; explanation?: string }
@@ -44,11 +45,20 @@
   }
   function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
 
+  let submitError = $state('');
+
   async function submit() {
     if (!current || result) return;
     stopTimer();
-    const payload = Object.entries(answers).map(([id, given]) => ({ item_id: Number(id), given }));
-    result = await CheckReadingAnswers(current.id, payload);
+    submitError = '';
+    try {
+      const payload = Object.entries(answers).map(([id, given]) => ({ item_id: Number(id), given }));
+      result = await CheckReadingAnswers(current.id, payload);
+      markToday('reading');
+    } catch (e) {
+      console.warn(e);
+      submitError = 'Could not check answers — please try again.';
+    }
   }
 
   async function logAsMock() {
@@ -147,7 +157,7 @@
             <span class="text-[10px] font-mono font-bold text-[var(--accent-primary)] uppercase tracking-wider">
               {TYPE_LABEL[set.type] ?? set.type}
             </span>
-            <p class="text-xs text-[var(--text-muted)] italic mt-1">{set.instruction}</p>
+            <p class="text-xs text-[var(--text-muted)] italic mt-1 whitespace-pre-line">{set.instruction}</p>
           </div>
 
           {#each set.items as item}
@@ -184,6 +194,16 @@
                     </button>
                   {/each}
                 </div>
+              {:else if item.options}
+                <div class="flex flex-wrap gap-1.5 pl-6">
+                  {#each item.options as opt}
+                    <button onclick={() => !result && (answers[item.id] = opt)}
+                      class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition cursor-pointer
+                        {answers[item.id] === opt ? 'bg-[var(--accent-primary)] text-white border-[var(--accent-primary)]' : 'border-[var(--border-main)] text-[var(--text-muted)] hover:border-[var(--accent-primary)]'}">
+                      {opt}
+                    </button>
+                  {/each}
+                </div>
               {:else}
                 <input
                   bind:value={answers[item.id]} disabled={!!result}
@@ -208,6 +228,9 @@
         <button onclick={submit} class="w-full py-3 rounded-xl btn-forest font-semibold text-sm cursor-pointer">
           Submit answers
         </button>
+        {#if submitError}
+          <p class="text-xs text-rose-600 text-center">{submitError}</p>
+        {/if}
       {/if}
     </section>
 

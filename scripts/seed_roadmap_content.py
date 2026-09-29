@@ -144,6 +144,79 @@ CUE_CARDS = {
         "how you managed it", "and explain what the result was"],
 }
 
+# ---------------------------------------------------------------------------
+# v2 expansion — wider topic coverage for the 24-week roadmap
+# ---------------------------------------------------------------------------
+
+SPEAKING_PROMPTS += [
+    # ---- Part 1 (new topics) ----
+    (1, "Travel & Holidays", "Do you like travelling?", ""),
+    (1, "Travel & Holidays", "What kind of places do you like to visit?", ""),
+    (1, "Travel & Holidays", "Do you prefer travelling alone or with other people?", ""),
+    (1, "Travel & Holidays", "What was your best holiday ever?", ""),
+    (1, "Travel & Holidays", "Is there a place you really want to visit one day?", ""),
+    (1, "Food & Cooking", "Do you enjoy cooking?", ""),
+    (1, "Food & Cooking", "What is your favourite dish from your country?", ""),
+    (1, "Food & Cooking", "Do you prefer eating at home or in restaurants?", ""),
+    (1, "Food & Cooking", "Did you learn to cook when you were a child?", ""),
+    (1, "Food & Cooking", "Is there a foreign food you would like to try?", ""),
+    (1, "Weather & Seasons", "What is the weather like where you live?", ""),
+    (1, "Weather & Seasons", "Which season do you like best? Why?", ""),
+    (1, "Weather & Seasons", "Do you prefer hot or cold weather?", ""),
+    (1, "Weather & Seasons", "Does the weather ever affect your mood?", ""),
+    (1, "Weather & Seasons", "What do you usually do on rainy days?", ""),
+    (1, "Sport & Exercise", "Do you play any sports?", ""),
+    (1, "Sport & Exercise", "How often do you exercise?", ""),
+    (1, "Sport & Exercise", "Did you play sport when you were a child?", ""),
+    (1, "Sport & Exercise", "Do you prefer watching sport or playing it?", ""),
+    (1, "Sport & Exercise", "Is there a sport you would like to try?", ""),
+    (1, "Music & Arts", "What kind of music do you usually listen to?", ""),
+    (1, "Music & Arts", "Do you play a musical instrument?", ""),
+    (1, "Music & Arts", "When do you usually listen to music?", ""),
+    (1, "Music & Arts", "Have you ever been to a live concert?", ""),
+    (1, "Music & Arts", "Did you learn music or art at school?", ""),
+    (1, "Reading & Books", "Do you like reading?", ""),
+    (1, "Reading & Books", "What kind of books do you prefer?", ""),
+    (1, "Reading & Books", "Do you read more on paper or on a screen?", ""),
+    (1, "Reading & Books", "What book did you enjoy as a child?", ""),
+    (1, "Reading & Books", "Is there a book you would like to read again?", ""),
+    # ---- Part 2 (new cue cards) ----
+    (2, "Travel", "Describe a journey you remember well.", ""),
+    (2, "People", "Describe a time when you helped someone.", ""),
+    (2, "Objects", "Describe a gift you received that you really liked.", ""),
+    (2, "Technology", "Describe a website or app you use often.", ""),
+    (2, "Events", "Describe a family celebration you attended.", ""),
+    (2, "Activities", "Describe a sport or outdoor activity you enjoy.", ""),
+    # ---- Part 3 (new discussion) ----
+    (3, "Travel", "How has tourism changed the places people visit?", ""),
+    (3, "Food", "Do you think traditional food is disappearing? Why?", ""),
+    (3, "Sport", "Should children be required to play sport at school?", ""),
+    (3, "Technology", "Has the internet made people better informed or just more distracted?", ""),
+    (3, "Family", "How have family celebrations changed in recent years?", ""),
+    (3, "Society", "Is it better to give gifts of money or of objects? Why?", ""),
+]
+
+CUE_CARDS.update({
+    "Describe a journey you remember well.": [
+        "where you went", "who you travelled with",
+        "what happened during the journey", "and explain why you remember it"],
+    "Describe a time when you helped someone.": [
+        "who you helped", "what the situation was",
+        "what you did to help", "and explain how you felt about it"],
+    "Describe a gift you received that you really liked.": [
+        "what the gift was", "who gave it to you",
+        "when you received it", "and explain why you liked it so much"],
+    "Describe a website or app you use often.": [
+        "what it is", "how you found it",
+        "what you use it for", "and explain why it is useful to you"],
+    "Describe a family celebration you attended.": [
+        "what the celebration was", "who was there",
+        "what happened", "and explain why it was special"],
+    "Describe a sport or outdoor activity you enjoy.": [
+        "what it is", "when and where you do it",
+        "who you do it with", "and explain why you enjoy it"],
+})
+
 
 # ---------------------------------------------------------------------------
 # Reading passages
@@ -151,11 +224,11 @@ CUE_CARDS = {
 # questions_json: list of sections -> {type, instruction, items[]}
 # types: tfng (TRUE/FALSE/NOT GIVEN), gapfill, matching_heading, mcq
 
-def q_tfng(items):
+def q_tfng(items, start_id=1):
     return {
         "type": "tfng",
         "instruction": "Do the following statements agree with the information in the passage? Write TRUE, FALSE or NOT GIVEN.",
-        "items": [{"id": i + 1, "question": q, "answer": a, "explanation": e}
+        "items": [{"id": start_id + i, "question": q, "answer": a, "explanation": e}
                   for i, (q, a, e) in enumerate(items)],
     }
 
@@ -526,6 +599,319 @@ Perhaps the deepest argument is epidemiological. Neighbourhoods designed for wal
 ]
 
 
+def q_heading(start_id, headings, items):
+    """Matching-headings set. `headings` = [(roman, text)], items = [(label, answer_roman, explanation)]."""
+    listing = "\n".join(f"{r}. {t}" for r, t in headings)
+    return {
+        "type": "matching_heading",
+        "instruction": "Choose the correct heading for each paragraph from the list below.\n" + listing,
+        "items": [{"id": start_id + i, "question": q,
+                   "options": [r for r, _ in headings],
+                   "answer": a, "explanation": e}
+                  for i, (q, a, e) in enumerate(items)],
+    }
+
+
+PASSAGES += [
+    # ── Passage 9 · band 5.0 · Culture ──────────────────────────────
+    {
+        "title": "A Brief History of Coffee",
+        "band_level": 5.0,
+        "topic": "Culture & History",
+        "text": """Nobody knows exactly when humans first drank coffee, but the most famous story takes place in Ethiopia around the ninth century. According to legend, a goat herder named Kaldi noticed that his goats became unusually energetic after eating the red berries of a certain shrub. Kaldi tried the berries himself, felt the same lift, and carried them to a nearby monastery. The monks, the story goes, threw the berries onto a fire — and were immediately drawn back by the rich smell of the roasting beans.
+
+Whether or not Kaldi existed, coffee certainly travelled across the Red Sea to Yemen by the fifteenth century. There, Sufi monks cultivated the plant and drank a brew of its beans to stay awake through long night-time rituals. Yemen's port of Mocha became the centre of the early coffee trade, and the drink spread through the Ottoman world into Persia, Egypt and Turkey, where coffee houses became famous places of conversation and chess.
+
+Coffee reached Europe in the seventeenth century, arriving first through the trading port of Venice. It was controversial at first — some priests wanted it banned as a 'Muslim drink' — until, according to another famous story, Pope Clement VIII tasted it and approved. In London, coffee houses charged one penny to enter and became known as 'penny universities', where merchants, writers and scientists argued about everything from politics to physics.
+
+European powers soon tried to break Yemen's monopoly. The Dutch smuggled seedlings to Java, the French planted them in the Caribbean, and the Portuguese established enormous estates in Brazil. Brazil's climate proved ideal, and by the nineteenth century it had become — and remains today — the largest coffee producer in the world.
+
+The twentieth century brought coffee to the masses: instant coffee for soldiers, espresso machines for cafés, and finally the 'specialty' movement, which treats beans like wine, with tasting notes and single-origin farms. Today an estimated two billion cups are drunk every day. Whatever the truth of the Kaldi legend, a goat herder's observation on an Ethiopian hillside quietly reshaped the mornings of half the planet.""",
+        "questions": [
+            q_tfng([
+                ("According to legend, coffee was discovered in Ethiopia.", "TRUE",
+                 "Paragraph 1: the Kaldi story 'takes place in Ethiopia'."),
+                ("Sufi monks drank coffee to stay awake during rituals.", "TRUE",
+                 "Paragraph 2: they used it 'to stay awake through long night-time rituals'."),
+                ("London coffee houses were expensive to enter.", "FALSE",
+                 "Paragraph 3: they charged one penny — cheap enough to be 'penny universities'."),
+                ("Brazil became the world's largest coffee producer.", "TRUE",
+                 "Paragraph 4: 'it had become — and remains today — the largest coffee producer'."),
+                ("Espresso machines were invented before instant coffee.", "NOT GIVEN",
+                 "Both are mentioned in paragraph 5 but no order between them is stated."),
+            ]),
+            q_gapfill(6, "Complete the notes below. Write NO MORE THAN THREE WORDS from the passage.", [
+                ("The Yemeni port of __________ was the centre of the early coffee trade.", "Mocha",
+                 "Paragraph 2: 'Yemen's port of Mocha became the centre'."),
+                ("London coffee houses became known as 'penny __________'.", "universities",
+                 "Paragraph 3 quote."),
+                ("The Dutch grew coffee on the island of __________.", "Java",
+                 "Paragraph 4: 'smuggled seedlings to Java'."),
+                ("An estimated __________ cups of coffee are drunk each day.", "two billion|2 billion",
+                 "Final paragraph: 'an estimated two billion cups are drunk every day'."),
+            ]),
+        ],
+    },
+    # ── Passage 10 · band 5.5 · Technology ──────────────────────────
+    {
+        "title": "The Rise of Electric Bikes",
+        "band_level": 5.5,
+        "topic": "Technology & Transport",
+        "text": """In the debate about cleaner transport, one machine has quietly outsold every electric car on the market: the electric bicycle. In several European countries, e-bikes now account for the majority of new bicycles sold, and global sales have grown faster than almost any other category of personal transport. The vehicle that was once mocked as a bicycle for lazy people has become the fastest-moving transport story of the decade.
+
+The technology is deliberately modest. A typical 'pedelec' e-bike looks like an ordinary bicycle but hides a small battery and motor that add power only while the rider is pedalling. Most models offer assistance up to twenty-five kilometres per hour and a range of forty to one hundred kilometres per charge — enough for nearly every urban journey. Because the motor multiplies the rider's own effort rather than replacing it, hills flatten and headwinds disappear.
+
+The appeal cuts across generations. Commuters arrive at work without needing a shower. Older riders keep cycling years after knees and lungs would otherwise have forced them to stop. Delivery companies, driven by the boom in online food orders, have adopted e-bikes as faster and cheaper than vans in dense city centres. For many families, an e-bike costs a fraction of a second car yet performs most of the same trips.
+
+The problems are equally real. E-bikes cost two to four times more than conventional bicycles, and their weight makes them awkward to carry upstairs. Battery fires — usually from cheap, uncertified packs — have caused fatal blazes in apartment buildings. Theft is rampant because resale is easy. And regulators argue about where e-bikes belong: too fast for crowded cycle paths, too slow for traffic lanes.
+
+Cities are responding differently. France has offered citizens subsidies worth hundreds of euros to trade cars for e-bikes, while other governments invest in secure parking and tougher battery standards. Transport analysts broadly agree on the direction of travel, if not the speed: the more interesting question is what e-bikes actually replace. If they mostly replace ordinary bicycles and buses, the environmental gain is modest. If they replace cars — even one household journey in ten — the humble e-bike may do more for clean transport than the electric car ever will.""",
+        "questions": [
+            q_tfng([
+                ("E-bikes have sold better than electric cars.", "TRUE",
+                 "Paragraph 1: it 'has quietly outsold every electric car on the market'."),
+                ("A pedelec motor works even when the rider stops pedalling.", "FALSE",
+                 "Paragraph 2: the motor adds power 'only while the rider is pedalling'."),
+                ("Delivery companies helped drive e-bike adoption.", "TRUE",
+                 "Paragraph 3: they 'have adopted e-bikes as faster and cheaper than vans'."),
+                ("All e-bike battery fires involve certified batteries.", "FALSE",
+                 "Paragraph 4: fires come 'usually from cheap, uncertified packs'."),
+                ("France pays people to swap cars for e-bikes.", "TRUE",
+                 "Paragraph 5: subsidies 'to trade cars for e-bikes'."),
+            ]),
+            q_mcq(6, "Choose the correct answer.", [
+                ("What does a pedelec e-bike do?",
+                 ["Replaces pedalling entirely", "Multiplies the rider's own effort",
+                  "Only works downhill", "Charges while braking"],
+                 "B", "Paragraph 2: 'the motor multiplies the rider's own effort rather than replacing it'."),
+                ("Which problem is NOT mentioned in the passage?",
+                 ["High purchase price", "Factory pollution",
+                  "Battery fires", "Theft"],
+                 "B", "Paragraph 4 lists cost, weight, fires and theft — pollution is never raised."),
+                ("According to analysts, the key question about e-bikes is…",
+                 ["how fast they can go", "what transport they actually replace",
+                  "whether subsidies will continue", "how long batteries last"],
+                 "B", "Final paragraph: 'the more interesting question is what e-bikes actually replace'."),
+            ]),
+        ],
+    },
+    # ── Passage 11 · band 6.0 · Science — matching headings ─────────
+    {
+        "title": "How Vaccines Changed the World",
+        "band_level": 6.0,
+        "topic": "Science & Health",
+        "text": """A. For most of human history, infectious disease was the great unpredictable force of life. Smallpox alone killed roughly one in three of the people it infected and scarred or blinded millions more, reshaping wars, dynasties and entire civilisations. Long before science understood viruses, communities in Asia and Africa practised variolation — deliberately scratching material from a smallpox pustule into a healthy person's skin. It was dangerous, but those who survived gained real immunity, and the practice carried a quiet idea that would eventually change medicine: a small dose of disease could defend against a large one.
+
+B. The decisive step came from an English country doctor. Edward Jenner had noticed a piece of local folklore: milkmaids who caught cowpox, a mild disease, seemed never to catch smallpox. In 1796 he tested the observation directly, transferring fluid from a cowpox sore on a milkmaid's hand into the arm of an eight-year-old boy, and later exposing the boy to smallpox itself. The boy did not fall ill. Jenner called the method 'vaccination', from vacca, the Latin for cow — and for the first time, immunity could be created safely and deliberately rather than survived by luck.
+
+C. The nineteenth and twentieth centuries turned Jenner's trick into a science. Louis Pasteur weakened the rabies virus in his laboratory and used it to save a bitten boy, proving that laboratories could manufacture weakened versions of pathogens — 'attenuated' vaccines — on demand. The pattern repeated through the next hundred years: vaccines for diphtheria, tetanus, pertussis, measles and polio each converted a feared killer into a scheduled childhood injection.
+
+D. What began as a technique became a global strategy. Vaccination was the first medical tool powerful enough to aim not merely at treatment but at eradication — the permanent removal of a disease from the planet. After a decade-long campaign of surveillance and targeted immunisation, the World Health Organization declared smallpox eradicated in 1980: the only human disease ever eliminated deliberately. Polio has since been pushed to a handful of districts in two countries. These campaigns revealed that success depends as much on logistics — cold storage, transport, funding and trust — as on the vaccine itself.
+
+E. Modern vaccines arrive with modern tensions. When the coronavirus pandemic began, mRNA technology produced effective vaccines within a year — a speed that would have astonished Pasteur — yet the same era saw the rise of vaccine hesitancy, fuelled by misinformation spreading faster than any virus. Meanwhile the economics remain skewed: diseases of wealthy nations attract research budgets, while diseases of poor regions wait decades. The tool that conquered smallpox has never been more powerful. Whether it is used as powerfully everywhere is the unfinished question.""",
+        "questions": [
+            q_heading(1, [
+                ("i", "A disease that shaped history"),
+                ("ii", "The first scientific breakthrough"),
+                ("iii", "A century of expansion"),
+                ("iv", "Eradication on a global scale"),
+                ("v", "New technology, old obstacles"),
+                ("vi", "The manufacture of modern vaccines"),
+                ("vii", "The ethics of laboratory research"),
+            ], [
+                ("Paragraph A", "i",
+                 "This paragraph describes how smallpox 'reshaped wars, dynasties and entire civilisations'."),
+                ("Paragraph B", "ii",
+                 "Jenner's 1796 experiment is described as 'the decisive step' — the first vaccine."),
+                ("Paragraph C", "iii",
+                 "Covers the 19th–20th century expansion from Pasteur to polio vaccines."),
+                ("Paragraph D", "iv",
+                 "About eradication campaigns — smallpox 1980 and polio 'near-eradicated'."),
+                ("Paragraph E", "v",
+                 "mRNA speed plus hesitancy and inequity — new tech, old problems."),
+            ]),
+            q_tfng([
+                ("Variolation was used before Jenner's experiment.", "TRUE",
+                 "Paragraph A: communities 'practised variolation' long before vaccines."),
+                ("Jenner took cowpox material from a milkmaid.", "TRUE",
+                 "Paragraph B: 'fluid from a cowpox sore on a milkmaid's hand'."),
+                ("Smallpox was declared eradicated in 1980.", "TRUE",
+                 "Paragraph D states this directly."),
+                ("Polio has been completely eliminated worldwide.", "FALSE",
+                 "Paragraph D: polio remains in 'a handful of districts in two countries'."),
+                ("mRNA vaccines were developed over twenty years.", "NOT GIVEN",
+                 "Paragraph E says they were produced 'within a year' during the pandemic; it does not date the underlying research."),
+            ], 6),
+        ],
+    },
+    # ── Passage 12 · band 6.5 · Psychology ──────────────────────────
+    {
+        "title": "The Psychology of Procrastination",
+        "band_level": 6.5,
+        "topic": "Psychology",
+        "text": """Everyone procrastinates, yet for decades psychology misunderstood why. The obvious explanation — laziness, or poor time management — fails on inspection: chronic procrastinators are often busy people who delay important tasks while energetically completing trivial ones. The researcher Timothy Pychyl offers a sharper definition: procrastination is the voluntary delay of an intended action despite expecting to be worse off for it. This is not a scheduling failure. It is an emotion-regulation failure — we avoid the task to avoid the feeling the task provokes.
+
+Neuroscience describes the mechanism as a tug-of-war. The limbic system, the brain's fast emotional centre, detects that a task triggers boredom, anxiety or self-doubt and votes for immediate relief: anything else, now. The prefrontal cortex, seat of planning, knows the delay will cost more later but is slower and weaker. Economists call the resulting distortion 'present bias': the mind values relief this minute far above rewards next month. A deadline only defeats the loop when the panic of the final hour finally outweighs the discomfort of the task.
+
+Researchers identify several procrastinating personalities. 'Arousal' procrastinators delay deliberately, claiming they work best under deadline pressure — though studies show their last-minute work contains more errors. 'Avoiders' procrastinate from fear: of failure, of success, or of others' judgement. 'Decisional' procrastinators cannot choose between options, and postpone the choice itself. Around fifteen to twenty percent of adults qualify as chronic procrastinators, and the habit correlates with measurably worse outcomes: lower grades, higher stress, poorer sleep and even weakened immunity — the stress of the delayed task never truly goes away.
+
+The surprising finding is what fixes it. Logic suggests harsher discipline; the evidence points the opposite way. In a widely cited study, psychologist Michael Wohl found that students who forgave themselves for procrastinating on a first exam procrastinated significantly less when preparing for the second. Self-criticism, it turns out, adds another unpleasant emotion to the task — making avoidance more, not less, attractive. Practical strategies share a gentler logic: 'implementation intentions' (deciding in advance that at 9 a.m. tomorrow you will write page one), breaking tasks into steps too small to fear, and designing the environment so the distraction is harder than the work.
+
+Procrastination, then, is less a character flaw than a conflict between the brain's two clocks — one that lives in this moment and one that lives in the future. The task is never the real enemy; the feeling attached to it is. Which suggests the most productive question is not 'How do I force myself to work?' but 'What am I actually avoiding feeling?'""",
+        "questions": [
+            q_tfng([
+                ("Chronic procrastinators are usually inactive people.", "FALSE",
+                 "Paragraph 1: they are 'often busy people who delay important tasks while energetically completing trivial ones'."),
+                ("The limbic system seeks immediate emotional relief.", "TRUE",
+                 "Paragraph 2: it 'votes for immediate relief'."),
+                ("Arousal procrastinators produce better work under pressure.", "FALSE",
+                 "Paragraph 3: last-minute work 'contains more errors'."),
+                ("Roughly one fifth of adults are chronic procrastinators.", "TRUE",
+                 "Paragraph 3: 'fifteen to twenty percent of adults'."),
+                ("Forgiving yourself led to less procrastination later.", "TRUE",
+                 "Paragraph 4: students who forgave themselves 'procrastinated significantly less'."),
+            ]),
+            q_mcq(6, "Choose the correct answer.", [
+                ("According to paragraph 1, procrastination is best described as…",
+                 ["a time-management failure", "an emotion-regulation failure",
+                  "a lack of intelligence", "a type of laziness"],
+                 "B", "Pychyl's definition frames it as avoiding the feeling the task provokes."),
+                ("What is 'present bias'?",
+                 ["Preferring gifts today over tomorrow", "Overvaluing immediate relief over future reward",
+                  "Focusing only on current tasks", "A type of memory error"],
+                 "B", "Paragraph 2: 'values relief this minute far above rewards next month'."),
+                ("What did Wohl's study of students find?",
+                 ["Self-criticism improves performance", "Deadlines eliminate procrastination",
+                  "Self-forgiveness reduces future procrastination", "Procrastinators fail their exams"],
+                 "C", "Paragraph 4: forgiving students 'procrastinated significantly less' on the next exam."),
+                ("Which strategy is NOT suggested in the passage?",
+                 ["Implementation intentions", "Breaking tasks into small steps",
+                  "Stricter self-punishment", "Redesigning the environment"],
+                 "C", "Paragraph 4 warns self-criticism backfires; punishment is never recommended."),
+            ]),
+        ],
+    },
+]
+
+
+# ---------------------------------------------------------------------------
+# IELTS Writing prompts (Task 2 essays + Task 1 reports)
+# level: 'ielts' = Task 2 (250+ words, 40 min) · 'ielts_t1' = Task 1 (150+ words, 20 min)
+# ---------------------------------------------------------------------------
+
+IELTS_WRITING = [
+    # ---- Task 2 · opinion ----
+    ("ielts", "Free University for Everyone?", "Education · Opinion", "🎓", 250, 320,
+     "Đề opinion kinh điển. Quyết định rõ agree hay disagree ngay từ intro, 2 body paragraph bảo vệ lập trường.",
+     "Some people believe that university education should be free for all students. To what extent do you agree or disagree? Give reasons for your answer and include any relevant examples from your own knowledge or experience.",
+     ["I largely agree that higher education should be publicly funded because…",
+      "The strongest argument for free tuition is…",
+      "Admittedly, opponents claim that…, however…"],
+     ["State your position clearly in the introduction — examiners penalise vague thesis statements.",
+      "One body paragraph per argument: reason → explanation → example.",
+      "A short concession ('Admittedly…') raises your Task Response score."],
+     ["tuition fees", "publicly funded", "equal access to education", "a burden on taxpayers"]),
+    ("ielts", "Has Technology Made Life Harder?", "Technology · Opinion", "💻", 250, 320,
+     "Đề agree/disagree về công nghệ. Tránh liệt kê — chọn 2 ý sâu và phát triển bằng ví dụ cụ thể.",
+     "Some people argue that technology has made our lives more complicated rather than simpler. To what extent do you agree or disagree? Give reasons for your answer and include relevant examples.",
+     ["While technology undeniably solves many problems, I agree that it adds complexity because…",
+      "A clear example of this complication is…",
+      "On the other hand, it would be unfair to ignore…"],
+     ["Pick a side — 'partly agree' is allowed but must still be a clear position.",
+      "Use one concrete example per paragraph (a real app, habit or trend).",
+      "End each body paragraph by linking back to the question."],
+     ["digital overload", "constant connectivity", "a double-edged sword", "streamline daily tasks"]),
+    # ---- Task 2 · discussion ----
+    ("ielts", "Remote Work: Boon or Burden?", "Work · Discussion", "🏠", 250, 320,
+     "Dạng Discuss both views — body 1 trình bày view A khách quan, body 2 view B, kết luận mới nói ý kiến của bạn.",
+     "Some people think that remote working benefits employees, while others believe it damages teamwork and company culture. Discuss both views and give your own opinion.",
+     ["Supporters of remote work argue that…",
+      "On the other hand, critics point out that…",
+      "In my view, the benefits outweigh the drawbacks provided that…"],
+     ["Present BOTH sides objectively before giving your opinion — that is the task.",
+      "Keep your own opinion for the final body or conclusion, not the intro.",
+      "Use distancing language for other views ('Supporters claim…', 'Critics argue…')."],
+     ["flexible schedule", "face-to-face collaboration", "team cohesion", "a healthy work-life balance"]),
+    # ---- Task 2 · positive/negative development ----
+    ("ielts", "The Rise of Living Alone", "Society · Development", "🚪", 250, 320,
+     "Is this a positive or negative development? Có thể chọn 'mostly positive/negative' miễn là lập luận nhất quán.",
+     "More people are choosing to live alone than in the past. Is this a positive or negative development? Give reasons for your answer and include any relevant examples.",
+     ["In my view, this trend is largely positive/negative because…",
+      "One major consequence of living alone is…",
+      "However, this development also brings…"],
+     ["'Trend/development' essays want consequences and implications, not just pros/cons lists.",
+      "Acknowledge the other side briefly, then explain why yours wins.",
+      "Anchor the essay in a real context — cost of housing, social media, ageing populations."],
+     ["social isolation", "financial independence", "ageing population", "community ties"]),
+    # ---- Task 2 · problem / solution ----
+    ("ielts", "Choking Cities", "Environment · Problem/Solution", "🌫️", 250, 320,
+     "Đề 2 câu hỏi: problems + solutions. Body 1 nêu 1-2 vấn đề, body 2 nêu giải pháp tương ứng.",
+     "Air pollution in many cities is getting worse. What problems does this cause for people living there, and what measures could be taken to solve it?",
+     ["The most serious consequence of urban air pollution is…",
+      "To tackle this problem, governments should…",
+      "In addition, individuals can contribute by…"],
+     ["Match each problem with a solution — examiners look for direct pairing.",
+      "Use precise vocabulary: 'respiratory diseases' beats 'bad for health'.",
+      "Solutions at two levels (government + individual) show range."],
+     ["respiratory diseases", "congestion charging", "renewable energy", "public transport infrastructure"]),
+    # ---- Task 2 · two-part question ----
+    ("ielts", "The Vanishing Family Dinner", "Family · Two-part", "🍽️", 250, 320,
+     "Đề hỏi kép: Why? + positive or negative? Trả lời đủ cả hai, một body cho mỗi câu hỏi.",
+     "Nowadays, people spend less time with their families than in the past. Why is this happening, and is it a positive or negative trend?",
+     ["There are two main reasons why family time is shrinking…",
+      "In my opinion, this is a negative development because…",
+      "Another factor contributing to this trend is…"],
+     ["Answer BOTH questions explicitly — losing one caps Task Response at band 5.",
+      "Body 1 = causes, Body 2 = evaluation. Keep them separate.",
+      "Finish with a one-sentence recommendation or prediction for a strong conclusion."],
+     ["demanding work schedules", "weaken family bonds", "the pursuit of career goals", "emotional support"]),
+    # ---- Task 1 · line chart ----
+    ("ielts_t1", "Internet Access by Country", "Report · Line Graph", "📈", 150, 200,
+     "Task 1 line graph. Overview = xu hướng chung (tất cả tăng, A dẫn đầu). Detail = số liệu so sánh cụ thể.",
+     "The chart shows the percentage of households with internet access in three countries from 2000 to 2020.\n\nData — Country A: 5% (2000) → 45% (2005) → 70% (2010) → 85% (2015) → 92% (2020) · Country B: 3% → 18% → 40% → 62% → 78% · Country C: 15% → 30% → 50% → 72% → 85%.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+     ["Overall, internet access rose dramatically in all three countries, with Country A maintaining the lead throughout the period.",
+      "In 2000, Country C had the highest access rate at 15%, whereas…",
+      "By 2020, the figure for Country A had climbed to…"],
+     ["Paragraph 2 = overview FIRST (main trends, no data). Examiners score this heavily.",
+      "Never list every number — select: highest, lowest, biggest change, convergence points.",
+      "Use varied trend language: 'climbed', 'plunged', 'levelled off', 'narrowed the gap'."],
+     ["rose steadily", "remained the highest", "narrowed the gap", "a dramatic increase"]),
+    # ---- Task 1 · bar chart ----
+    ("ielts_t1", "Average Commute Times", "Report · Bar Chart", "🚇", 150, 200,
+     "Bar chart so sánh 4 thành phố ở 2 năm. Nhóm cities theo xu hướng thay vì liệt kê từng cái.",
+     "The bar chart compares average one-way commute times (in minutes) in four cities in 2015 and 2025.\n\nData — London: 45 → 50 · Paris: 38 → 44 · Tokyo: 42 → 46 · Berlin: 30 → 32.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+     ["Overall, commute times increased in all four cities, with London consistently recording the longest journeys.",
+      "Berlin remained the most commuter-friendly city, at just…",
+      "The largest rise was seen in…"],
+     ["Group data: 'London and Tokyo, the two longest commutes…' shows synthesis.",
+      "Compare across years AND across cities in every paragraph.",
+      "Numbers must be reported accurately — wrong data costs Task Achievement."],
+     ["recorded the longest commute", "saw a marginal increase", "consistently the lowest", "respectively"]),
+    # ---- Task 1 · pie charts ----
+    ("ielts_t1", "Where the Money Goes", "Report · Pie Charts", "🥧", 150, 200,
+     "Hai pie charts 1990 vs 2020. Bắt trend: category nào tăng/giảm mạnh nhất.",
+     "The pie charts show how a typical household divided its spending between five categories in 1990 and 2020.\n\nData — Housing: 25% → 35% · Food: 30% → 15% · Transport: 15% → 20% · Leisure: 10% → 15% · Other: 20% → 15%.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+     ["Overall, housing became the dominant expense by 2020, while the share spent on food halved.",
+      "In 1990, food accounted for the largest proportion at 30%, but…",
+      "The proportion devoted to leisure saw a modest rise from…"],
+     ["Use proportion language: 'accounted for', 'made up', 'represented a third of'.",
+      "Lead with the biggest changes (Housing +10, Food −15), then minor ones.",
+      "An overview naming the 2 biggest shifts earns more than listing all five."],
+     ["accounted for the largest share", "halved", "saw a significant increase", "respectively"]),
+    # ---- Task 1 · process ----
+    ("ielts_t1", "How Paper Is Recycled", "Report · Process", "♻️", 150, 200,
+     "Process diagram — dùng passive voice và sequencers. Không có opinion, chỉ mô tả các giai đoạn.",
+     "The diagram shows the process by which waste paper is recycled into new paper products.\n\nStages: 1. Collection — used paper is gathered from homes and offices → 2. Sorting — paper is separated from plastic and metal → 3. Pulping — paper is mixed with water and chemicals to form pulp → 4. De-inking — ink and glue are removed → 5. Pressing — pulp is pressed into thin sheets → 6. Drying — sheets are dried and rolled onto reels.\n\nSummarise the information by selecting and reporting the main features. Write at least 150 words.",
+     ["Overall, the recycling of paper is a six-stage linear process, beginning with collection and ending with dried paper reels.",
+      "Once the waste paper has been collected, it is sorted…",
+      "At the de-inking stage,…"],
+     ["Passive voice is essential for processes: 'is collected', 'are removed'.",
+      "Use sequencers: Initially → Following this → Subsequently → Finally.",
+      "Group stages into 2 paragraphs (1–3 and 4–6) instead of six tiny ones."],
+     ["is gathered from", "is separated into", "is transformed into", "the final stage"]),
+]
+
+
 def main():
     db = sqlite3.connect(DB_PATH)
     cur = db.cursor()
@@ -569,11 +955,29 @@ def main():
              json.dumps(p["questions"], ensure_ascii=False)),
         )
 
+    # ------------------------------------------------------------------
+    # IELTS writing prompts + dedupe of legacy duplicated rows
+    # ------------------------------------------------------------------
+    cur.execute("DELETE FROM writing_prompts WHERE id NOT IN (SELECT MIN(id) FROM writing_prompts GROUP BY title)")
+    cur.execute("DELETE FROM writing_prompts WHERE level IN ('ielts', 'ielts_t1')")
+    for (level, title, category, icon, tmin, tmax, sit_vi, prompt, starters, tips, vocab) in IELTS_WRITING:
+        cur.execute(
+            """INSERT INTO writing_prompts
+               (level, title, category, category_icon, target_min, target_max,
+                situation_vi, prompt, sentence_starters_json, guide_tips_json, suggested_vocab_json)
+               VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (level, title, category, icon, tmin, tmax, sit_vi, prompt,
+             json.dumps(starters, ensure_ascii=False),
+             json.dumps(tips, ensure_ascii=False),
+             json.dumps(vocab, ensure_ascii=False)),
+        )
+
     db.commit()
 
     counts = {
         "speaking_prompts": cur.execute("SELECT COUNT(*) FROM speaking_prompts").fetchone()[0],
         "reading_passages": cur.execute("SELECT COUNT(*) FROM reading_passages").fetchone()[0],
+        "writing_prompts": cur.execute("SELECT COUNT(*) FROM writing_prompts").fetchone()[0],
     }
     by_part = cur.execute(
         "SELECT part, COUNT(*) FROM speaking_prompts GROUP BY part ORDER BY part").fetchall()

@@ -23,7 +23,7 @@ func LoadConfig() Config {
 		OpenrouterApiKey:    "",
 		OpenrouterModel:     "openrouter/free",
 		GroqApiKey:          "",
-		GroqModel:           "qwen/qwen3.6-27b",
+		GroqModel:           "qwen/qwen3.8-27b",
 		OllamaUrl:           "http://localhost:11434",
 		OllamaModel:         "qwen2.5:7b",
 		AutoPlayAudio:       true,
@@ -32,7 +32,7 @@ func LoadConfig() Config {
 		TTSVoice:            "en-US-JennyNeural",
 		OpencodeModel:       "opencode/nemotron-3-ultra-free",
 		TranslationProvider: "default",
-		TranslationModel:    "qwen/qwen3.6-27b",
+		TranslationModel:    "qwen/qwen3.8-27b",
 	}
 
 	configPath := GetConfigPath()
@@ -64,13 +64,13 @@ func LoadConfig() Config {
 		cfg.OpencodeModel = "opencode-go/deepseek-v4-flash"
 	}
 	if cfg.GroqModel == "" || cfg.GroqModel == "llama-3.3-70b-versatile" || cfg.GroqModel == "llama-3.1-8b-instant" {
-		cfg.GroqModel = "qwen/qwen3.6-27b"
+		cfg.GroqModel = "qwen/qwen3.8-27b"
 	}
 	if cfg.TranslationProvider == "" {
 		cfg.TranslationProvider = "default"
 	}
 	if cfg.TranslationModel == "" {
-		cfg.TranslationModel = "qwen/qwen3.6-27b"
+		cfg.TranslationModel = "qwen/qwen3.8-27b"
 	}
 	if cfg.OllamaUrl == "" {
 		cfg.OllamaUrl = "http://localhost:11434"

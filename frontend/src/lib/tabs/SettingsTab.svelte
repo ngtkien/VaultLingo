@@ -13,7 +13,7 @@
     openrouter_api_key: '',
     openrouter_model: 'openrouter/free',
     groq_api_key: '',
-    groq_model: 'qwen/qwen3.6-27b',
+    groq_model: 'qwen/qwen3.8-27b',
     ollama_url: 'http://localhost:11434',
     ollama_model: 'qwen2.5:7b',
     opencode_model: 'opencode/nemotron-3-ultra-free',
@@ -24,7 +24,7 @@
     piper_path: '',
     piper_model_path: '',
     translation_provider: 'default',
-    translation_model: 'qwen/qwen3.6-27b'
+    translation_model: 'qwen/qwen3.8-27b'
   });
 
   let voices = $state<any[]>([]);
@@ -76,8 +76,7 @@
   ];
 
   const GROQ_MODELS = [
-    { id: 'qwen/qwen3.6-27b', label: 'qwen3.6-27b (Verified ⭐)' },
-    { id: 'qwen/qwen3.8-27b', label: 'qwen3.8-27b' },
+    { id: 'qwen/qwen3.8-27b', label: 'qwen3.8-27b (Verified ⭐)' },
     { id: 'openai/gpt-oss-120b', label: 'gpt-oss-120b' },
     { id: 'openai/gpt-oss-20b', label: 'gpt-oss-20b' },
   ];
@@ -126,9 +125,9 @@
       if (!config.tts_provider) config.tts_provider = 'edge';
       if (!config.tts_voice) config.tts_voice = 'en-US-JennyNeural';
       if (!config.translation_provider) config.translation_provider = 'default';
-      if (!config.translation_model) config.translation_model = 'qwen/qwen3.6-27b';
+      if (!config.translation_model) config.translation_model = 'qwen/qwen3.8-27b';
       if (!config.groq_model || config.groq_model === 'llama-3.3-70b-versatile' || config.groq_model === 'llama-3.1-8b-instant') {
-        config.groq_model = 'qwen/qwen3.6-27b';
+        config.groq_model = 'qwen/qwen3.8-27b';
       }
       if (!config.openrouter_model || config.openrouter_model === 'meta-llama/llama-3.3-70b-instruct:free') {
         config.openrouter_model = 'openrouter/free';
@@ -269,7 +268,7 @@
         openrouter_api_key: '',
         openrouter_model: 'meta-llama/llama-3.3-70b-instruct:free',
         groq_api_key: '',
-        groq_model: 'qwen/qwen3.6-27b',
+        groq_model: 'qwen/qwen3.8-27b',
         ollama_url: 'http://localhost:11434',
         ollama_model: 'qwen2.5:7b',
         auto_play_audio: true,
@@ -279,7 +278,7 @@
         piper_path: '',
         piper_model_path: '',
         translation_provider: 'default',
-        translation_model: 'qwen/qwen3.6-27b'
+        translation_model: 'qwen/qwen3.8-27b'
       };
       handleSave();
       window.location.reload();
@@ -929,7 +928,7 @@
             <input
               type="text"
               bind:value={config.groq_model}
-              placeholder="qwen/qwen3.6-27b"
+              placeholder="qwen/qwen3.8-27b"
               class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-4 py-2 text-xs text-[var(--text-main)] font-mono"
             />
           </div>
@@ -1044,7 +1043,7 @@
                   type="button"
                   onclick={() => {
                     config.translation_provider = prov.id;
-                    if (prov.id === 'groq') config.translation_model = 'qwen/qwen3.6-27b';
+                    if (prov.id === 'groq') config.translation_model = 'qwen/qwen3.8-27b';
                     if (prov.id === 'ollama') config.translation_model = 'qwen2.5:7b';
                     if (prov.id === 'openrouter') config.translation_model = 'openrouter/free';
                     if (prov.id === 'agy') config.translation_model = 'gemini-3.7-flash-low';
@@ -1069,11 +1068,11 @@
               <span class="text-xs font-bold text-[var(--text-main)]">Dedicated Model Name:</span>
               <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
                 {#if config.translation_provider === 'groq'}
-                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'qwen/qwen3.6-27b'}>qwen3.6-27b ⭐</button>
-                  <span class="text-[var(--text-subtle)]">•</span>
-                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'qwen/qwen3.8-27b'}>qwen3.8-27b</button>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'qwen/qwen3.8-27b'}>qwen3.8-27b ⭐</button>
                   <span class="text-[var(--text-subtle)]">•</span>
                   <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'openai/gpt-oss-120b'}>gpt-oss-120b</button>
+                  <span class="text-[var(--text-subtle)]">•</span>
+                  <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'openai/gpt-oss-20b'}>gpt-oss-20b</button>
                 {:else if config.translation_provider === 'ollama'}
                   <button type="button" class="text-[var(--accent-primary)] hover:underline font-medium" onclick={() => config.translation_model = 'qwen2.5:7b'}>qwen2.5:7b ⭐</button>
                   <span class="text-[var(--text-subtle)]">•</span>
@@ -1142,7 +1141,7 @@
             <input
               type="text"
               bind:value={config.translation_model}
-              placeholder="qwen/qwen3.6-27b"
+              placeholder="qwen/qwen3.8-27b"
               class="w-full bg-[var(--bg-card)] border border-[var(--border-main)] focus:border-[var(--accent-primary)] rounded-xl px-3.5 py-2 text-xs text-[var(--text-main)] font-mono"
             />
             <p class="text-[11px] text-[var(--text-muted)]">

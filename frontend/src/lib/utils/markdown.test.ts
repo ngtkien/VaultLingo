@@ -67,8 +67,9 @@ Tham khảo [bản kiểm tra IDA trực tiếp](18_ida_rv32_live_audit.md) và 
     expect(html).toContain("<h1");
     expect(html).toContain("<table");
     expect(html).toContain("Ảnh mã thực thi");
-    expect(html).toContain("<code>0x84000000</code>");
-    expect(html).toContain("<code>[0x3E900BE8, 0x3E903AEC)</code>");
+    // Inline code renders as <code class="...">…</code> — assert content sits inside a code tag.
+    expect(html).toContain(">0x84000000</code>");
+    expect(html).toContain(">[0x3E900BE8, 0x3E903AEC)</code>");
     expect(html).toContain('<a href="18_ida_rv32_live_audit.md"');
     expect(html).toContain("Đây là mô hình");
   });

@@ -51,7 +51,9 @@
     onWordStored?: () => void;
   }>();
 
-  let searchTerm = $state(initialWord || "resilience");
+  // onMount() searches `initialWord` (which also assigns searchTerm), so a
+  // neutral seed here is fine — capturing the prop would warn anyway.
+  let searchTerm = $state("resilience");
   let currentResult = $state<SmartWordResult | null>(null);
   let isSaved = $state(false);
   let isPracticeModalOpen = $state(false);

@@ -135,6 +135,9 @@
       : playAudioUrl(currentTopic.audio, speed, 'full_audio');
     playback.then(() => {
       isFullAudioPlaying = false;
+    }).catch((e) => {
+      console.warn('Audio playback failed:', e);
+      isFullAudioPlaying = false;
     });
   }
 
