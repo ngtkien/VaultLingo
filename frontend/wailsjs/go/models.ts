@@ -311,6 +311,26 @@ export namespace backend {
 		    return a;
 		}
 	}
+	export class MockScore {
+	    id: number;
+	    skill: string;
+	    band: number;
+	    taken_at: string;
+	    note?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MockScore(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.skill = source["skill"];
+	        this.band = source["band"];
+	        this.taken_at = source["taken_at"];
+	        this.note = source["note"];
+	    }
+	}
 	export class ObsidianItem {
 	    word: string;
 	    pos: string;
@@ -459,6 +479,268 @@ export namespace backend {
 	        this.correct_sentence = source["correct_sentence"];
 	        this.explanation = source["explanation"];
 	        this.tip = source["tip"];
+	    }
+	}
+	export class ReadingAnswerDetail {
+	    item_id: number;
+	    question: string;
+	    given: string;
+	    expected: string;
+	    correct: boolean;
+	    explanation?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ReadingAnswerDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.item_id = source["item_id"];
+	        this.question = source["question"];
+	        this.given = source["given"];
+	        this.expected = source["expected"];
+	        this.correct = source["correct"];
+	        this.explanation = source["explanation"];
+	    }
+	}
+	export class ReadingAnswerInput {
+	    item_id: number;
+	    given: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ReadingAnswerInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.item_id = source["item_id"];
+	        this.given = source["given"];
+	    }
+	}
+	export class ReadingQuestionItem {
+	    id: number;
+	    question: string;
+	    options?: string[];
+	    answer: string;
+	    explanation?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ReadingQuestionItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.question = source["question"];
+	        this.options = source["options"];
+	        this.answer = source["answer"];
+	        this.explanation = source["explanation"];
+	    }
+	}
+	export class ReadingQuestionSet {
+	    type: string;
+	    instruction: string;
+	    items: ReadingQuestionItem[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ReadingQuestionSet(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.type = source["type"];
+	        this.instruction = source["instruction"];
+	        this.items = this.convertValues(source["items"], ReadingQuestionItem);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ReadingPassage {
+	    id: number;
+	    title: string;
+	    band_level: number;
+	    topic: string;
+	    word_count: number;
+	    text: string;
+	    questions: ReadingQuestionSet[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ReadingPassage(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.title = source["title"];
+	        this.band_level = source["band_level"];
+	        this.topic = source["topic"];
+	        this.word_count = source["word_count"];
+	        this.text = source["text"];
+	        this.questions = this.convertValues(source["questions"], ReadingQuestionSet);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ReadingPassageMeta {
+	    id: number;
+	    title: string;
+	    band_level: number;
+	    topic: string;
+	    word_count: number;
+	    question_count: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ReadingPassageMeta(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.title = source["title"];
+	        this.band_level = source["band_level"];
+	        this.topic = source["topic"];
+	        this.word_count = source["word_count"];
+	        this.question_count = source["question_count"];
+	    }
+	}
+	
+	
+	export class ReadingResult {
+	    passage_id: number;
+	    correct: number;
+	    total: number;
+	    percentage: number;
+	    band_estimate: number;
+	    details: ReadingAnswerDetail[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ReadingResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.passage_id = source["passage_id"];
+	        this.correct = source["correct"];
+	        this.total = source["total"];
+	        this.percentage = source["percentage"];
+	        this.band_estimate = source["band_estimate"];
+	        this.details = this.convertValues(source["details"], ReadingAnswerDetail);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class RecordingStatus {
+	    available: boolean;
+	    recorder: string;
+	    message: string;
+	    recording: boolean;
+	    audio_path?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecordingStatus(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.available = source["available"];
+	        this.recorder = source["recorder"];
+	        this.message = source["message"];
+	        this.recording = source["recording"];
+	        this.audio_path = source["audio_path"];
+	    }
+	}
+	export class SpeakingAttempt {
+	    id: number;
+	    prompt_id: number;
+	    audio_path: string;
+	    duration: number;
+	    feedback: string;
+	    created_at: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SpeakingAttempt(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.prompt_id = source["prompt_id"];
+	        this.audio_path = source["audio_path"];
+	        this.duration = source["duration"];
+	        this.feedback = source["feedback"];
+	        this.created_at = source["created_at"];
+	    }
+	}
+	export class SpeakingPrompt {
+	    id: number;
+	    part: number;
+	    topic: string;
+	    question: string;
+	    cues: string[];
+	    hint_vi: string;
+	    sample_ideas: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new SpeakingPrompt(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.part = source["part"];
+	        this.topic = source["topic"];
+	        this.question = source["question"];
+	        this.cues = source["cues"];
+	        this.hint_vi = source["hint_vi"];
+	        this.sample_ideas = source["sample_ideas"];
 	    }
 	}
 	export class TranslationResult {

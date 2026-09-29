@@ -65,6 +65,56 @@ func InitDB() (*sql.DB, error) {
 		);
 	`)
 
+	// IELTS roadmap progress tracking
+	_, _ = db.Exec(`
+		CREATE TABLE IF NOT EXISTS roadmap_progress (
+			session_id INTEGER PRIMARY KEY,
+			status TEXT DEFAULT 'pending',
+			actual_date TEXT,
+			note TEXT DEFAULT ''
+		);
+	`)
+	_, _ = db.Exec(`
+		CREATE TABLE IF NOT EXISTS mock_scores (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			skill TEXT NOT NULL,
+			band REAL NOT NULL,
+			taken_at TEXT NOT NULL,
+			note TEXT DEFAULT ''
+		);
+	`)
+	_, _ = db.Exec(`
+		CREATE TABLE IF NOT EXISTS speaking_prompts (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			part INTEGER NOT NULL,
+			topic TEXT DEFAULT '',
+			question TEXT NOT NULL,
+			cues_json TEXT DEFAULT '[]',
+			hint_vi TEXT DEFAULT '',
+			sample_ideas_json TEXT DEFAULT '[]'
+		);
+	`)
+	_, _ = db.Exec(`
+		CREATE TABLE IF NOT EXISTS speaking_attempts (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			prompt_id INTEGER,
+			audio_path TEXT DEFAULT '',
+			duration INTEGER DEFAULT 0,
+			feedback TEXT DEFAULT '',
+			created_at TEXT NOT NULL
+		);
+	`)
+	_, _ = db.Exec(`
+		CREATE TABLE IF NOT EXISTS reading_passages (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			title TEXT NOT NULL,
+			band_level REAL DEFAULT 5.5,
+			topic TEXT DEFAULT '',
+			text TEXT NOT NULL,
+			questions_json TEXT NOT NULL
+		);
+	`)
+
 	// Ensure rich linguistic columns exist in words table
 	_, _ = db.Exec(`ALTER TABLE words ADD COLUMN synonyms_json TEXT DEFAULT '[]';`)
 	_, _ = db.Exec(`ALTER TABLE words ADD COLUMN antonyms_json TEXT DEFAULT '[]';`)
@@ -85,7 +135,7 @@ func InitDB() (*sql.DB, error) {
 	return db, nil
 }
 
-const bundledContentVersion = 3
+const bundledContentVersion = 4
 
 func migrateBundledContent(db *sql.DB, appDataDir string) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS content_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`)
@@ -133,6 +183,8 @@ func migrateBundledContent(db *sql.DB, appDataDir string) error {
 		`INSERT OR REPLACE INTO grammar_drills SELECT * FROM bundled.grammar_drills`,
 		`INSERT OR REPLACE INTO writing_prompts SELECT * FROM bundled.writing_prompts`,
 		`INSERT OR REPLACE INTO quizzes SELECT * FROM bundled.quizzes`,
+		`INSERT OR REPLACE INTO speaking_prompts SELECT * FROM bundled.speaking_prompts`,
+		`INSERT OR REPLACE INTO reading_passages SELECT * FROM bundled.reading_passages`,
 	}
 	for _, query := range queries {
 		if _, err = db.Exec(query); err != nil {

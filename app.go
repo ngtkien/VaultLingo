@@ -214,6 +214,74 @@ func (a *App) GetListeningTopics() ([]backend.ListeningTopic, error) {
 	return backend.GetListeningTopics()
 }
 
+// Roadmap Methods
+func (a *App) GetRoadmapProgress() (map[int]backend.RoadmapProgress, error) {
+	return backend.GetRoadmapProgress()
+}
+
+func (a *App) MarkSession(sessionID int, status string, note string) error {
+	return backend.MarkSession(sessionID, status, note)
+}
+
+func (a *App) AddMockScore(skill string, band float64, note string) error {
+	return backend.AddMockScore(skill, band, note)
+}
+
+func (a *App) GetMockScores() ([]backend.MockScore, error) {
+	return backend.GetMockScores()
+}
+
+func (a *App) DeleteMockScore(id int) error {
+	return backend.DeleteMockScore(id)
+}
+
+// Speaking Lab Methods
+func (a *App) GetSpeakingPrompts(part int, topic string) ([]backend.SpeakingPrompt, error) {
+	return backend.GetSpeakingPrompts(part, topic)
+}
+
+func (a *App) GetSpeakingTopics() ([]string, error) {
+	return backend.GetSpeakingTopics()
+}
+
+func (a *App) GetRecordingStatus() backend.RecordingStatus {
+	return backend.GetRecordingStatus()
+}
+
+func (a *App) StartSpeakingRecording() (backend.RecordingStatus, error) {
+	return backend.StartSpeakingRecording()
+}
+
+func (a *App) StopSpeakingRecording() (backend.RecordingStatus, error) {
+	return backend.StopSpeakingRecording()
+}
+
+func (a *App) SaveSpeakingAttempt(promptID int, audioPath string, duration int, feedback string) error {
+	return backend.SaveSpeakingAttempt(promptID, audioPath, duration, feedback)
+}
+
+func (a *App) GetSpeakingAttempts(promptID int) ([]backend.SpeakingAttempt, error) {
+	return backend.GetSpeakingAttempts(promptID)
+}
+
+func (a *App) EvaluateSpeaking(transcript string, part int, question string, audioPath string, durationSec int) (string, error) {
+	cfg := backend.LoadConfig()
+	return backend.EvaluateSpeakingAI(transcript, part, question, audioPath, durationSec, cfg)
+}
+
+// Reading Lab Methods
+func (a *App) GetReadingPassages() ([]backend.ReadingPassageMeta, error) {
+	return backend.GetReadingPassages()
+}
+
+func (a *App) GetReadingPassage(id int) (backend.ReadingPassage, error) {
+	return backend.GetReadingPassage(id)
+}
+
+func (a *App) CheckReadingAnswers(passageID int, answers []backend.ReadingAnswerInput) (backend.ReadingResult, error) {
+	return backend.CheckReadingAnswers(passageID, answers)
+}
+
 // OpenCode Methods
 func (a *App) GetOpencodeStatus() backend.OpencodeStatus {
 	return backend.CheckOpencodeStatus()

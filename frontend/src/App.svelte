@@ -5,12 +5,15 @@
   import Navbar from './lib/components/Navbar.svelte';
   import TodayTab from './lib/tabs/TodayTab.svelte';
   import PracticeHubTab from './lib/tabs/PracticeHubTab.svelte';
+  import RoadmapTab from './lib/tabs/RoadmapTab.svelte';
   import VocabTab from './lib/tabs/VocabTab.svelte';
   import DictionaryTab from './lib/tabs/DictionaryTab.svelte';
   import GrammarTab from './lib/tabs/GrammarTab.svelte';
   import DictationTab from './lib/tabs/DictationTab.svelte';
   import ListeningTab from './lib/tabs/ListeningTab.svelte';
   import WritingTab from './lib/tabs/WritingTab.svelte';
+  import SpeakingTab from './lib/tabs/SpeakingTab.svelte';
+  import ReadingTab from './lib/tabs/ReadingTab.svelte';
   import ObsidianTab from './lib/tabs/ObsidianTab.svelte';
   import SettingsTab from './lib/tabs/SettingsTab.svelte';
   import { GetWordCount, GetDailyVocab, GetDailyIdiom, GetSavedObsidianVocab } from '../wailsjs/go/main/App.js';
@@ -31,18 +34,24 @@
   const defaults: Record<Area, string> = {
     today: 'today',
     dictionary: 'dictionary',
-    learn: 'vocab',
+    learn: 'roadmap',
     practice: 'hub',
     library: 'obsidian',
     settings: 'settings'
   };
 
   const subnav: Partial<Record<Area, { id: string; label: string }[]>> = {
+    learn: [
+      { id: 'roadmap', label: 'Roadmap' },
+      { id: 'vocab', label: 'Vocabulary' }
+    ],
     practice: [
       { id: 'hub', label: 'Overview' },
       { id: 'dictation', label: 'Dictation' },
       { id: 'listening', label: 'Listening' },
       { id: 'grammar', label: 'Grammar' },
+      { id: 'speaking', label: 'Speaking' },
+      { id: 'reading', label: 'Reading' },
       { id: 'writing', label: 'Writing Lab' }
     ],
     library: [
@@ -317,6 +326,8 @@
         {savedCount}
         onSelectPracticeTab={(tabId) => selectView(tabId)} 
       />
+    {:else if currentView === 'roadmap'}
+      <RoadmapTab />
     {:else if currentView === 'vocab'}
       <VocabTab onNavigateToDictionary={openDictionary} />
     {:else if currentView === 'dictionary'}
@@ -333,6 +344,10 @@
       <ListeningTab />
     {:else if currentView === 'grammar'}
       <GrammarTab />
+    {:else if currentView === 'speaking'}
+      <SpeakingTab />
+    {:else if currentView === 'reading'}
+      <ReadingTab />
     {:else if currentView === 'writing'}
       <WritingTab onNavigateTab={(tab) => navigateTo(tab)} />
     {:else if currentView === 'obsidian'}

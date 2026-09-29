@@ -11,8 +11,10 @@
     CheckCircle2,
     Circle
   } from 'lucide-svelte';
-  import { GetSavedObsidianVocab } from '../../../wailsjs/go/main/App.js';
+  import { GetSavedObsidianVocab, GetRoadmapProgress } from '../../../wailsjs/go/main/App.js';
   import { getStreak, getTodayProgress, markToday } from '../utils/daily';
+  import { SESSIONS, projectedDates, formatDate } from '../data/roadmap';
+  import { Map } from 'lucide-svelte';
 
   let {
     dueCount = 0,
@@ -33,6 +35,9 @@
   let recent = $state<any[]>([]);
   let streak = $state(dayStreak);
   let progress = $state({ done: 0, total: 3, pct: 0, rec: { visited: false, review: false, dictation: false, listening: false } });
+  let nextSession = $state<any>(null);
+  let nextSessionDate = $state<Date | null>(null);
+  let sessionsDone = $state(0);
 
   const fallbackQuote = {
     word: 'architecture',
@@ -61,6 +66,15 @@
     } catch {
       recent = [];
     }
+    try {
+      const rp = await GetRoadmapProgress();
+      const doneIds = new Set(
+        Object.entries(rp || {}).filter(([, p]: any) => p.status === 'done').map(([id]) => Number(id))
+      );
+      sessionsDone = doneIds.size;
+      nextSession = SESSIONS.find(s => !doneIds.has(s.id)) ?? null;
+      nextSessionDate = nextSession ? (projectedDates(doneIds).get(nextSession.id) ?? null) : null;
+    } catch {}
   });
 </script>
 
@@ -191,6 +205,34 @@
       </div>
     </div>
   </section>
+
+  <!-- Roadmap: next study session -->
+  {#if nextSession}
+    <button
+      onclick={() => onNavigate('learn', 'roadmap')}
+      class="w-full journal-card p-4 sm:p-5 border border-[var(--accent-primary)]/40 bg-[var(--accent-primary-light)]/20 text-left hover:border-[var(--accent-primary)] transition cursor-pointer group"
+    >
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-9 h-9 rounded-xl bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] flex items-center justify-center shrink-0">
+            <Map class="w-4.5 h-4.5" />
+          </span>
+          <div class="min-w-0">
+            <div class="text-[10px] font-mono font-semibold text-[var(--accent-primary)] uppercase tracking-wider">
+              Roadmap · Session {nextSession.id}/64 · {nextSession.dayLabel} {nextSessionDate ? formatDate(nextSessionDate) : ''}
+            </div>
+            <h3 class="font-serif font-bold text-sm sm:text-base text-[var(--text-main)] truncate group-hover:text-[var(--accent-primary)] transition">
+              {nextSession.blockA}
+            </h3>
+            <p class="text-[11px] text-[var(--text-muted)] truncate">Speaking: {nextSession.blockB}</p>
+          </div>
+        </div>
+        <span class="text-xs font-semibold text-[var(--accent-primary)] flex items-center gap-1 shrink-0">
+          {sessionsDone} done <ArrowRight class="w-3.5 h-3.5" />
+        </span>
+      </div>
+    </button>
+  {/if}
 
   <!-- Middle Grid: Real status -->
   <div class="grid lg:grid-cols-3 gap-6">

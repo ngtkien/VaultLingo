@@ -193,6 +193,110 @@ type ExtractedVocab struct {
 	Meaning  string `json:"meaning"`
 }
 
+// ---------- IELTS Roadmap ----------
+
+type RoadmapProgress struct {
+	SessionID  int    `json:"session_id"`
+	Status     string `json:"status"` // "pending" | "done" | "missed"
+	ActualDate string `json:"actual_date,omitempty"`
+	Note       string `json:"note,omitempty"`
+}
+
+type MockScore struct {
+	ID      int     `json:"id"`
+	Skill   string  `json:"skill"` // "L" | "R" | "W" | "S"
+	Band    float64 `json:"band"`
+	TakenAt string  `json:"taken_at"`
+	Note    string  `json:"note,omitempty"`
+}
+
+// ---------- Speaking Lab ----------
+
+type SpeakingPrompt struct {
+	ID          int      `json:"id"`
+	Part        int      `json:"part"` // 1 | 2 | 3
+	Topic       string   `json:"topic"`
+	Question    string   `json:"question"`
+	Cues        []string `json:"cues"`
+	HintVi      string   `json:"hint_vi"`
+	SampleIdeas []string `json:"sample_ideas"`
+}
+
+type SpeakingAttempt struct {
+	ID        int    `json:"id"`
+	PromptID  int    `json:"prompt_id"`
+	AudioPath string `json:"audio_path"`
+	Duration  int    `json:"duration"`
+	Feedback  string `json:"feedback"`
+	CreatedAt string `json:"created_at"`
+}
+
+type RecordingStatus struct {
+	Available  bool   `json:"available"`
+	Recorder   string `json:"recorder"` // "arecord" | "ffmpeg"
+	Message    string `json:"message"`
+	Recording  bool   `json:"recording"`
+	AudioPath  string `json:"audio_path,omitempty"`
+}
+
+// ---------- Reading Lab ----------
+
+type ReadingQuestionItem struct {
+	ID          int      `json:"id"`
+	Question    string   `json:"question"`
+	Options     []string `json:"options,omitempty"`
+	Answer      string   `json:"answer"`
+	Explanation string   `json:"explanation,omitempty"`
+}
+
+type ReadingQuestionSet struct {
+	Type        string                `json:"type"` // "tfng" | "gapfill" | "matching_heading" | "mcq"
+	Instruction string                `json:"instruction"`
+	Items       []ReadingQuestionItem `json:"items"`
+}
+
+type ReadingPassage struct {
+	ID        int                  `json:"id"`
+	Title     string               `json:"title"`
+	BandLevel float64              `json:"band_level"`
+	Topic     string               `json:"topic"`
+	WordCount int                  `json:"word_count"`
+	Text      string               `json:"text"`
+	Questions []ReadingQuestionSet `json:"questions"`
+}
+
+type ReadingPassageMeta struct {
+	ID            int     `json:"id"`
+	Title         string  `json:"title"`
+	BandLevel     float64 `json:"band_level"`
+	Topic         string  `json:"topic"`
+	WordCount     int     `json:"word_count"`
+	QuestionCount int     `json:"question_count"`
+}
+
+type ReadingAnswerInput struct {
+	ItemID int    `json:"item_id"`
+	Given  string `json:"given"`
+}
+
+type ReadingAnswerDetail struct {
+	ItemID      int    `json:"item_id"`
+	Question    string `json:"question"`
+	Given       string `json:"given"`
+	Expected    string `json:"expected"`
+	Correct     bool   `json:"correct"`
+	Explanation string `json:"explanation,omitempty"`
+}
+
+type ReadingResult struct {
+	PassageID    int                   `json:"passage_id"`
+	Correct      int                   `json:"correct"`
+	Total        int                   `json:"total"`
+	Percentage   int                   `json:"percentage"`
+	BandEstimate float64               `json:"band_estimate"`
+	Details      []ReadingAnswerDetail `json:"details"`
+}
+
 type TranslationResult struct {
 	TranslatedText string           `json:"translated_text"`
 	SourceLang     string           `json:"source_lang"`
